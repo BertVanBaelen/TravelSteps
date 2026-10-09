@@ -1,0 +1,20 @@
+services:
+  travelsteps:
+    build: .
+    image: travelsteps:latest
+    container_name: travelsteps
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+    ports:
+      - '${PORT:-8080}:${PORT:-8080}'
+    volumes:
+      # All data (SQLite + Markdown) lives on the host and survives restarts/updates.
+      - '${TRAVELSTEPS_DATA_DIR:-/share/travelsteps}:/data'
+    # Logs go to stdout (pino JSON); Docker rotates them so they cannot fill the disk.
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'

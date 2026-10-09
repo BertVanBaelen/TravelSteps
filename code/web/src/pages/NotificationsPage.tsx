@@ -1,0 +1,142 @@
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import type { AppNotification, NotificationPage } from '@travelsteps/shared';
+import { api, errorMessage } from '../api';
+import { useUser } from '../auth/AuthContext';
+import { useBlog } from '../blog/BlogContext';
+import { Avatar } from '../components/Avatar';
+import { Alert } from '../components/Field';
+import { PageActions, usePageTitle } from '../components/PageTitle';
+import { DELETED_USER } from '../components/PostCard';
+import { PushToggle } from '../components/PushToggle';
+import { nl } from '../i18n/nl';
+import { formatDateTime, formatRelative } from '../lib/format';
+
+function text(n: AppNotification): string {
+  const actor = n.actor?.displayName ?? nl.blog.deletedUser;
+  const title = n.postTitle ?? '';
+  const travel = n.travelName ?? '';
+  switch (n.type) {
+    case 'post':
+      return nl.notifications.post(actor, title, travel);
+    case 'like':
+      return nl.notifications.like(actor, title);
+    case 'comment':
+      return nl.notifications.comment(actor, title);
+    case 'invite':
+      return nl.notifications.invite(actor, travel);
+  }
+}
+
+function link(n: AppNotification): string | null {
+  if (n.postId) return n.type === 'comment' ? `/post/${n.postId}#reacties` : `/post/${n.postId}`;
+  if (n.travelId) return `/reizen/${n.travelId}`;
+  return null;
+}
+
+export function NotificationsPage() {
+  usePageTitle(nl.notifications.title);
+  const me = useUser();
+  const navigate = useNavigate();
+  const { setUnread, reloadTravellers } = useBlog();
+  const [items, setItems] = useState<AppNotification[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  /** Invitations handled on this page (accepted or declined). */
+  const [handled, setHandled] = useState<Set<number>>(new Set());
+
+  const load = useCallback(() => {
+    api<NotificationPage>('/notifications')
+      .then((r) => {
+        setItems(r.items);
+        setUnread(r.unread);
+      })
+      .catch((err) => setError(errorMessage(err)));
+  }, [setUnread]);
+
+  useEffect(load, [load]);
+
+  async function markRead(id?: number) {
+    const r = await api<{ unread: number }>('/notifications/read', { method: 'POST', body: id ? { id } : {} });
+    setUnread(r.unread);
+    setItems((list) => list?.map((n) => (id === undefined || n.id === id ? { ...n, read: true } : n)) ?? null);
+  }
+
+  function open(n: AppNotification) {
+    if (!n.read) void markRead(n.id).catch(() => undefined);
+    const to = link(n);
+    if (to) navigate(to);
+  }
+
+  async function answer(n: AppNotification, accept: boolean) {
+    if (!n.travelId) return;
+    setError(null);
+    setNotice(null);
+    try {
+      if (accept) await api(`/travels/${n.travelId}/invitation/accept`, { method: 'POST' });
+      else await api(`/travels/${n.travelId}/members/${me.id}`, { method: 'DELETE' });
+      setHandled((s) => new Set(s).add(n.id));
+      setNotice(accept ? nl.notifications.accepted : nl.notifications.declined);
+      if (!n.read) await markRead(n.id);
+      reloadTravellers();
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  }
+
+  return (
+    <section className="page">
+      {items?.some((n) => !n.read) && (
+        <PageActions>
+          <button type="button" className="btn btn-small" onClick={() => void markRead().catch(() => undefined)}>
+            {nl.notifications.markAll}
+          </button>
+        </PageActions>
+      )}
+      {error && <Alert kind="error">{error}</Alert>}
+      {notice && <Alert kind="success">{notice}</Alert>}
+      {items === null && !error && <p className="muted center">{nl.loading}</p>}
+      {items?.length === 0 && (
+        <div className="card empty">
+          <p>{nl.notifications.empty}</p>
+        </div>
+      )}
+      {items && items.length > 0 && (
+        <ul className="notification-list card">
+          {items.map((n) => (
+            <li key={n.id} className={n.read ? 'notification' : 'notification unread'}>
+              <Avatar user={n.actor ?? DELETED_USER} size="small" />
+              <div className="notification-body">
+                <button type="button" className="notification-text" onClick={() => open(n)}>
+                  {text(n)}
+                  {n.excerpt && (
+                    <span className={n.type === 'comment' ? 'notification-excerpt quote' : 'notification-excerpt'}>
+                      {n.excerpt}
+                    </span>
+                  )}
+                </button>
+                <time className="muted" dateTime={n.createdAt} title={formatDateTime(n.createdAt)}>
+                  {formatRelative(n.createdAt)}
+                </time>
+                {n.type === 'invite' && n.travelId && !handled.has(n.id) && (
+                  <div className="row-actions">
+                    <button type="button" className="btn btn-small btn-primary" onClick={() => void answer(n, true)}>
+                      {nl.notifications.accept}
+                    </button>
+                    <button type="button" className="btn btn-small" onClick={() => void answer(n, false)}>
+                      {nl.notifications.decline}
+                    </button>
+                    <Link to={`/reizen/${n.travelId}`} className="btn-text">
+                      {n.travelName}
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <PushToggle />
+    </section>
+  );
+}

@@ -1,0 +1,53 @@
+import { useState } from 'react';
+import { api, errorMessage } from '../api';
+import { nl } from '../i18n/nl';
+import { HeartIcon } from './icons';
+
+interface Props {
+  postId: string;
+  likeCount: number;
+  likedByMe: boolean;
+  onChange?: (state: { likeCount: number; likedByMe: boolean }) => void;
+}
+
+/** Optimistic like toggle. */
+export function LikeButton({ postId, likeCount, likedByMe, onChange }: Props) {
+  const [state, setState] = useState({ likeCount, likedByMe });
+  const [busy, setBusy] = useState(false);
+
+  async function toggle() {
+    if (busy) return;
+    const previous = state;
+    const next = {
+      likedByMe: !state.likedByMe,
+      likeCount: state.likeCount + (state.likedByMe ? -1 : 1),
+    };
+    setState(next);
+    setBusy(true);
+    try {
+      const res = await api<{ likeCount: number; likedByMe: boolean }>(`/posts/${postId}/like`, {
+        method: previous.likedByMe ? 'DELETE' : 'PUT',
+      });
+      setState(res);
+      onChange?.(res);
+    } catch (err) {
+      setState(previous);
+      window.alert(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      className={`action-btn${state.likedByMe ? ' liked' : ''}`}
+      onClick={() => void toggle()}
+      aria-pressed={state.likedByMe}
+      aria-label={state.likedByMe ? nl.likes.unlike : nl.likes.like}
+    >
+      <HeartIcon filled={state.likedByMe} />
+      <span>{state.likeCount}</span>
+    </button>
+  );
+}

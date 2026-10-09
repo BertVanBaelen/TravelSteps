@@ -1,0 +1,46 @@
+# Home Assistant local add-on definition.
+# Copy this whole project folder to /addons/travelsteps on the Home Assistant host.
+name: TravelSteps
+# Bump this on every release, otherwise the Home Assistant add-on store won't offer the update.
+# Keep it equal to APP_VERSION in server/src/version.ts.
+version: '1.0.0'
+slug: travelsteps
+description: Reisblog met tijdlijn, kaart en Immich-foto's
+arch:
+  - amd64
+  - aarch64
+startup: application
+boot: auto
+init: false
+ports:
+  8080/tcp: 8080
+ports_description:
+  8080/tcp: Webinterface (richt je Cloudflare Tunnel hierop)
+map:
+  - type: share
+    read_only: false
+options:
+  data_dir: /share/travelsteps
+  admin_username: ''
+  admin_password: ''
+  public_url: ''
+  cookie_secure: true
+  trust_cloudflare: true
+  session_ttl_days: 30
+  immich_url: ''
+  ors_api_key: ''
+  log_level: info
+  backup_keep: 7
+schema:
+  data_dir: str
+  admin_username: str?
+  admin_password: password?
+  public_url: str?
+  cookie_secure: bool
+  trust_cloudflare: bool
+  session_ttl_days: int(1,365)
+  immich_url: str?
+  ors_api_key: password?
+  ors_url: str?
+  log_level: list(fatal|error|warn|info|debug|trace)
+  backup_keep: int(0,365)
