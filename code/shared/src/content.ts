@@ -159,7 +159,7 @@ export const postInputSchema = z.object({
   body: z.string().max(50_000, 'Tekst is te lang').default(''),
   photos: z
     .array(assetIdSchema)
-    .max(100, "Maximaal 100 foto's per post")
+    .max(100, "Maximaal 100 foto's per stap")
     .refine((a) => new Set(a).size === a.length, 'Een foto staat er dubbel in')
     .default([]),
   locations: z.array(locationSchema).max(50).default([]),
@@ -238,6 +238,8 @@ export interface PostDetail extends Post, SocialCounts, PostPermissions {
 export interface Traveller extends UserRef {
   /** The current user gets notifications about this traveller's blog. */
   subscribed: boolean;
+  /** Number of this traveller's travels the current user may see (added in v1.1). */
+  travelCount: number;
 }
 
 export type NotificationType = 'post' | 'invite' | 'like' | 'comment';

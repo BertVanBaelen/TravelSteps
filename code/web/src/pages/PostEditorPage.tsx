@@ -4,6 +4,8 @@ import type { PostDetail, PostInput, RoutePreview, TravelSummary } from '@travel
 import { ApiError, api, errorMessage } from '../api';
 import { useUser } from '../auth/AuthContext';
 import { Alert, Field, SelectField } from '../components/Field';
+import { travelOption } from '../components/TravelPicker';
+import { DateTimeField } from '../components/DateTimePicker';
 import { LazyRichTextEditor } from '../components/LazyRichTextEditor';
 import { LocationEditor, normalizeRoute, type RouteValue } from '../components/LocationEditor';
 import { Markdown } from '../components/Markdown';
@@ -11,21 +13,26 @@ import { usePageTitle } from '../components/PageTitle';
 import { PhotoPicker } from '../components/PhotoPicker';
 import { SelectedPhotos } from '../components/SelectedPhotos';
 import { StatsEditor, formToStats, statsToForm, type StatsForm } from '../components/StatsEditor';
+import { SkeletonCards } from '../components/Skeleton';
 import { nl } from '../i18n/nl';
-import { formatNumber, fromLocalInput, parseNumber, toLocalInput } from '../lib/format';
+
+import { formatDay, formatNumber, fromLocalInput, parseNumber, toLocalInput } from '../lib/format';
 import { db, newPostId, useOnline, withTimeout } from '../offline/db';
 import { queuePost, savePost } from '../offline/sync';
-import { useConfirm } from '../components/ConfirmDialog';
+import { useCelebrate } from '../components/Celebration';
+import { useConfirm } from '../components/ConfirmDialog';
+import { PlusIcon, SendIcon } from '../components/icons';
 
 const EMPTY_ROUTE: RouteValue = { locations: [], segments: [], arrival: { mode: 'lopen' } };
 /** Max wait for local (IndexedDB) reads before the editor continues without them. */
 const LOCAL_TIMEOUT_MS = 2000;
 
-/** The most recent ongoing travel the user may post in, else the newest one. */
-function defaultTravel(travels: TravelSummary[]): string {
+/** The requested travel (?reis=) if the user may post in it, else the most recent ongoing one, else the newest. */
+function defaultTravel(travels: TravelSummary[], requested: string | null): string {
   const today = new Date().toISOString().slice(0, 10);
   const postable = travels.filter((t) => t.canPost).sort((a, b) => b.startDate.localeCompare(a.startDate));
   return (
+    postable.find((t) => t.id === requested)?.id ??
     postable.find((t) => t.startDate <= today && (!t.endDate || t.endDate >= today))?.id ??
     postable[0]?.id ??
     ''
@@ -44,7 +51,9 @@ export function PostEditorPage() {
   const navigate = useNavigate();
   const online = useOnline();
   const confirm = useConfirm();
+  const celebrate = useCelebrate();
   const conceptId = search.get('concept');
+  const requestedTravel = useRef(search.get('reis'));
   // Existing post being edited, or a (restored) draft of a new post.
   const [postId] = useState(() => params.id ?? conceptId ?? newPostId());
   const isNew = !params.id;
@@ -68,6 +77,13 @@ export function PostEditorPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [conflict, setConflict] = useState(false);
+
+  // A one-day travel has no date to choose: the step is on that day, only the time varies.
+  const fixedDay = travels?.find((t) => t.id === travelId && t.endDate === t.startDate)?.startDate;
+  useEffect(() => {
+    if (!fixedDay) return;
+    setDate((d) => (d.startsWith(`${fixedDay}T`) ? d : `${fixedDay}T${d.split('T')[1] ?? '12:00'}`));
+  }, [fixedDay]);
 
   function applyInput(input: PostInput, statsForm?: StatsForm) {
     if (input.travelId) setTravelId(input.travelId);
@@ -97,7 +113,7 @@ export function PostEditorPage() {
       .then((r) => {
         if (cancelled) return;
         setTravels(r.travels);
-        if (isNew) setTravelId((t) => t || defaultTravel(r.travels));
+        if (isNew) setTravelId((t) => t || defaultTravel(r.travels, requestedTravel.current));
       })
       .catch(() => setTravels((t) => t ?? []));
 
@@ -244,6 +260,8 @@ export function PostEditorPage() {
     setBusy(true);
     setError(null);
     setConflict(false);
+    // A new step first gets its full-screen animation; only then is it published.
+    if (isNew) await celebrate('step');
     if (!navigator.onLine) {
       await queueLocally(input);
       return;
@@ -285,7 +303,7 @@ export function PostEditorPage() {
   }
 
   async function takeServer() {
-    if (!(await confirm(nl.sync.confirmTakeServer))) return;
+    if (!(await confirm({ title: nl.sync.takeServerTitle, message: nl.sync.confirmTakeServer }))) return;
     await withTimeout(Promise.all([db.drafts.delete(postId), db.outbox.delete(postId)]), LOCAL_TIMEOUT_MS, null).catch(
       () => null,
     );
@@ -297,7 +315,7 @@ export function PostEditorPage() {
   }
 
   async function discardLocal() {
-    if (!(await confirm({ message: nl.sync.confirmDiscard, confirmLabel: nl.sync.discard, danger: true }))) return;
+    if (!(await confirm({ title: nl.sync.discardTitle, message: nl.sync.confirmDiscard, confirmLabel: nl.sync.discard, danger: true }))) return;
     await withTimeout(Promise.all([db.drafts.delete(postId), db.outbox.delete(postId)]), LOCAL_TIMEOUT_MS, null).catch(
       () => null,
     );
@@ -306,7 +324,7 @@ export function PostEditorPage() {
     await loadServer().catch((err) => setError(errorMessage(err)));
   }
 
-  if (!loaded && !error) return <p className="muted center">{nl.loading}</p>;
+  if (!loaded && !error) return <SkeletonCards count={1} />;
   const postable = travels?.filter((t) => t.canPost || t.id === travelId) ?? null;
   if (postable && postable.length === 0) {
     return (
@@ -314,6 +332,7 @@ export function PostEditorPage() {
         <div className="card empty">
           <p>{nl.timeline.noTravel}</p>
           <Link to="/reizen/nieuw" className="btn btn-primary">
+            <PlusIcon />
             {nl.travels.new}
           </Link>
         </div>
@@ -339,15 +358,11 @@ export function PostEditorPage() {
               label={nl.editor.travel}
               name="travelId"
               value={travelId}
-              onChange={(e) => setTravelId(e.target.value)}
-            >
-              {postable.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                  {t.owner.id !== me.id ? ` (${t.owner.displayName})` : ''}
-                </option>
-              ))}
-            </SelectField>
+              onChange={setTravelId}
+              options={postable.map((t) =>
+                travelOption(t, undefined, t.owner.id !== me.id ? ` (${t.owner.displayName})` : ''),
+              )}
+            />
           )}
           <Field
             label={nl.editor.title}
@@ -357,13 +372,13 @@ export function PostEditorPage() {
             maxLength={150}
             required
           />
-          <Field
+          <DateTimeField
             label={nl.editor.date}
             name="date"
-            type="datetime-local"
             value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
+            onChange={setDate}
+            fixedDay={fixedDay}
+            hint={fixedDay ? nl.editor.oneDayTravel(formatDay(fixedDay)) : undefined}
           />
           <div className="field">
             <div className="field-head">
@@ -451,6 +466,7 @@ export function PostEditorPage() {
           </div>
         )}
         <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
+          <SendIcon />
           {busy ? nl.common.saving : !online ? nl.sync.saveOffline : isNew ? nl.editor.publish : nl.common.save}
         </button>
       </form>

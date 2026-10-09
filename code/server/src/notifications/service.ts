@@ -172,15 +172,15 @@ export class NotificationService {
     const travel = input.travelId ? this.content.getTravel(input.travelId) : undefined;
     const post = input.postId ? this.content.getPost(input.postId) : undefined;
     const postUrl = post ? `/post/${post.id}` : '/';
-    const title = post ? `"${post.title}"` : 'je post';
+    const title = post ? `"${post.title}"` : 'je stap';
     switch (input.type) {
       case 'post': {
         const preview = post ? excerpt(post.body, PUSH_EXCERPT) : '';
         return {
           title: travel
-            ? `${actor} plaatste een nieuwe post in ${travel.name}`
-            : `${actor} plaatste een nieuwe post`,
-          body: [post?.title, preview].filter(Boolean).join(' – ') || 'Bekijk de nieuwe post.',
+            ? `${actor} plaatste een nieuwe stap in ${travel.name}`
+            : `${actor} plaatste een nieuwe stap`,
+          body: [post?.title, preview].filter(Boolean).join(' – ') || 'Bekijk de nieuwe stap.',
           url: postUrl,
           tag: `post-${input.postId}`,
         };
@@ -196,7 +196,7 @@ export class NotificationService {
         };
       case 'like':
         return {
-          title: `${actor} vindt je post leuk`,
+          title: `${actor} vindt je stap leuk`,
           body: `${actor} gaf een like op ${title}.`,
           url: postUrl,
         };
@@ -204,7 +204,7 @@ export class NotificationService {
         const text = this.commentText(input.commentId);
         return {
           title: `${actor} reageerde op ${title}`,
-          body: text ? `"${truncate(text, PUSH_EXCERPT)}"` : 'Bekijk de reactie bij je post.',
+          body: text ? `"${truncate(text, PUSH_EXCERPT)}"` : 'Bekijk de reactie bij je stap.',
           url: `${postUrl}#reacties`,
           ...(input.commentId ? { tag: `comment-${input.commentId}` } : {}),
         };

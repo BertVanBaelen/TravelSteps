@@ -14,6 +14,9 @@ import {
 import { HttpError } from '../errors.js';
 
 const TIMEOUT_MS = 20_000;
+/** Place lookups are interactive: give up quickly instead of leaving the editor waiting. */
+const GEOCODE_TIMEOUT_MS = 6_000;
+const GEOCODE_CACHE_SIZE = 500;
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org';
 const USER_AGENT = 'TravelSteps travel blog (self-hosted)';
 /** ~5 m; keeps cached geometry small without visible loss. */
@@ -61,6 +64,8 @@ export interface RoutingStatus {
 export class RoutingService {
   private readonly baseUrl: string;
   lastResult: RoutingStatus | null = null;
+  /** Small LRU of successful geocoding answers (search text / rounded point). */
+  private readonly geocodeCache = new Map<string, unknown>();
 
   constructor(
     private readonly apiKey: string | undefined,
@@ -75,8 +80,12 @@ export class RoutingService {
     return Boolean(this.apiKey);
   }
 
-  private async fetchJson<T>(url: string, init: RequestInit = {}): Promise<T> {
-    const res = await fetch(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
+  private async fetchJson<T>(
+    url: string,
+    init: RequestInit = {},
+    timeoutMs = TIMEOUT_MS,
+  ): Promise<T> {
+    const res = await fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
     if (!res.ok) {
       await res.body?.cancel();
       throw new Error(`HTTP ${res.status}`);
@@ -112,9 +121,10 @@ export class RoutingService {
         .filter((c) => Number.isFinite(c[0]) && Number.isFinite(c[1]))
         .map((c): LatLng => [c[1]!, c[0]!]);
       if (line.length < 2) throw new Error('Lege route');
-      const geometry = simplify(line, SIMPLIFY_TOLERANCE).map(
-        ([lat, lng]): LatLng => [Math.round(lat * 1e6) / 1e6, Math.round(lng * 1e6) / 1e6],
-      );
+      const geometry = simplify(line, SIMPLIFY_TOLERANCE).map(([lat, lng]): LatLng => [
+        Math.round(lat * 1e6) / 1e6,
+        Math.round(lng * 1e6) / 1e6,
+      ]);
       const meters = feature?.properties?.summary?.distance;
       const ascent = feature?.properties?.ascent;
       this.lastResult = { at: new Date().toISOString(), ok: true, detail: null };
@@ -168,71 +178,104 @@ export class RoutingService {
 
   // ---------- Geocoding ----------
 
+  private async cached<T>(key: string, load: () => Promise<T>): Promise<T> {
+    if (this.geocodeCache.has(key)) {
+      const hit = this.geocodeCache.get(key) as T;
+      this.geocodeCache.delete(key);
+      this.geocodeCache.set(key, hit);
+      return hit;
+    }
+    const value = await load();
+    this.geocodeCache.set(key, value);
+    if (this.geocodeCache.size > GEOCODE_CACHE_SIZE) {
+      this.geocodeCache.delete(this.geocodeCache.keys().next().value!);
+    }
+    return value;
+  }
+
   async search(text: string): Promise<GeocodeResult[]> {
     try {
-      if (this.apiKey) {
-        const params = new URLSearchParams({ text, size: '6', lang: 'nl' });
-        const data = await this.fetchJson<OrsGeocode>(`${this.baseUrl}/geocode/search?${params}`, {
-          headers: { Authorization: this.apiKey },
-        });
-        return (data.features ?? []).flatMap((f) => {
-          const c = f.geometry?.coordinates;
-          if (!c || !Number.isFinite(c[0]) || !Number.isFinite(c[1])) return [];
-          return [{ name: f.properties?.label ?? text, lat: c[1]!, lng: c[0]! }];
-        });
-      }
-      const params = new URLSearchParams({
-        q: text,
-        format: 'jsonv2',
-        limit: '6',
-        'accept-language': 'nl',
-      });
-      const data = await this.fetchJson<NominatimPlace[]>(
-        `${this.nominatimUrl}/search?${params}`,
-        { headers: { 'User-Agent': USER_AGENT } },
-      );
-      return data.flatMap((p) => {
-        const lat = Number(p.lat);
-        const lng = Number(p.lon);
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return [];
-        return [{ name: p.display_name ?? p.name ?? text, lat, lng }];
-      });
+      return await this.cached(`s:${text.trim().toLowerCase()}`, () => this.searchUncached(text));
     } catch (err) {
       this.log?.warn({ err: String(err) }, 'Plaats zoeken mislukt');
       throw new HttpError(502, 'GEOCODE_FAILED', 'Zoeken naar plaatsen lukt nu niet.');
     }
   }
 
+  private async searchUncached(text: string): Promise<GeocodeResult[]> {
+    if (this.apiKey) {
+      const params = new URLSearchParams({ text, size: '6', lang: 'nl' });
+      const data = await this.fetchJson<OrsGeocode>(
+        `${this.baseUrl}/geocode/search?${params}`,
+        { headers: { Authorization: this.apiKey } },
+        GEOCODE_TIMEOUT_MS,
+      );
+      return (data.features ?? []).flatMap((f) => {
+        const c = f.geometry?.coordinates;
+        if (!c || !Number.isFinite(c[0]) || !Number.isFinite(c[1])) return [];
+        return [{ name: f.properties?.label ?? text, lat: c[1]!, lng: c[0]! }];
+      });
+    }
+    const params = new URLSearchParams({
+      q: text,
+      format: 'jsonv2',
+      limit: '6',
+      'accept-language': 'nl',
+    });
+    const data = await this.fetchJson<NominatimPlace[]>(
+      `${this.nominatimUrl}/search?${params}`,
+      { headers: { 'User-Agent': USER_AGENT } },
+      GEOCODE_TIMEOUT_MS,
+    );
+    return data.flatMap((p) => {
+      const lat = Number(p.lat);
+      const lng = Number(p.lon);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return [];
+      return [{ name: p.display_name ?? p.name ?? text, lat, lng }];
+    });
+  }
+
   /** Short place name for a point, or null when unknown/unavailable. */
   async reverse(lat: number, lng: number): Promise<string | null> {
     try {
-      if (this.apiKey) {
-        const params = new URLSearchParams({
-          'point.lat': String(lat),
-          'point.lon': String(lng),
-          size: '1',
-          lang: 'nl',
-        });
-        const data = await this.fetchJson<OrsGeocode>(`${this.baseUrl}/geocode/reverse?${params}`, {
-          headers: { Authorization: this.apiKey },
-        });
-        const p = data.features?.[0]?.properties;
-        return p?.name ?? p?.locality ?? p?.label ?? null;
-      }
-      const params = new URLSearchParams({
-        lat: String(lat),
-        lon: String(lng),
-        format: 'jsonv2',
-        zoom: '14',
-        'accept-language': 'nl',
-      });
-      const data = await this.fetchJson<NominatimPlace>(`${this.nominatimUrl}/reverse?${params}`, {
-        headers: { 'User-Agent': USER_AGENT },
-      });
-      const a = data.address ?? {};
-      return data.name || a.village || a.town || a.city || a.hamlet || data.display_name || null;
+      // ~10 m grid: taps on (almost) the same spot reuse the answer.
+      return await this.cached(`r:${lat.toFixed(4)},${lng.toFixed(4)}`, () =>
+        this.reverseUncached(lat, lng),
+      );
     } catch {
       return null;
     }
+  }
+
+  private async reverseUncached(lat: number, lng: number): Promise<string | null> {
+    if (this.apiKey) {
+      const params = new URLSearchParams({
+        'point.lat': String(lat),
+        'point.lon': String(lng),
+        size: '1',
+        lang: 'nl',
+      });
+      const data = await this.fetchJson<OrsGeocode>(
+        `${this.baseUrl}/geocode/reverse?${params}`,
+        { headers: { Authorization: this.apiKey } },
+        GEOCODE_TIMEOUT_MS,
+      );
+      const p = data.features?.[0]?.properties;
+      return p?.name ?? p?.locality ?? p?.label ?? null;
+    }
+    const params = new URLSearchParams({
+      lat: String(lat),
+      lon: String(lng),
+      format: 'jsonv2',
+      zoom: '14',
+      'accept-language': 'nl',
+    });
+    const data = await this.fetchJson<NominatimPlace>(
+      `${this.nominatimUrl}/reverse?${params}`,
+      { headers: { 'User-Agent': USER_AGENT } },
+      GEOCODE_TIMEOUT_MS,
+    );
+    const a = data.address ?? {};
+    return data.name || a.village || a.town || a.city || a.hamlet || data.display_name || null;
   }
 }

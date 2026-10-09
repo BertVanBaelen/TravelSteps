@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { api, errorMessage } from '../api';
 import { nl } from '../i18n/nl';
+import { useCelebrate } from './Celebration';
 import { HeartIcon } from './icons';
 
 interface Props {
@@ -14,6 +15,8 @@ interface Props {
 export function LikeButton({ postId, likeCount, likedByMe, onChange }: Props) {
   const [state, setState] = useState({ likeCount, likedByMe });
   const [busy, setBusy] = useState(false);
+  const button = useRef<HTMLButtonElement>(null);
+  const celebrate = useCelebrate();
 
   async function toggle() {
     if (busy) return;
@@ -23,6 +26,7 @@ export function LikeButton({ postId, likeCount, likedByMe, onChange }: Props) {
       likeCount: state.likeCount + (state.likedByMe ? -1 : 1),
     };
     setState(next);
+    if (next.likedByMe) void celebrate('like', button.current);
     setBusy(true);
     try {
       const res = await api<{ likeCount: number; likedByMe: boolean }>(`/posts/${postId}/like`, {
@@ -40,6 +44,7 @@ export function LikeButton({ postId, likeCount, likedByMe, onChange }: Props) {
 
   return (
     <button
+      ref={button}
       type="button"
       className={`action-btn${state.likedByMe ? ' liked' : ''}`}
       onClick={() => void toggle()}

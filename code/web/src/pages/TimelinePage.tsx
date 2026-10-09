@@ -6,10 +6,14 @@ import { isTraveller } from '@travelsteps/shared';
 import { useUser } from '../auth/AuthContext';
 import { useBlog, withTraveller } from '../blog/BlogContext';
 import { Alert } from '../components/Field';
-import { PlusIcon } from '../components/icons';
+import { EmptyState } from '../components/EmptyState';
+import { Fab, FabStack } from '../components/Fab';
+import { FootprintIcon, PlaneIcon, PlusIcon, TravelIcon } from '../components/icons';
 import { OutboxList } from '../components/OutboxList';
-import { PageActions, usePageTitle } from '../components/PageTitle';
+import { usePageTitle } from '../components/PageTitle';
 import { PostCard } from '../components/PostCard';
+import { SkeletonCards } from '../components/Skeleton';
+import { TravelPicker } from '../components/TravelPicker';
 import { nl } from '../i18n/nl';
 
 export function TimelinePage() {
@@ -33,21 +37,12 @@ export function TimelinePage() {
   return (
     <section className="page">
       {travels && travels.length > 1 && (
-        <PageActions>
-          <select
-            className="select-inline"
-            aria-label={nl.editor.travel}
-            value={travelId}
-            onChange={(e) => setParams(e.target.value ? { reis: e.target.value } : {})}
-          >
-            <option value="">{nl.timeline.allTravels}</option>
-            {travels.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-        </PageActions>
+        <TravelPicker
+          travels={travels}
+          value={travelId}
+          allValue=""
+          onChange={(v) => setParams(v ? { reis: v } : {})}
+        />
       )}
       {canWrite && <OutboxList />}
       <Feed
@@ -58,13 +53,18 @@ export function TimelinePage() {
         hasTravels={(travels?.length ?? 1) > 0}
       />
       {canWrite && (
-        <Link
-          to={travels?.some((t) => t.canPost) === false ? '/reizen/nieuw' : '/posts/nieuw'}
-          className="fab"
-          aria-label={travels?.some((t) => t.canPost) === false ? nl.travels.new : nl.timeline.newPost}
-        >
-          <PlusIcon />
-        </Link>
+        <FabStack>
+          {travels?.some((t) => t.canPost) === false ? (
+            <Fab to="/reizen/nieuw" icon={<PlaneIcon />} label={nl.travels.new} extended />
+          ) : (
+            <Fab
+              to={travelId ? `/posts/nieuw?reis=${travelId}` : '/posts/nieuw'}
+              icon={<FootprintIcon />}
+              label={nl.timeline.newPost}
+              extended
+            />
+          )}
+        </FabStack>
       )}
     </section>
   );
@@ -132,12 +132,24 @@ export function Feed({
         <PostCard key={p.id} post={p} />
       ))}
       {done && posts.length === 0 && (
-        <div className="card empty">
-          <p>{!hasTravels && canWrite ? nl.timeline.noTravel : canWrite ? nl.timeline.emptyAdmin : nl.timeline.empty}</p>
-        </div>
+        <EmptyState
+          icon={!hasTravels && canWrite ? <TravelIcon /> : <FootprintIcon />}
+          text={!hasTravels && canWrite ? nl.timeline.noTravel : canWrite ? nl.timeline.emptyAdmin : nl.timeline.empty}
+          action={
+            canWrite && (
+              <Link
+                to={hasTravels ? (travelId ? `/posts/nieuw?reis=${travelId}` : '/posts/nieuw') : '/reizen/nieuw'}
+                className="btn btn-primary btn-small"
+              >
+                <PlusIcon />
+                {hasTravels ? nl.timeline.newPost : nl.travels.new}
+              </Link>
+            )
+          }
+        />
       )}
       {done && posts.length > 3 && <p className="muted center">{nl.timeline.end}</p>}
-      {loading && <p className="muted center">{nl.loading}</p>}
+      {loading && <SkeletonCards count={posts.length === 0 ? 3 : 1} media />}
       <div ref={sentinel} className="sentinel" />
     </>
   );

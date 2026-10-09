@@ -7,9 +7,11 @@ import { nl } from '../i18n/nl';
 import { useOnline } from '../offline/db';
 import { onSyncEvent, startSync } from '../offline/sync';
 import { BlogBar } from './BlogBar';
+import { CelebrationProvider } from './Celebration';
 import { BellIcon, MapIcon, PhotoIcon, TimelineIcon, TravelIcon } from './icons';
 import { LayoutBanner, PageTitleProvider } from './PageTitle';
 import { PhoneBanner } from './PhoneBanner';
+import { SkeletonCards } from './Skeleton';
 import { UserMenu } from './UserMenu';
 
 const items = [
@@ -25,7 +27,9 @@ const BLOG_PAGES = new Set(['/', '/kaart', '/fotos', '/reizen']);
 export function Layout() {
   return (
     <BlogProvider>
-      <Shell />
+      <CelebrationProvider>
+        <Shell />
+      </CelebrationProvider>
     </BlogProvider>
   );
 }
@@ -64,7 +68,7 @@ function Shell() {
         <PhoneBanner />
         {!online && <div className="offline-bar">{nl.sync.offline}</div>}
         <main className="app-main">
-          <Suspense fallback={<p className="muted center">{nl.loading}</p>}>
+          <Suspense fallback={<SkeletonCards count={2} />}>
             <Outlet />
           </Suspense>
         </main>

@@ -5,7 +5,7 @@ import { api, errorMessage } from '../api';
 import { useUser } from '../auth/AuthContext';
 import { nl } from '../i18n/nl';
 import { formatDateTime, formatRelative } from '../lib/format';
-import { Avatar } from './Avatar';
+import { Avatar, AvatarStack } from './Avatar';
 import { Carousel } from './Gallery';
 import { CommentIcon } from './icons';
 import { LikeButton } from './LikeButton';
@@ -13,8 +13,6 @@ import { MapView } from './MapView';
 import { StatsView } from './StatsView';
 
 const MAX_LIKERS = 3;
-
-export const DELETED_USER = { displayName: nl.blog.deletedUser, avatarUrl: null };
 
 export function PostCard({ post }: { post: PostSummary }) {
   const me = useUser();
@@ -45,7 +43,7 @@ export function PostCard({ post }: { post: PostSummary }) {
     <article className="card post-card">
       <header className="post-meta">
         <span className="post-author">
-          <Avatar user={post.author ?? DELETED_USER} size="tiny" />
+          <Avatar user={post.author} size="xs" />
           <span>{post.author?.displayName ?? nl.blog.deletedUser}</span>
           <span aria-hidden>·</span>
           <Link to={`/reizen/${post.travelId}`} className="post-travel">
@@ -88,6 +86,7 @@ export function PostCard({ post }: { post: PostSummary }) {
       </footer>
       {likeCount > 0 && likers.length > 0 && (
         <p className="muted likers">
+          <AvatarStack users={likers} />
           {nl.likes.likedBy(
             likers.map((u) => (u.id === me.id ? nl.likes.you : u.displayName)),
             likeCount - likers.length,
@@ -98,7 +97,7 @@ export function PostCard({ post }: { post: PostSummary }) {
         <ul className="card-comments">
           {comments.map((c) => (
             <li key={c.id}>
-              <Avatar user={c.author} size="tiny" />
+              <Avatar user={c.author} size="xs" />
               <p>
                 <strong>{c.author.displayName}</strong> {c.text}
               </p>

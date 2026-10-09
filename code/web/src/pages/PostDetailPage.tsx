@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { PostDetail, UserRef } from '@travelsteps/shared';
 import { api, errorMessage } from '../api';
 import { useUser } from '../auth/AuthContext';
-import { Avatar } from '../components/Avatar';
+import { Avatar, AvatarStack } from '../components/Avatar';
 import { Comments } from '../components/Comments';
 import { useConfirm } from '../components/ConfirmDialog';
 import { Alert } from '../components/Field';
@@ -11,11 +11,13 @@ import { Gallery } from '../components/Gallery';
 import { LikeButton } from '../components/LikeButton';
 import { MapView } from '../components/MapView';
 import { Markdown } from '../components/Markdown';
-import { PageActions, usePageTitle } from '../components/PageTitle';
-import { DELETED_USER } from '../components/PostCard';
+import { usePageTitle } from '../components/PageTitle';
 import { StatsView } from '../components/StatsView';
-import { CommentIcon } from '../components/icons';
+import { FabMenu } from '../components/Fab';
+import { CommentIcon, PencilIcon, TrashIcon } from '../components/icons';
+import { SkeletonCards } from '../components/Skeleton';
 import { nl } from '../i18n/nl';
+
 import { formatDateTime, formatNumber } from '../lib/format';
 
 export function PostDetailPage() {
@@ -58,7 +60,7 @@ export function PostDetailPage() {
   );
 
   async function remove() {
-    if (!(await confirm({ message: nl.post.confirmDelete, confirmLabel: nl.common.delete, danger: true }))) return;
+    if (!(await confirm({ title: nl.post.deleteTitle, message: nl.post.confirmDelete, confirmLabel: nl.common.delete, danger: true }))) return;
     try {
       await api(`/posts/${id}`, { method: 'DELETE' });
       navigate('/', { replace: true });
@@ -68,31 +70,30 @@ export function PostDetailPage() {
   }
 
   if (error && !post) return <Alert kind="error">{error}</Alert>;
-  if (!post) return <p className="muted center">{nl.loading}</p>;
+  if (!post) return <SkeletonCards count={1} media />;
 
   const routeKm = post.segments.reduce((sum, s) => sum + (s.distanceKm ?? 0), 0);
 
   return (
     <article className="page">
       {(post.canEdit || post.canDelete) && (
-        <PageActions>
-          {post.canEdit && (
-            <Link to={`/posts/${post.id}/bewerken`} className="btn btn-small">
-              {nl.common.edit}
-            </Link>
-          )}
-          {post.canDelete && (
-            <button type="button" className="btn btn-small btn-danger" onClick={() => void remove()}>
-              {nl.common.delete}
-            </button>
-          )}
-        </PageActions>
+        <FabMenu
+          label={nl.post.actions}
+          actions={[
+            ...(post.canEdit
+              ? [{ icon: <PencilIcon />, label: nl.editor.editTitle, to: `/posts/${post.id}/bewerken` }]
+              : []),
+            ...(post.canDelete
+              ? [{ icon: <TrashIcon />, label: nl.post.delete, onClick: () => void remove(), danger: true }]
+              : []),
+          ]}
+        />
       )}
       {error && <Alert kind="error">{error}</Alert>}
       <div className="card stack">
         <div className="post-meta">
           <span className="post-author">
-            <Avatar user={post.author ?? DELETED_USER} size="tiny" />
+            <Avatar user={post.author} size="xs" />
             <span>{post.author?.displayName ?? nl.blog.deletedUser}</span>
             <span aria-hidden>·</span>
             <Link to={`/reizen/${post.travelId}`} className="post-travel">
@@ -130,6 +131,7 @@ export function PostDetailPage() {
         </footer>
         {likers.length > 0 && (
           <p className="muted likers">
+            <AvatarStack users={likers} />
             {nl.likes.likedBy(
               likers.map((u) => (u.id === user.id ? nl.likes.you : u.displayName)),
               0,

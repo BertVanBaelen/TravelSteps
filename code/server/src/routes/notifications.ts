@@ -16,7 +16,11 @@ export async function travellerRoutes(app: FastifyInstance): Promise<void> {
     const refs = users.refs();
     const travellers = [...content.visibleTravellerIds(me)]
       .filter((id) => refs.has(id))
-      .map((id) => ({ ...refs.get(id)!, subscribed: subscribed.has(id) }))
+      .map((id) => ({
+        ...refs.get(id)!,
+        subscribed: subscribed.has(id),
+        travelCount: content.visibleTravelIds(me, id).size,
+      }))
       .sort((a, b) =>
         a.id === me.id ? -1 : b.id === me.id ? 1 : a.displayName.localeCompare(b.displayName, 'nl'),
       );

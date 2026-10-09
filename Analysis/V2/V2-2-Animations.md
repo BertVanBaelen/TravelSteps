@@ -1,6 +1,6 @@
 # Phase V2-2 – Event animations
 
-Status: ⏳ planned
+Status: ✅ done (v1.2.0)
 
 ## Goal
 Small, playful animations that celebrate the user's own actions.
@@ -35,6 +35,29 @@ needs translating in V2-3.
   - invitation: on **Accepteren** (not on decline).
 - Respect `prefers-reduced-motion` (check with `matchMedia`, also listen for changes).
 
+## Status – ✅ implemented (v1.2.0)
+- `Celebration.tsx`: `CelebrationProvider` + `useCelebrate()` mounted in `Layout.tsx`; inline SVG
+  icons + CSS keyframes, `pointer-events: none`, `aria-hidden`, errors swallowed.
+- Reduced motion checked with `matchMedia` (listens for changes); CSS also disables the keyframes.
+- Triggers: LikeButton (like only, anchored), PostEditorPage (new step, online and queued),
+  TravelEditorPage (create only), TravelDetailPage and NotificationsPage (accept only).
+- Bundle: main chunk 142 → 144.9 kB gzip (+2.9 kB for V2-1 and V2-2 together).
+- Screenshots: `code/CHANGELOG.md`.
+## Feedback iteration (v1.2.2)
+User feedback after testing v1.2.1:
+- More **full-screen** animations.
+- Creating a travel: a **big plane flies across the whole screen for 1 second, and only then is the
+  travel created**. Same for creating a step (footprints across the screen first, then publish).
+
+Status – ✅ implemented (v1.2.2): `celebrate()` returns a promise. Travel: big plane with contrail
+and clouds across a tinted sky (1 s, then create). Step: big footprints walking diagonally across
+the screen (1 s, then publish, also offline). Like: big heart in the centre plus the burst.
+Invite: denser full-screen confetti. Reduced motion skips the wait.
+## Feedback iteration 2 (v1.2.3)
+- Opening (and closing) the delete/confirm dialog gets a smoother animation.
+
+Status – ✅ implemented (v1.2.3): backdrop fade + blur, the dialog springs in and scales out (180 ms
+closing state), the icon pops in; all disabled with "reduce motion". Settings sub pages slide in.
 ## Compatibility
 - Pure front-end; no API/DB change.
 - Must not delay saving, navigation or the outbox; a failed animation is silently ignored.

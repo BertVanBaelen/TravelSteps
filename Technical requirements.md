@@ -39,7 +39,14 @@ Main tables: `users` (+ `role` admin/traveller/viewer, encrypted Immich key), `t
 - **Post**: create only in travels where the user is owner/accepted member; edit only own posts; delete own posts, or any post as travel owner/admin.
 - **Travel**: edit details, members and viewers only as owner/admin.
 - **Comments**: delete as comment author, post author, travel owner or admin.
-- Blog filter (`?traveller=<userId>` or all): posts in travels where that user is owner/accepted member, intersected with the visibility rule.
+- Blog filter (`?traveller=<userId>` or all): posts in travels where that user is owner/accepted member, intersected with the visibility rule. `GET /api/travellers` lists the selectable travellers with `travelCount` (number of their travels visible to the caller).
+
+## Front-end UI
+- In code and API a step is still a `post` (`/api/posts`, `PostCard`, URLs `/post/:id`); only the user-visible wording says "stap".
+- Design tokens (colours, spacing, radius, shadows, text sizes, easing) as CSS custom properties in `web/src/styles.css`.
+- Shared components in `web/src/components`: `Avatar`/`AvatarStack` (initials + stable colour fallback), `Button` (optional `icon`), `Fab`/`FabStack` (floating add/edit buttons above the bottom nav), `FabMenu` (expanding speed dial), `Listbox` (accessible picker with `pill`/`field`/`compact` variants; used by `BlogBar`, by `TravelPicker` in the header's left `PageStart` slot, by `SelectField` and inline pickers – no native `<select>`s), `ModeIcon`/`modeOptions` (transport mode icons), `SettingsMenu` (rows for the profile/settings hubs), `ConfirmDialog` (`useConfirm`; animated, always a title, icons), `DateTimePicker` (`DatePicker`/`TimePicker` sheets, `DateField`/`DateTimeField`; no native date inputs), `CopyButton` (clipboard with http fallback), `Card`, `EmptyState`, `Skeleton*`, `Sheet` (dropdown, bottom sheet ≤ 600 px), `Menu`, `BlogBar` (ARIA listbox).
+- `Celebration.tsx`: `CelebrationProvider` in `Layout.tsx` with `useCelebrate()`; inline SVG + CSS keyframes, `pointer-events: none`, `aria-hidden`, disabled with `prefers-reduced-motion: reduce`; survives the navigation after saving. `celebrate()` returns a promise: creating a travel or step awaits the ~1 s full-screen animation before the API call (resolves immediately with reduced motion).
+- Add/edit actions are floating action buttons; header actions (delete, leave, mark all read) and other action buttons show an icon next to their text label.
 
 ## Immich integration
 - Immich runs on the same HA server; one shared URL (env `IMMICH_URL`). **Each traveller has their own API key**, set by the admin or by the traveller in the profile. `IMMICH_API_KEY` is no longer used (migrated to the admin account).

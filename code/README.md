@@ -4,7 +4,7 @@ Reisblog (PWA) met tijdlijn, kaart en Immich-foto's voor meerdere reizigers. Dra
 Docker-container (of Home Assistant-add-on) op de Home Assistant-server en wordt via een
 Cloudflare Tunnel publiek bereikbaar gemaakt.
 
-Versie **1.0.0**. Geplande uitbreidingen: zie de [V2-roadmap](../V2%20roadmap.md).
+Versie **1.2.8** – wijzigingen per versie (met schermafbeeldingen) in [CHANGELOG.md](CHANGELOG.md). Geplande uitbreidingen: zie de [V2-roadmap](../V2%20roadmap.md).
 
 ## Inhoud
 
@@ -77,7 +77,7 @@ lokale add-on, installeer TravelSteps uit de repository, vul dezelfde configurat
    docker compose up -d --build
    docker compose logs -f
    ```
-4. Controle: `curl http://localhost:8080/api/health` → `{"status":"ok","version":"1.0.0"}`.
+4. Controle: `curl http://localhost:8080/api/health` → `{"status":"ok","version":"1.2.8"}`.
 
 ## Cloudflare Tunnel
 
@@ -234,7 +234,8 @@ Lokaal draaien zonder Docker: zet `DATA_DIR=./data` en `COOKIE_SECURE=false`.
 ## Nieuwe versie uitbrengen
 
 1. Verhoog `version` in `config.yaml` én `APP_VERSION` in `server/src/version.ts` (gelijk; een
-   test en de workflow controleren dat).
+   test en de workflow controleren dat). Voeg een sectie toe aan `CHANGELOG.md` (met
+   schermafbeeldingen in `docs/changelog/<versie>/` als de UI verandert).
 2. Push naar `main`. De workflow `.github/workflows/release.yml` test de code, bouwt de images
    voor amd64 en aarch64, zet ze op `ghcr.io/bertvanbaelen/travelsteps-{arch}:<versie>` en maakt
    een GitHub-release `v<versie>`.

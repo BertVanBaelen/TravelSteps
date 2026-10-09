@@ -4,7 +4,8 @@ import { api, errorMessage } from '../api';
 import { nl } from '../i18n/nl';
 import { Avatar } from './Avatar';
 import { useConfirm } from './ConfirmDialog';
-import { Alert, SelectField } from './Field';
+import { Alert, SelectField } from './Field';
+import { UserPlusIcon } from './icons';
 
 /** Members (co-authors) and viewers of a travel; only shown to those who may manage it. */
 export function TravelSharing({ travel, onChange }: { travel: TravelSummary; onChange: (t: TravelSummary) => void }) {
@@ -55,7 +56,7 @@ export function TravelSharing({ travel, onChange }: { travel: TravelSummary; onC
   }
 
   async function removeMember(id: string, name: string) {
-    if (!(await confirm({ message: nl.sharing.confirmRemove(name), confirmLabel: nl.common.delete, danger: true }))) return;
+    if (!(await confirm({ title: nl.sharing.removeTitle, message: nl.sharing.confirmRemove(name), confirmLabel: nl.common.delete, danger: true }))) return;
     void run(() => api(`/travels/${travel.id}/members/${id}`, { method: 'DELETE' }), null);
   }
 
@@ -80,13 +81,13 @@ export function TravelSharing({ travel, onChange }: { travel: TravelSummary; onC
         <p className="muted">{nl.sharing.membersHint}</p>
         <ul className="member-list">
           <li>
-            <Avatar user={travel.owner} size="tiny" />
+            <Avatar user={travel.owner} size="xs" />
             <span>{travel.owner.displayName}</span>
             <span className="badge">{nl.sharing.owner}</span>
           </li>
           {travel.members.map((m) => (
             <li key={m.id}>
-              <Avatar user={m} size="tiny" />
+              <Avatar user={m} size="xs" />
               <span>{m.displayName}</span>
               {m.status === 'invited' && <span className="badge">{nl.sharing.invitedStatus}</span>}
               <button
@@ -109,16 +110,22 @@ export function TravelSharing({ travel, onChange }: { travel: TravelSummary; onC
                 label={nl.sharing.invite}
                 name="invitee"
                 value={invitee}
-                onChange={(e) => setInvitee(e.target.value)}
-              >
-                <option value="">{nl.sharing.choose}</option>
-                {candidates.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.displayName}
-                  </option>
-                ))}
-              </SelectField>
+                onChange={setInvitee}
+                options={[
+                  {
+                    id: '',
+                    label: nl.sharing.choose,
+                    icon: (
+                      <span className="picker-icon picker-icon-muted">
+                        <UserPlusIcon />
+                      </span>
+                    ),
+                  },
+                  ...candidates.map((u) => ({ id: u.id, label: u.displayName, icon: <Avatar user={u} size="s" /> })),
+                ]}
+              />
               <button type="button" className="btn btn-secondary" disabled={busy || !invitee} onClick={invite}>
+                <UserPlusIcon />
                 {nl.sharing.invite}
               </button>
             </div>
@@ -151,7 +158,7 @@ export function TravelSharing({ travel, onChange }: { travel: TravelSummary; onC
                       checked={viewers.has(u.id)}
                       onChange={(e) => toggleViewer(u.id, e.target.checked)}
                     />
-                    <Avatar user={u} size="tiny" />
+                    <Avatar user={u} size="xs" />
                     <span>{u.displayName}</span>
                   </label>
                 </li>

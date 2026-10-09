@@ -4,6 +4,7 @@ import { db, useLiveQuery, useOnline, type Draft, type OutboxItem } from '../off
 import { discardItem, keepMine, retryItem } from '../offline/sync';
 import { formatRelative } from '../lib/format';
 import { useConfirm } from './ConfirmDialog';
+import { PencilIcon, RefreshIcon } from './icons';
 
 type Row = { kind: 'draft'; item: Draft } | { kind: 'outbox'; item: OutboxItem };
 
@@ -73,7 +74,7 @@ export function OutboxList() {
                       type="button"
                       className="btn btn-small"
                       onClick={() => {
-                        void confirm(nl.sync.confirmTakeServer).then((ok) => {
+                        void confirm({ title: nl.sync.takeServerTitle, message: nl.sync.confirmTakeServer }).then((ok) => {
                           if (ok) void discardItem(item.id);
                         });
                       }}
@@ -84,6 +85,7 @@ export function OutboxList() {
                 ) : (
                   <>
                     <Link to={editLink(item.id, item.isNew)} className="btn btn-small">
+                      <PencilIcon />
                       {nl.common.edit}
                     </Link>
                     {status === 'error' && (
@@ -92,6 +94,7 @@ export function OutboxList() {
                         className="btn btn-small"
                         onClick={() => void retryItem(item.id)}
                       >
+                        <RefreshIcon />
                         {nl.common.retry}
                       </button>
                     )}
@@ -100,7 +103,8 @@ export function OutboxList() {
                       className="btn btn-small btn-danger"
                       onClick={() => {
                         void confirm({
-                          message: nl.sync.confirmDiscard,
+                          title: nl.sync.discardTitle,
+                    message: nl.sync.confirmDiscard,
                           confirmLabel: nl.sync.discard,
                           danger: true,
                         }).then((ok) => {

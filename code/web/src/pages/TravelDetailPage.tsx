@@ -1,17 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import type { MapPost, TravelSummary } from '@travelsteps/shared';
 import { api, errorMessage } from '../api';
 import { useUser } from '../auth/AuthContext';
 import { useBlog } from '../blog/BlogContext';
 import { Avatar } from '../components/Avatar';
+import { useCelebrate } from '../components/Celebration';
 import { useConfirm } from '../components/ConfirmDialog';
+import { Fab, FabStack } from '../components/Fab';
 import { Alert } from '../components/Field';
+import { CheckIcon, CloseIcon, FootprintIcon, LeaveIcon, PencilIcon } from '../components/icons';
 import { MapView } from '../components/MapView';
 import { Markdown } from '../components/Markdown';
 import { PageActions, usePageTitle } from '../components/PageTitle';
 import { TravelStats } from '../components/TravelStats';
+import { SkeletonCards } from '../components/Skeleton';
 import { nl } from '../i18n/nl';
+
 import { formatRange, mediaUrl } from '../lib/format';
 import { Feed } from './TimelinePage';
 
@@ -21,6 +26,7 @@ export function TravelDetailPage() {
   const { reloadTravellers } = useBlog();
   const navigate = useNavigate();
   const confirm = useConfirm();
+  const celebrate = useCelebrate();
   const [travel, setTravel] = useState<TravelSummary | null>(null);
   const [mapPosts, setMapPosts] = useState<MapPost[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -51,13 +57,20 @@ export function TravelDetailPage() {
     run(async () => {
       const r = await api<{ travel: TravelSummary }>(`/travels/${id}/invitation/accept`, { method: 'POST' });
       setTravel(r.travel);
+      void celebrate('invite');
     });
 
   const leave = async (declining: boolean) => {
     if (!travel) return;
     if (
       !declining &&
-      !(await confirm({ message: nl.travels.confirmLeave(travel.name), confirmLabel: nl.travels.leave, danger: true }))
+      !(await confirm({
+          title: nl.travels.leaveTitle,
+          message: nl.travels.confirmLeave(travel.name),
+          confirmLabel: nl.travels.leave,
+          danger: true,
+          icon: <LeaveIcon />,
+        }))
     ) {
       return;
     }
@@ -68,33 +81,51 @@ export function TravelDetailPage() {
   };
 
   if (error) return <Alert kind="error">{error}</Alert>;
-  if (!travel) return <p className="muted center">{nl.loading}</p>;
+  if (!travel) return <SkeletonCards count={2} media />;
 
   const accepted = travel.members.filter((m) => m.status === 'accepted');
 
   return (
     <section className="page">
-      {(travel.canManage || travel.myRole === 'member') && (
+      {!travel.canManage && travel.myRole === 'member' && (
         <PageActions>
-          {travel.canManage ? (
-            <Link to={`/reizen/${travel.id}/bewerken`} className="btn btn-small">
-              {nl.common.edit}
-            </Link>
-          ) : (
-            <button type="button" className="btn btn-small" onClick={() => void leave(false)}>
-              {nl.travels.leave}
-            </button>
-          )}
+          <button type="button" className="btn btn-small btn-danger" onClick={() => void leave(false)}>
+            <LeaveIcon />
+            {nl.travels.leave}
+          </button>
         </PageActions>
+      )}
+      {(travel.canManage || travel.canPost) && (
+        <FabStack>
+          {travel.canManage && (
+            <Fab
+              to={`/reizen/${travel.id}/bewerken`}
+              icon={<PencilIcon />}
+              label={nl.travelEditor.editTitle}
+              secondary={travel.canPost}
+              extended={!travel.canPost}
+            />
+          )}
+          {travel.canPost && (
+            <Fab
+              to={`/posts/nieuw?reis=${travel.id}`}
+              icon={<FootprintIcon />}
+              label={nl.timeline.newPost}
+              extended
+            />
+          )}
+        </FabStack>
       )}
       {travel.myRole === 'invited' && (
         <div className="card stack">
           <p>{nl.travels.inviteBanner(travel.owner.displayName)}</p>
           <div className="row-actions">
             <button type="button" className="btn btn-primary btn-small" onClick={() => void accept()}>
+              <CheckIcon />
               {nl.notifications.accept}
             </button>
             <button type="button" className="btn btn-small" onClick={() => void leave(true)}>
+              <CloseIcon />
               {nl.notifications.decline}
             </button>
           </div>
@@ -131,7 +162,7 @@ export function TravelPeople({ travel }: { travel: TravelSummary }) {
     <div className="travel-people">
       <span className="avatar-stack">
         {[travel.owner, ...accepted].slice(0, 4).map((u) => (
-          <Avatar key={u.id} user={u} size="tiny" />
+          <Avatar key={u.id} user={u} size="xs" />
         ))}
       </span>
       <span className="muted">

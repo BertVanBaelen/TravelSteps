@@ -1370,6 +1370,7 @@ describe('meldingen en abonnementen', () => {
       ['Kees', false],
       ['Piet', true],
     ]);
+    expect(list.every((t) => t.travelCount >= 1)).toBe(true);
 
     const post = await createPost(piet.cookie, 'Geiser', '2025-06-02T10:00:00Z');
     expect(await unreadTypes(kees.cookie)).toEqual(['post']);

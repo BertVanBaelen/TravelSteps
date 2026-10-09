@@ -21,10 +21,12 @@ function page<K extends string>(load: () => Promise<Record<K, ComponentType>>, n
 
 const AdminUsersPage = page(() => import('./pages/AdminUsersPage'), 'AdminUsersPage');
 const AdminSettingsPage = page(() => import('./pages/AdminSettingsPage'), 'AdminSettingsPage');
+const AdminSettingsSectionPage = page(() => import('./pages/AdminSettingsPage'), 'AdminSettingsSectionPage');
 const LibraryPage = page(() => import('./pages/LibraryPage'), 'LibraryPage');
 const MapPage = page(() => import('./pages/MapPage'), 'MapPage');
 const PostEditorPage = page(() => import('./pages/PostEditorPage'), 'PostEditorPage');
 const ProfilePage = page(() => import('./pages/ProfilePage'), 'ProfilePage');
+const ProfileSectionPage = page(() => import('./pages/ProfilePage'), 'ProfileSectionPage');
 const TravelEditorPage = page(() => import('./pages/TravelEditorPage'), 'TravelEditorPage');
 
 function AdminOnly({ children }: { children: ReactNode }) {
@@ -89,11 +91,20 @@ function Gate() {
         />
         <Route path="meldingen" element={<NotificationsPage />} />
         <Route path="profiel" element={<ProfilePage />} />
+        <Route path="profiel/:section" element={<ProfileSectionPage />} />
         <Route
           path="beheer/instellingen"
           element={
             <AdminOnly>
               <AdminSettingsPage />
+            </AdminOnly>
+          }
+        />
+        <Route
+          path="beheer/instellingen/:section"
+          element={
+            <AdminOnly>
+              <AdminSettingsSectionPage />
             </AdminOnly>
           }
         />

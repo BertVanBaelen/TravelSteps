@@ -4,8 +4,12 @@ import type { MapPost, TravelSummary } from '@travelsteps/shared';
 import { api, errorMessage } from '../api';
 import { useBlog, withTraveller } from '../blog/BlogContext';
 import { Alert } from '../components/Field';
+import { EmptyState } from '../components/EmptyState';
+import { MapIcon } from '../components/icons';
 import { MapView } from '../components/MapView';
-import { PageActions, usePageTitle } from '../components/PageTitle';
+import { usePageTitle } from '../components/PageTitle';
+import { SkeletonBlock } from '../components/Skeleton';
+import { TravelPicker } from '../components/TravelPicker';
 import { nl } from '../i18n/nl';
 import { TRAVEL_COLORS } from '../lib/map';
 
@@ -53,24 +57,16 @@ export function MapPage() {
   return (
     <section className="page map-page">
       {travels && travels.length > 0 && (
-        <PageActions>
-          <select
-            className="select-inline"
-            aria-label={nl.map.filter}
-            value={filter}
-            onChange={(e) => setParams({ reis: e.target.value }, { replace: true })}
-          >
-            <option value={ALL}>{nl.timeline.allTravels}</option>
-            {travels.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-        </PageActions>
+        <TravelPicker
+          travels={travels}
+          value={filter}
+          allValue={ALL}
+          colorFor={travels.length > 1 ? colorFor : undefined}
+          onChange={(v) => setParams({ reis: v }, { replace: true })}
+        />
       )}
       {error && <Alert kind="error">{error}</Alert>}
-      {posts === null && !error && <p className="muted center">{nl.loading}</p>}
+      {posts === null && !error && <SkeletonBlock height="60vh" />}
       {posts && (
         <>
           <MapView
@@ -80,7 +76,7 @@ export function MapPage() {
             onOpen={openPost}
             className="map-full"
           />
-          {shown.length === 0 && <p className="muted center">{nl.map.empty}</p>}
+          {shown.length === 0 && <EmptyState icon={<MapIcon />} text={nl.map.empty} />}
           {filter === ALL && shownTravels.length > 1 && (
             <ul className="map-legend">
               {shownTravels.map((t) => (

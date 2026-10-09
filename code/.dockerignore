@@ -8,3 +8,4 @@ Analysis
 *.md
 !README.md
 .git
+docs

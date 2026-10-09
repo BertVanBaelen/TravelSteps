@@ -4,7 +4,10 @@ import type { LibraryPhoto } from '@travelsteps/shared';
 import { api, errorMessage } from '../api';
 import { useUser } from '../auth/AuthContext';
 import { useBlog, withTraveller } from '../blog/BlogContext';
+import { EmptyState } from '../components/EmptyState';
 import { Alert } from '../components/Field';
+import { PhotoIcon } from '../components/icons';
+import { SkeletonGrid } from '../components/Skeleton';
 import { Lightbox } from '../components/Gallery';
 import { usePageTitle } from '../components/PageTitle';
 import { nl } from '../i18n/nl';
@@ -74,11 +77,10 @@ export function LibraryPage() {
         ))}
       </div>
       {error && <Alert kind="error">{error}</Alert>}
-      {photos === null && !error && <p className="muted center">{nl.loading}</p>}
+      {photos === null && !error && <SkeletonGrid />}
       {photos?.length === 0 && (
-        <div className="card empty">
-          <p>{nl.library.empty}</p>
-        </div>
+        <EmptyState icon={<PhotoIcon />} text={nl.library.empty} />
+
       )}
       {groups.map((g) => (
         <div key={g.key} className="library-group">

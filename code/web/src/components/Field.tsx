@@ -1,4 +1,5 @@
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
+import type { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react';
+import { Listbox, type ListboxOption } from './Listbox';
 
 interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
@@ -32,23 +33,36 @@ export function TextAreaField({ label, hint, id, ...input }: TextAreaProps) {
   );
 }
 
-interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectProps {
   label: string;
-  children: ReactNode;
+  name: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: ListboxOption[];
+  hint?: string;
+  disabled?: boolean;
 }
 
-export function SelectField({ label, id, children, ...input }: SelectProps) {
-  const inputId = id ?? input.name;
+/** Labelled dropdown in the app style (replaces the native select). */
+export function SelectField({ label, name, value, onChange, options, hint, disabled }: SelectProps) {
   return (
-    <label className="field" htmlFor={inputId}>
-      <span className="field-label">{label}</span>
-      <select id={inputId} {...input}>
-        {children}
-      </select>
-    </label>
+    <div className="field">
+      <label className="field-label" htmlFor={name}>
+        {label}
+      </label>
+      <Listbox
+        id={name}
+        variant="field"
+        title={label}
+        options={options}
+        selected={value}
+        onSelect={onChange}
+        disabled={disabled}
+      />
+      {hint && <span className="field-hint">{hint}</span>}
+    </div>
   );
 }
-
 export function Alert({ kind, children }: { kind: 'error' | 'success' | 'info'; children: ReactNode }) {
   return (
     <p className={`alert alert-${kind}`} role={kind === 'error' ? 'alert' : 'status'}>

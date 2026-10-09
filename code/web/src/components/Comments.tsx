@@ -6,6 +6,8 @@ import { formatDateTime, formatRelative } from '../lib/format';
 import { useConfirm } from './ConfirmDialog';
 import { Alert } from './Field';
 import { Avatar } from './Avatar';
+import { CommentSkeleton } from './Skeleton';
+import { SendIcon } from './icons';
 
 export function Comments({ postId, onCountChange }: { postId: string; onCountChange?: (n: number) => void }) {
   const [comments, setComments] = useState<Comment[] | null>(null);
@@ -64,7 +66,7 @@ export function Comments({ postId, onCountChange }: { postId: string; onCountCha
   }
 
   async function remove(c: Comment) {
-    if (!(await confirm({ message: nl.comments.confirmDelete, confirmLabel: nl.common.delete, danger: true }))) return;
+    if (!(await confirm({ title: nl.comments.deleteTitle, message: nl.comments.confirmDelete, confirmLabel: nl.common.delete, danger: true }))) return;
     setError(null);
     try {
       await api(`/comments/${c.id}`, { method: 'DELETE' });
@@ -78,13 +80,13 @@ export function Comments({ postId, onCountChange }: { postId: string; onCountCha
     <section className="card stack" id="reacties">
       <h2>{nl.comments.title}</h2>
       {error && <Alert kind="error">{error}</Alert>}
-      {comments === null && !error && <p className="muted">{nl.loading}</p>}
+      {comments === null && !error && <CommentSkeleton />}
       {comments?.length === 0 && <p className="muted">{nl.comments.empty}</p>}
       {comments && comments.length > 0 && (
         <ul className="comment-list">
           {comments.map((c) => (
             <li key={c.id} className="comment">
-              <Avatar user={c.author} size="small" />
+              <Avatar user={c.author} size="s" />
               <div className="comment-body">
                 <div className="comment-head">
                   <strong>{c.author.displayName}</strong>
@@ -144,6 +146,7 @@ export function Comments({ postId, onCountChange }: { postId: string; onCountCha
           required
         />
         <button className="btn btn-primary" type="submit" disabled={busy || !text.trim()}>
+          <SendIcon />
           {nl.comments.send}
         </button>
       </form>

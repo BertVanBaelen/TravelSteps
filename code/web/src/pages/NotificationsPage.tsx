@@ -5,9 +5,12 @@ import { api, errorMessage } from '../api';
 import { useUser } from '../auth/AuthContext';
 import { useBlog } from '../blog/BlogContext';
 import { Avatar } from '../components/Avatar';
+import { useCelebrate } from '../components/Celebration';
+import { EmptyState } from '../components/EmptyState';
 import { Alert } from '../components/Field';
+import { BellIcon, CheckIcon, CloseIcon } from '../components/icons';
+import { SkeletonCards } from '../components/Skeleton';
 import { PageActions, usePageTitle } from '../components/PageTitle';
-import { DELETED_USER } from '../components/PostCard';
 import { PushToggle } from '../components/PushToggle';
 import { nl } from '../i18n/nl';
 import { formatDateTime, formatRelative } from '../lib/format';
@@ -38,6 +41,7 @@ export function NotificationsPage() {
   usePageTitle(nl.notifications.title);
   const me = useUser();
   const navigate = useNavigate();
+  const celebrate = useCelebrate();
   const { setUnread, reloadTravellers } = useBlog();
   const [items, setItems] = useState<AppNotification[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -76,6 +80,7 @@ export function NotificationsPage() {
       if (accept) await api(`/travels/${n.travelId}/invitation/accept`, { method: 'POST' });
       else await api(`/travels/${n.travelId}/members/${me.id}`, { method: 'DELETE' });
       setHandled((s) => new Set(s).add(n.id));
+      if (accept) void celebrate('invite');
       setNotice(accept ? nl.notifications.accepted : nl.notifications.declined);
       if (!n.read) await markRead(n.id);
       reloadTravellers();
@@ -89,23 +94,23 @@ export function NotificationsPage() {
       {items?.some((n) => !n.read) && (
         <PageActions>
           <button type="button" className="btn btn-small" onClick={() => void markRead().catch(() => undefined)}>
+            <CheckIcon />
             {nl.notifications.markAll}
           </button>
         </PageActions>
       )}
       {error && <Alert kind="error">{error}</Alert>}
       {notice && <Alert kind="success">{notice}</Alert>}
-      {items === null && !error && <p className="muted center">{nl.loading}</p>}
+      {items === null && !error && <SkeletonCards count={4} />}
       {items?.length === 0 && (
-        <div className="card empty">
-          <p>{nl.notifications.empty}</p>
-        </div>
+        <EmptyState icon={<BellIcon />} text={nl.notifications.empty} />
+
       )}
       {items && items.length > 0 && (
         <ul className="notification-list card">
           {items.map((n) => (
             <li key={n.id} className={n.read ? 'notification' : 'notification unread'}>
-              <Avatar user={n.actor ?? DELETED_USER} size="small" />
+              <Avatar user={n.actor} size="s" />
               <div className="notification-body">
                 <button type="button" className="notification-text" onClick={() => open(n)}>
                   {text(n)}
@@ -121,9 +126,11 @@ export function NotificationsPage() {
                 {n.type === 'invite' && n.travelId && !handled.has(n.id) && (
                   <div className="row-actions">
                     <button type="button" className="btn btn-small btn-primary" onClick={() => void answer(n, true)}>
+                      <CheckIcon />
                       {nl.notifications.accept}
                     </button>
                     <button type="button" className="btn btn-small" onClick={() => void answer(n, false)}>
+                      <CloseIcon />
                       {nl.notifications.decline}
                     </button>
                     <Link to={`/reizen/${n.travelId}`} className="btn-text">

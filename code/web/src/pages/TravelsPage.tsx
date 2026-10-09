@@ -5,8 +5,12 @@ import { api, errorMessage } from '../api';
 import { useUser } from '../auth/AuthContext';
 import { useBlog, withTraveller } from '../blog/BlogContext';
 import { useConfirm } from '../components/ConfirmDialog';
+import { EmptyState } from '../components/EmptyState';
 import { Alert } from '../components/Field';
-import { PageActions, usePageTitle } from '../components/PageTitle';
+import { Fab, FabStack } from '../components/Fab';
+import { PencilIcon, PlaneIcon, PlusIcon, TrashIcon, TravelIcon } from '../components/icons';
+import { SkeletonCards } from '../components/Skeleton';
+import { usePageTitle } from '../components/PageTitle';
 import { TravelStats } from '../components/TravelStats';
 import { nl } from '../i18n/nl';
 import { formatRange, mediaUrl } from '../lib/format';
@@ -41,18 +45,25 @@ export function TravelsPage() {
   return (
     <section className="page">
       {canCreate && (
-        <PageActions>
-          <Link to="/reizen/nieuw" className="btn btn-primary btn-small">
-            + {nl.travels.new}
-          </Link>
-        </PageActions>
+        <FabStack>
+          <Fab to="/reizen/nieuw" icon={<PlaneIcon />} label={nl.travels.new} extended />
+        </FabStack>
       )}
       {error && <Alert kind="error">{error}</Alert>}
-      {travels === null && !error && <p className="muted center">{nl.loading}</p>}
+      {travels === null && !error && <SkeletonCards count={2} media />}
       {travels?.length === 0 && (
-        <div className="card empty">
-          <p>{nl.travels.empty}</p>
-        </div>
+        <EmptyState
+          icon={<TravelIcon />}
+          text={nl.travels.empty}
+          action={
+            canCreate && (
+              <Link to="/reizen/nieuw" className="btn btn-primary btn-small">
+                <PlusIcon />
+                {nl.travels.new}
+              </Link>
+            )
+          }
+        />
       )}
       {travels?.map((t) => (
         <article key={t.id} className="card travel-card">
@@ -78,6 +89,7 @@ export function TravelsPage() {
             {t.canManage && (
               <div className="row-actions">
                 <Link to={`/reizen/${t.id}/bewerken`} className="btn btn-small">
+                  <PencilIcon />
                   {nl.common.edit}
                 </Link>
                 {t.postCount === 0 && (
@@ -86,6 +98,7 @@ export function TravelsPage() {
                     className="btn btn-small btn-danger"
                     onClick={() => {
                       void confirm({
+                        title: nl.travels.deleteTitle,
                         message: nl.travels.confirmDelete(t.name),
                         confirmLabel: nl.common.delete,
                         danger: true,
@@ -94,6 +107,7 @@ export function TravelsPage() {
                       });
                     }}
                   >
+                    <TrashIcon />
                     {nl.common.delete}
                   </button>
                 )}

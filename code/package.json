@@ -1,6 +1,6 @@
 {
   "name": "travelsteps",
-  "version": "1.0.0",
+  "version": "1.2.8",
   "private": true,
   "description": "TravelSteps - reisblog met tijdlijn, kaart en Immich-foto's",
   "type": "module",

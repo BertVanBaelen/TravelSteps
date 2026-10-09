@@ -3,4 +3,4 @@
  * `code/config.yaml` to the same value – the Home Assistant add-on store only offers an
  * update when that version changes.
  */
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '1.2.8';

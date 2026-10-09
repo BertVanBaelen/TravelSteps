@@ -19,6 +19,7 @@ export const formatNumber = (n: number) => numberFmt.format(n);
 export const formatDay = (day: string) => dateFmt.format(new Date(`${day}T12:00:00`));
 
 export function formatRange(start: string, end: string | null, ongoing: string): string {
+  if (end === start) return formatDay(start);
   return `${formatDay(start)} – ${end ? formatDay(end) : ongoing}`;
 }
 

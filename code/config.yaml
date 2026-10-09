@@ -3,7 +3,7 @@ name: TravelSteps
 # Bump this on every release: a push to main with a new version builds the image
 # (.github/workflows/release.yml) and Home Assistant then offers the update.
 # Keep it equal to APP_VERSION in server/src/version.ts.
-version: '1.0.0'
+version: '1.2.8'
 slug: travelsteps
 description: Reisblog met tijdlijn, kaart en Immich-foto's
 url: https://github.com/BertVanBaelen/TravelSteps

@@ -419,7 +419,7 @@ export class ContentStore {
       throw new HttpError(
         409,
         'TRAVEL_NOT_EMPTY',
-        'Deze reis heeft nog posts. Verwijder of verplaats die eerst.',
+        'Deze reis heeft nog stappen. Verwijder of verplaats die eerst.',
       );
     }
     this.db.transaction(() => {
@@ -539,7 +539,7 @@ export class ContentStore {
 
   private postEntry(id: string): Post {
     const post = this.posts.get(id);
-    if (!post) throw notFound('Post');
+    if (!post) throw notFound('Stap');
     return post;
   }
 
@@ -592,7 +592,7 @@ export class ContentStore {
     if (!travelId) throw new HttpError(400, 'NO_TRAVEL', 'Maak eerst een reis aan.');
     this.entry(travelId);
     if (data.id && this.posts.has(data.id)) {
-      throw new HttpError(409, 'POST_EXISTS', 'Deze post bestaat al.');
+      throw new HttpError(409, 'POST_EXISTS', 'Deze stap bestaat al.');
     }
     const now = new Date().toISOString();
     const post: Post = {
@@ -625,7 +625,7 @@ export class ContentStore {
       throw new HttpError(
         409,
         'CONFLICT',
-        'Deze post is intussen ergens anders gewijzigd. Kies welke versie je wilt houden.',
+        'Deze stap is intussen ergens anders gewijzigd. Kies welke versie je wilt houden.',
       );
     }
     const travelId = data.travelId ?? post.travelId;

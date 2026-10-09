@@ -87,7 +87,7 @@ export async function postRoutes(app: FastifyInstance): Promise<void> {
   /** The post, if the user may see its travel (otherwise 404). */
   const visiblePost = (id: string, me: Actor): Post => {
     const post = content.getPost(id);
-    if (!post || !content.canView(me, post.travelId)) throw notFound('Post');
+    if (!post || !content.canView(me, post.travelId)) throw notFound('Stap');
     return post;
   };
 
@@ -116,7 +116,7 @@ export async function postRoutes(app: FastifyInstance): Promise<void> {
     if (!travelId) throw new HttpError(400, 'NO_TRAVEL', 'Maak eerst een reis aan.');
     if (!content.canView(me, travelId)) throw notFound('Reis');
     if (!content.canPost(me, travelId)) {
-      throw new HttpError(403, 'FORBIDDEN', 'Je kunt niet posten in deze reis.');
+      throw new HttpError(403, 'FORBIDDEN', 'Je kunt geen stappen plaatsen in deze reis.');
     }
     return travelId;
   };
@@ -196,7 +196,7 @@ export async function postRoutes(app: FastifyInstance): Promise<void> {
     const body = (req.body ?? {}) as { id?: unknown; travelId?: unknown };
     const existing = typeof body.id === 'string' ? content.getPost(body.id) : undefined;
     if (existing) {
-      if (existing.authorId !== me.id) throw new HttpError(409, 'POST_EXISTS', 'Deze post bestaat al.');
+      if (existing.authorId !== me.id) throw new HttpError(409, 'POST_EXISTS', 'Deze stap bestaat al.');
       return reply.code(200).send({ post: toDetail(existing, me) });
     }
     const travelId = postableTravel(me, typeof body.travelId === 'string' ? body.travelId : undefined);
