@@ -46,9 +46,24 @@ Alle data staat in één map (`DATA_DIR`, in de container `/data`):
 
 ## Installeren op de Home Assistant-server
 
-Kies één van de twee manieren.
+Kies één van de twee manieren. Optie A (add-on uit de GitHub-repository) werkt automatisch bij.
 
-### Optie A – Docker Compose (HA Supervised/Container, of HA OS met SSH/Portainer)
+### Optie A – Home Assistant add-on (aanbevolen)
+
+1. **Instellingen → Add-ons → Add-on winkel → ⋮ → Repositories** en voeg
+   `https://github.com/BertVanBaelen/TravelSteps` toe.
+2. **TravelSteps** verschijnt in de winkel; installeer het. Home Assistant downloadt een kant-en-klaar
+   image (`ghcr.io/bertvanbaelen/travelsteps-{arch}`), er wordt niets op de server gebouwd.
+3. Vul in het tabblad _Configuratie_ minstens `admin_username` en `admin_password` in en start de
+   add-on. De data komt in `/share/travelsteps` (optie `data_dir`).
+4. Zet op het tabblad _Info_ **Automatisch bijwerken** aan.
+
+Overstappen van de oude lokale add-on (`/addons/travelsteps`): noteer de configuratie, stop de
+lokale add-on, installeer TravelSteps uit de repository, vul dezelfde configuratie in (de datamap
+`/share/travelsteps` blijft gewoon staan) en start. Verwijder daarna de lokale add-on en de map
+`/addons/travelsteps`.
+
+### Optie B – Docker Compose (HA Supervised/Container, of HA OS met SSH/Portainer)
 
 1. Kopieer de map `code` naar de server, bv. `/share/travelsteps-src`.
 2. Maak de configuratie aan:
@@ -63,16 +78,6 @@ Kies één van de twee manieren.
    docker compose logs -f
    ```
 4. Controle: `curl http://localhost:8080/api/health` → `{"status":"ok","version":"1.0.0"}`.
-
-### Optie B – Home Assistant lokale add-on (HA OS)
-
-1. Installeer in HA de add-on **Samba share** of **Advanced SSH & Web Terminal**.
-2. Kopieer de inhoud van de map `code` naar `/addons/travelsteps` (de map met `config.yaml` en
-   `Dockerfile`).
-3. **Instellingen → Add-ons → Add-on winkel → ⋮ → Controleren op updates**. Onder _Lokale add-ons_
-   verschijnt **TravelSteps**. Installeer (bouwen duurt enkele minuten).
-4. Vul in het tabblad _Configuratie_ minstens `admin_username` en `admin_password` in en start de
-   add-on. De data komt in `/share/travelsteps` (optie `data_dir`).
 
 ## Cloudflare Tunnel
 
@@ -190,12 +195,14 @@ bewaard. De status staat bij **Instellingen**.
 
 ## Upgraden
 
-1. Maak een back-up van de datamap (zie hierboven).
-2. Vervang de broncode:
+1. Maak een back-up van de datamap (zie hierboven). Met _Automatisch bijwerken_ doet de add-on
+   dat niet zelf; de nachtelijke databaseback-up in `backups/` blijft wel staan.
+2. Bijwerken:
+   - **Add-on (repository):** gebeurt automatisch als _Automatisch bijwerken_ aan staat. Anders
+     verschijnt de update bij **Instellingen → Updates**. Home Assistant controleert de repository
+     om de paar uur; sneller via **Add-on winkel → ⋮ → Controleren op updates**.
    - **Compose:** kopieer de nieuwe map `code` over de oude (laat `.env` staan) en voer
      `docker compose up -d --build` uit.
-   - **Add-on:** kopieer de nieuwe bestanden naar `/addons/travelsteps`, kies in de add-on winkel
-     **⋮ → Controleren op updates** en daarna **Bijwerken** bij TravelSteps.
 3. Databasemigraties lopen automatisch bij het starten. Controleer de log en **Instellingen**
    (versie).
 
@@ -226,5 +233,16 @@ Lokaal draaien zonder Docker: zet `DATA_DIR=./data` en `COOKIE_SECURE=false`.
 
 ## Nieuwe versie uitbrengen
 
-Verhoog `version` in `config.yaml` (anders toont de add-on winkel geen update) én `APP_VERSION` in
-`server/src/version.ts`. Beide moeten gelijk zijn; een test bewaakt dat.
+1. Verhoog `version` in `config.yaml` én `APP_VERSION` in `server/src/version.ts` (gelijk; een
+   test en de workflow controleren dat).
+2. Push naar `main`. De workflow `.github/workflows/release.yml` test de code, bouwt de images
+   voor amd64 en aarch64, zet ze op `ghcr.io/bertvanbaelen/travelsteps-{arch}:<versie>` en maakt
+   een GitHub-release `v<versie>`.
+3. Home Assistant ziet de nieuwe `version` in de repository en werkt de add-on bij.
+
+Een push zonder nieuwe versie test alleen de code en bouwt niets. Pas de versie dus pas aan als
+je echt wilt uitrollen.
+
+**Eenmalig na de eerste release:** de GHCR-packages `travelsteps-amd64` en `travelsteps-aarch64`
+zijn standaard privé. Zet ze op GitHub op **Public** (profiel → **Packages** → package →
+**Package settings → Change visibility**), anders kan Home Assistant ze niet downloaden.

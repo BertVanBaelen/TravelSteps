@@ -1,11 +1,14 @@
-# Home Assistant local add-on definition.
-# Copy this whole project folder to /addons/travelsteps on the Home Assistant host.
+# Home Assistant add-on definition (add-on repository: https://github.com/BertVanBaelen/TravelSteps).
 name: TravelSteps
-# Bump this on every release, otherwise the Home Assistant add-on store won't offer the update.
+# Bump this on every release: a push to main with a new version builds the image
+# (.github/workflows/release.yml) and Home Assistant then offers the update.
 # Keep it equal to APP_VERSION in server/src/version.ts.
 version: '1.0.0'
 slug: travelsteps
 description: Reisblog met tijdlijn, kaart en Immich-foto's
+url: https://github.com/BertVanBaelen/TravelSteps
+# Prebuilt by GitHub Actions; without this line Home Assistant builds the Dockerfile itself.
+image: ghcr.io/bertvanbaelen/travelsteps-{arch}
 arch:
   - amd64
   - aarch64
