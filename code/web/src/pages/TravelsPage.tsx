@@ -12,12 +12,13 @@ import { PencilIcon, PlaneIcon, PlusIcon, TrashIcon, TravelIcon } from '../compo
 import { SkeletonCards } from '../components/Skeleton';
 import { usePageTitle } from '../components/PageTitle';
 import { TravelStats } from '../components/TravelStats';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 import { formatRange, mediaUrl } from '../lib/format';
 import { TravelPeople } from './TravelDetailPage';
 
 export function TravelsPage() {
-  usePageTitle(nl.travels.title);
+  const msg = useT();
+  usePageTitle(msg.travels.title);
   const canCreate = isTraveller(useUser().role);
   const { selected } = useBlog();
   const confirm = useConfirm();
@@ -46,7 +47,7 @@ export function TravelsPage() {
     <section className="page">
       {canCreate && (
         <FabStack>
-          <Fab to="/reizen/nieuw" icon={<PlaneIcon />} label={nl.travels.new} extended />
+          <Fab to="/reizen/nieuw" icon={<PlaneIcon />} label={msg.travels.new} extended />
         </FabStack>
       )}
       {error && <Alert kind="error">{error}</Alert>}
@@ -54,12 +55,12 @@ export function TravelsPage() {
       {travels?.length === 0 && (
         <EmptyState
           icon={<TravelIcon />}
-          text={nl.travels.empty}
+          text={msg.travels.empty}
           action={
             canCreate && (
               <Link to="/reizen/nieuw" className="btn btn-primary btn-small">
                 <PlusIcon />
-                {nl.travels.new}
+                {msg.travels.new}
               </Link>
             )
           }
@@ -77,20 +78,20 @@ export function TravelsPage() {
               <h2>
                 <Link to={`/reizen/${t.id}`}>{t.name}</Link>
               </h2>
-              {t.myRole === 'invited' && <span className="badge">{nl.travels.invited}</span>}
+              {t.myRole === 'invited' && <span className="badge">{msg.travels.invited}</span>}
             </div>
             <TravelPeople travel={t} />
             <p className="muted">
-              {formatRange(t.startDate, t.endDate, nl.travels.ongoing)}
+              {formatRange(t.startDate, t.endDate, msg.travels.ongoing)}
               <br />
-              {nl.travels.counts(t.postCount, t.photoCount)}
+              {msg.travels.counts(t.postCount, t.photoCount)}
             </p>
             <TravelStats travel={t} />
             {t.canManage && (
               <div className="row-actions">
                 <Link to={`/reizen/${t.id}/bewerken`} className="btn btn-small">
                   <PencilIcon />
-                  {nl.common.edit}
+                  {msg.common.edit}
                 </Link>
                 {t.postCount === 0 && (
                   <button
@@ -98,9 +99,9 @@ export function TravelsPage() {
                     className="btn btn-small btn-danger"
                     onClick={() => {
                       void confirm({
-                        title: nl.travels.deleteTitle,
-                        message: nl.travels.confirmDelete(t.name),
-                        confirmLabel: nl.common.delete,
+                        title: msg.travels.deleteTitle,
+                        message: msg.travels.confirmDelete(t.name),
+                        confirmLabel: msg.common.delete,
                         danger: true,
                       }).then((ok) => {
                         if (ok) void run(() => api(`/travels/${t.id}`, { method: 'DELETE' }));
@@ -108,7 +109,7 @@ export function TravelsPage() {
                     }}
                   >
                     <TrashIcon />
-                    {nl.common.delete}
+                    {msg.common.delete}
                   </button>
                 )}
               </div>

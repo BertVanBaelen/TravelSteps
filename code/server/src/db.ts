@@ -187,6 +187,8 @@ const migrations: string[] = [
   `,
   // Phase X: comment notifications show the comment text (and disappear with the comment).
   `ALTER TABLE notifications ADD COLUMN comment_id TEXT REFERENCES comments(id) ON DELETE CASCADE`,
+  // V2-3: chosen UI/notification language ('nl' | 'en'); NULL = not chosen yet.
+  `ALTER TABLE users ADD COLUMN language TEXT`,
 ];
 
 export function openDatabase(file: string): DB {

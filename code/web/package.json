@@ -1,13 +1,14 @@
 {
   "name": "@travelsteps/web",
-  "version": "1.2.8",
+  "version": "1.3.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.json --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@tiptap/core": "^3.31.4",
@@ -29,6 +30,7 @@
     "react-router-dom": "^7.1.0",
     "typescript": "^5.7.2",
     "vite": "^6.0.5",
-    "vite-plugin-pwa": "^2.0.0"
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.0.3"
   }
 }

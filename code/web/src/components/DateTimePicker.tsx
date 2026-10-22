@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
+import { dateFormat } from '../lib/format';
 import { CalendarIcon, ChevronDown, ChevronLeft, ChevronRight, ClockIcon, CloseIcon } from './icons';
 import { Sheet, useDismiss } from './Sheet';
 
@@ -11,10 +12,10 @@ function parseDay(value: string): Date | null {
   return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null;
 }
 
-const longFmt = new Intl.DateTimeFormat('nl-NL', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
-const monthFmt = new Intl.DateTimeFormat('nl-NL', { month: 'long', year: 'numeric' });
-const dayLabelFmt = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-const WEEKDAYS = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo'];
+const longFmt = () => dateFormat({ weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+const monthFmt = () => dateFormat({ month: 'long', year: 'numeric' });
+const dayLabelFmt = () => dateFormat({ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+const weekdays = () => Array.from({ length: 7 }, (_, i) => dateFormat({ weekday: 'short' }).format(new Date(2024, 0, 1 + i)));
 
 /** The 42 days (6 weeks, Monday first) shown for the month of `month`. */
 function monthGrid(month: Date): Date[] {
@@ -37,6 +38,7 @@ interface DatePickerProps {
 
 /** App-style date picker: a month calendar in a dropdown (bottom sheet on phones). */
 export function DatePicker({ value, onChange, id, title, min, emptyLabel }: DatePickerProps) {
+  const msg = useT();
   const selected = parseDay(value);
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState(() => selected ?? new Date());
@@ -104,14 +106,14 @@ export function DatePicker({ value, onChange, id, title, min, emptyLabel }: Date
         className="picker-trigger"
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label={`${title}: ${selected ? longFmt.format(selected) : (emptyLabel ?? '')}`}
+        aria-label={`${title}: ${selected ? longFmt().format(selected) : (emptyLabel ?? '')}`}
         onClick={() => (open ? close() : openSheet())}
       >
         <span className="picker-icon">
           <CalendarIcon />
         </span>
         <span className={`picker-trigger-name${selected ? '' : ' muted'}`}>
-          {selected ? longFmt.format(selected) : emptyLabel}
+          {selected ? longFmt().format(selected) : emptyLabel}
         </span>
         <span className={`picker-chevron${open ? ' open' : ''}`}>
           <ChevronDown />
@@ -121,16 +123,16 @@ export function DatePicker({ value, onChange, id, title, min, emptyLabel }: Date
         <div role="dialog" aria-label={title}>
           <p className="sheet-title">{title}</p>
           <div className="cal-head">
-            <button type="button" className="icon-btn" onClick={() => shiftMonth(-1)} aria-label={nl.dateTime.prevMonth}>
+            <button type="button" className="icon-btn" onClick={() => shiftMonth(-1)} aria-label={msg.dateTime.prevMonth}>
               <ChevronLeft />
             </button>
-            <strong aria-live="polite">{monthFmt.format(month)}</strong>
-            <button type="button" className="icon-btn" onClick={() => shiftMonth(1)} aria-label={nl.dateTime.nextMonth}>
+            <strong aria-live="polite">{monthFmt().format(month)}</strong>
+            <button type="button" className="icon-btn" onClick={() => shiftMonth(1)} aria-label={msg.dateTime.nextMonth}>
               <ChevronRight />
             </button>
           </div>
           <div className="cal-grid" ref={grid} onKeyDown={onGridKey}>
-            {WEEKDAYS.map((w) => (
+            {weekdays().map((w) => (
               <span key={w} className="cal-weekday" aria-hidden>
                 {w}
               </span>
@@ -154,7 +156,7 @@ export function DatePicker({ value, onChange, id, title, min, emptyLabel }: Date
                   tabIndex={iso === toIso(focus) ? 0 : -1}
                   disabled={disabledDay(iso)}
                   aria-pressed={iso === value}
-                  aria-label={dayLabelFmt.format(d)}
+                  aria-label={dayLabelFmt().format(d)}
                   onClick={() => pick(d)}
                 >
                   {d.getDate()}
@@ -178,7 +180,7 @@ export function DatePicker({ value, onChange, id, title, min, emptyLabel }: Date
             )}
             <button type="button" className="btn btn-small btn-secondary" onClick={() => pick(new Date())} disabled={disabledDay(today)}>
               <CalendarIcon />
-              {nl.dateTime.today}
+              {msg.dateTime.today}
             </button>
           </div>
         </div>
@@ -199,6 +201,7 @@ const MINUTES = Array.from({ length: 12 }, (_, i) => pad(i * 5));
 
 /** App-style time picker: an hour and a minute column. */
 export function TimePicker({ value, onChange, title }: TimePickerProps) {
+  const msg = useT();
   const [hour = '00', minute = '00'] = value.split(':');
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -249,8 +252,8 @@ export function TimePicker({ value, onChange, title }: TimePickerProps) {
         <div role="dialog" aria-label={title} ref={sheet}>
           <p className="sheet-title">{title}</p>
           <div className="time-cols">
-            <div className="time-col" role="group" aria-label={nl.dateTime.hours}>
-              <span className="cal-weekday">{nl.dateTime.hours}</span>
+            <div className="time-col" role="group" aria-label={msg.dateTime.hours}>
+              <span className="cal-weekday">{msg.dateTime.hours}</span>
               {HOURS.map((h) => (
                 <button
                   key={h}
@@ -263,8 +266,8 @@ export function TimePicker({ value, onChange, title }: TimePickerProps) {
                 </button>
               ))}
             </div>
-            <div className="time-col" role="group" aria-label={nl.dateTime.minutes}>
-              <span className="cal-weekday">{nl.dateTime.minutes}</span>
+            <div className="time-col" role="group" aria-label={msg.dateTime.minutes}>
+              <span className="cal-weekday">{msg.dateTime.minutes}</span>
               {minutes.map((m) => (
                 <button
                   key={m}
@@ -284,10 +287,10 @@ export function TimePicker({ value, onChange, title }: TimePickerProps) {
           <div className="cal-foot">
             <button type="button" className="btn btn-small btn-secondary" onClick={now}>
               <ClockIcon />
-              {nl.dateTime.now}
+              {msg.dateTime.now}
             </button>
             <button type="button" className="btn btn-small btn-primary" onClick={() => close()}>
-              {nl.common.ok}
+              {msg.common.ok}
             </button>
           </div>
         </div>
@@ -331,18 +334,19 @@ export function DateTimeField({
   fixedDay?: string;
   hint?: string;
 }) {
+  const msg = useT();
   const [valueDay = '', time = '12:00'] = value.split('T');
   const day = fixedDay ?? valueDay;
   return (
     <div className="field">
       <label className="field-label" htmlFor={fixedDay ? undefined : name}>
-        {fixedDay ? nl.dateTime.time : label}
+        {fixedDay ? msg.dateTime.time : label}
       </label>
       <div className="datetime-row">
         {!fixedDay && (
           <DatePicker id={name} title={label} value={day} onChange={(d) => onChange(`${d}T${time}`)} />
         )}
-        <TimePicker title={nl.dateTime.time} value={time} onChange={(t) => onChange(`${day}T${t}`)} />
+        <TimePicker title={msg.dateTime.time} value={time} onChange={(t) => onChange(`${day}T${t}`)} />
       </div>
       {hint && <span className="field-hint">{hint}</span>}
     </div>

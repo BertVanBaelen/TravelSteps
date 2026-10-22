@@ -1,4 +1,5 @@
 import { FIXED_STATS, type Stats } from '@travelsteps/shared';
+import { messages } from '../i18n';
 import { formatDuration, formatNumber } from '../lib/format';
 
 interface StatItem {
@@ -8,14 +9,15 @@ interface StatItem {
 }
 
 export function statItems(stats: Stats): StatItem[] {
+  const msg = messages();
   const items: StatItem[] = [];
   for (const def of FIXED_STATS) {
     const v = stats[def.key];
     if (v === undefined || v === null) continue;
     items.push(
       def.key === 'duur'
-        ? { label: def.label, value: formatDuration(v), unit: 'u' }
-        : { label: def.label, value: formatNumber(v), unit: def.unit },
+        ? { label: msg.stats[def.key], value: formatDuration(v), unit: msg.stats.hours }
+        : { label: msg.stats[def.key], value: formatNumber(v), unit: def.unit },
     );
   }
   for (const c of stats.custom ?? []) items.push({ label: c.label, value: c.value, unit: c.unit });

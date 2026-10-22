@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import type { Comment, PostSummary, UserRef } from '@travelsteps/shared';
 import { api, errorMessage } from '../api';
 import { useUser } from '../auth/AuthContext';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 import { formatDateTime, formatRelative } from '../lib/format';
 import { Avatar, AvatarStack } from './Avatar';
 import { Carousel } from './Gallery';
@@ -15,6 +15,7 @@ import { StatsView } from './StatsView';
 const MAX_LIKERS = 3;
 
 export function PostCard({ post }: { post: PostSummary }) {
+  const msg = useT();
   const me = useUser();
   const navigate = useNavigate();
   const link = `/post/${post.id}`;
@@ -44,7 +45,7 @@ export function PostCard({ post }: { post: PostSummary }) {
       <header className="post-meta">
         <span className="post-author">
           <Avatar user={post.author} size="xs" />
-          <span>{post.author?.displayName ?? nl.blog.deletedUser}</span>
+          <span>{post.author?.displayName ?? msg.blog.deletedUser}</span>
           <span aria-hidden>·</span>
           <Link to={`/reizen/${post.travelId}`} className="post-travel">
             {post.travelName}
@@ -68,7 +69,7 @@ export function PostCard({ post }: { post: PostSummary }) {
         />
       )}
       {post.locations.length > 0 && (
-        <Link to={link} className="mini-map-link" aria-label={nl.map.openPost(post.title)}>
+        <Link to={link} className="mini-map-link" aria-label={msg.map.openPost(post.title)}>
           <MapView posts={mapPosts} interactive={false} className="mini-map" />
         </Link>
       )}
@@ -79,7 +80,7 @@ export function PostCard({ post }: { post: PostSummary }) {
           likedByMe={post.likedByMe}
           onChange={onLike}
         />
-        <Link to={`${link}#reacties`} className="action-btn" aria-label={nl.comments.title}>
+        <Link to={`${link}#reacties`} className="action-btn" aria-label={msg.comments.title}>
           <CommentIcon />
           <span>{commentCount}</span>
         </Link>
@@ -87,8 +88,8 @@ export function PostCard({ post }: { post: PostSummary }) {
       {likeCount > 0 && likers.length > 0 && (
         <p className="muted likers">
           <AvatarStack users={likers} />
-          {nl.likes.likedBy(
-            likers.map((u) => (u.id === me.id ? nl.likes.you : u.displayName)),
+          {msg.likes.likedBy(
+            likers.map((u) => (u.id === me.id ? msg.likes.you : u.displayName)),
             likeCount - likers.length,
           )}
         </p>
@@ -107,7 +108,7 @@ export function PostCard({ post }: { post: PostSummary }) {
       )}
       {commentCount > comments.length && (
         <Link to={`${link}#reacties`} className="btn-text all-comments">
-          {nl.comments.viewAll(commentCount)}
+          {msg.comments.viewAll(commentCount)}
         </Link>
       )}
       <QuickComment postId={post.id} onAdded={onComment} />
@@ -116,6 +117,7 @@ export function PostCard({ post }: { post: PostSummary }) {
 }
 
 function QuickComment({ postId, onAdded }: { postId: string; onAdded: (c: Comment) => void }) {
+  const msg = useT();
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -144,14 +146,14 @@ function QuickComment({ postId, onAdded }: { postId: string; onAdded: (c: Commen
       <input
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder={nl.comments.placeholder}
-        aria-label={nl.comments.placeholder}
+        placeholder={msg.comments.placeholder}
+        aria-label={msg.comments.placeholder}
         maxLength={2000}
         enterKeyHint="send"
       />
       {text.trim() && (
         <button className="btn-text" type="submit" disabled={busy}>
-          {nl.comments.send}
+          {msg.comments.send}
         </button>
       )}
       {error && <span className="quick-comment-error">{error}</span>}

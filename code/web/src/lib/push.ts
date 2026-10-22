@@ -1,13 +1,13 @@
 import { api } from '../api';
-import { nl } from '../i18n/nl';
+import { messages } from '../i18n/store';
 import { isAndroid, isStandalone } from './install';
 
 /** Explains how to unblock notifications on this platform (a page cannot ask again once blocked). */
 export function pushDeniedMessage(): string {
   if (isAndroid()) {
-    return isStandalone() ? nl.notifications.pushDeniedAndroidApp : nl.notifications.pushDeniedAndroid;
+    return isStandalone() ? messages().notifications.pushDeniedAndroidApp : messages().notifications.pushDeniedAndroid;
   }
-  return isStandalone() ? nl.notifications.pushDenied : nl.notifications.pushDeniedDesktop;
+  return isStandalone() ? messages().notifications.pushDenied : messages().notifications.pushDeniedDesktop;
 }
 
 /** Current permission; the Permissions API is preferred because some browsers update it sooner. */
@@ -75,15 +75,15 @@ function timeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T
 
 /** Asks permission, subscribes this device and registers it with the server. */
 export async function enablePush(): Promise<void> {
-  if (!pushSupported()) throw new Error(nl.notifications.pushUnsupported);
+  if (!pushSupported()) throw new Error(messages().notifications.pushUnsupported);
   // Must be the first await: browsers only show the question in direct response to a tap.
   const permission = await requestPermission();
   if (permission === 'denied') throw new Error(pushDeniedMessage());
-  if (permission !== 'granted') throw new Error(nl.notifications.pushDismissed);
+  if (permission !== 'granted') throw new Error(messages().notifications.pushDismissed);
   const { publicKey } = await api<{ publicKey: string | null }>('/push/key');
-  if (!publicKey) throw new Error(nl.notifications.pushNoServer);
+  if (!publicKey) throw new Error(messages().notifications.pushNoServer);
   const key = keyToBytes(publicKey);
-  const reg = await timeout(navigator.serviceWorker.ready, 10_000, nl.notifications.pushNoWorker);
+  const reg = await timeout(navigator.serviceWorker.ready, 10_000, messages().notifications.pushNoWorker);
   let sub = await reg.pushManager.getSubscription();
   // A subscription made with another server key (e.g. a new data folder) cannot be reused.
   if (sub && !sameKey(sub.options.applicationServerKey, key)) {
@@ -94,9 +94,9 @@ export async function enablePush(): Promise<void> {
     try {
       sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
     } catch (err) {
-      console.warn('Push-abonnement mislukt', err);
+      console.warn('Push subscription failed', err);
       throw new Error(
-        nl.notifications.pushSubscribeFailed(err instanceof Error ? err.message : String(err)),
+        messages().notifications.pushSubscribeFailed(err instanceof Error ? err.message : String(err)),
       );
     }
   }

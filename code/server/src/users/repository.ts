@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import type { PublicUser, Role, UserRef } from '@travelsteps/shared';
+import { isLanguage, type Language, type PublicUser, type Role, type UserRef } from '@travelsteps/shared';
 import type { DB } from '../db.js';
 
 interface UserRow {
@@ -13,6 +13,7 @@ interface UserRow {
   disabled: number;
   avatar: string | null;
   immich_api_key_enc: string | null;
+  language: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -30,6 +31,8 @@ export interface UserRecord {
   avatar: string | null;
   /** Encrypted personal Immich API key. */
   immichKeyEnc: string | null;
+  /** Chosen language; null = not chosen yet (notifications use Dutch). */
+  language: Language | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -55,6 +58,7 @@ export type UserPatch = Partial<
     | 'avatar'
     | 'role'
     | 'immichKeyEnc'
+    | 'language'
   >
 >;
 
@@ -68,6 +72,7 @@ const PATCH_COLUMNS: Record<keyof UserPatch, string> = {
   avatar: 'avatar',
   role: 'role',
   immichKeyEnc: 'immich_api_key_enc',
+  language: 'language',
 };
 
 function fromRow(row: UserRow): UserRecord {
@@ -82,6 +87,7 @@ function fromRow(row: UserRow): UserRecord {
     disabled: row.disabled === 1,
     avatar: row.avatar ?? null,
     immichKeyEnc: row.immich_api_key_enc ?? null,
+    language: isLanguage(row.language) ? row.language : null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -106,6 +112,7 @@ export function toPublicUser(user: UserRecord): PublicUser {
     createdAt: user.createdAt,
     avatarUrl: avatarUrl(user.id, user.avatar),
     hasImmichKey: Boolean(user.immichKeyEnc),
+    language: user.language,
   };
 }
 

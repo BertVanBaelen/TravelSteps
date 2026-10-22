@@ -4,7 +4,7 @@ A blog-style application to track vacations ("reizen") and share them with famil
 
 ## Language
 
-The whole user interface is in **Dutch** (labels, messages, dates, number formats `nl-NL`, units in metric).
+The user interface is in **Dutch** or **English** (labels, messages, dates, number formats `nl-NL` / `en-GB`, units always metric). Each user chooses the language in Profiel (stored on the server, so it follows the user to every device); before a choice the browser language is used (`en*` → English, otherwise Dutch), and the login screen has a small NL/EN toggle remembered per device. Push notifications use the recipient's language. User content (titles, texts, comments) is never translated. Documentation: root `README.md` (English) and `README.nl.md` (Dutch).
 
 ## Users and roles
 

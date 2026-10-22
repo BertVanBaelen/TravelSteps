@@ -4,7 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import { ConfirmProvider } from './components/ConfirmDialog';
 import { Layout } from './components/Layout';
-import { nl } from './i18n/nl';
+import { I18nProvider, useT } from './i18n';
 import { ChangeCredentialsPage } from './pages/ChangeCredentialsPage';
 import { ForcedPasswordPage } from './pages/ChangePasswordPage';
 import { LoginPage } from './pages/LoginPage';
@@ -41,9 +41,10 @@ function TravellerOnly({ children }: { children: ReactNode }) {
 }
 
 function Gate() {
+  const msg = useT();
   const { user, loading } = useAuth();
 
-  if (loading) return <div className="splash">{nl.loading}</div>;
+  if (loading) return <div className="splash">{msg.loading}</div>;
   if (!user) return <LoginPage />;
   if (user.mustChangeCredentials) return <ChangeCredentialsPage />;
   if (user.mustChangePassword) return <ForcedPasswordPage />;
@@ -125,11 +126,13 @@ function Gate() {
 export function App() {
   return (
     <AuthProvider>
-      <ConfirmProvider>
-        <BrowserRouter>
-          <Gate />
-        </BrowserRouter>
-      </ConfirmProvider>
+      <I18nProvider>
+        <ConfirmProvider>
+          <BrowserRouter>
+            <Gate />
+          </BrowserRouter>
+        </ConfirmProvider>
+      </I18nProvider>
     </AuthProvider>
   );
 }

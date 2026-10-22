@@ -13,6 +13,14 @@ export type Role = (typeof ROLES)[number];
 /** Admin or traveller: may create travels and write posts. */
 export const isTraveller = (role: Role): boolean => role === 'admin' || role === 'traveller';
 
+/** UI and notification languages; Dutch is the default. */
+export const SUPPORTED_LANGUAGES = ['nl', 'en'] as const;
+export type Language = (typeof SUPPORTED_LANGUAGES)[number];
+export const DEFAULT_LANGUAGE: Language = 'nl';
+export const isLanguage = (value: unknown): value is Language =>
+  typeof value === 'string' && (SUPPORTED_LANGUAGES as readonly string[]).includes(value);
+export const languageSchema = z.enum(SUPPORTED_LANGUAGES);
+
 export interface PublicUser {
   id: string;
   username: string;
@@ -26,6 +34,8 @@ export interface PublicUser {
   avatarUrl: string | null;
   /** A personal Immich API key is stored (the key itself never leaves the server). */
   hasImmichKey: boolean;
+  /** Chosen UI language; null = not chosen yet (browser default). */
+  language: Language | null;
 }
 
 /** A travel owned by a user, shown when the admin deletes that user. */
@@ -140,9 +150,14 @@ export const resetPasswordSchema = z.object({
 });
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
-export const updateProfileSchema = z.object({
-  displayName: displayNameSchema,
-});
+export const updateProfileSchema = z
+  .object({
+    displayName: displayNameSchema.optional(),
+    language: languageSchema.nullable().optional(),
+  })
+  .refine((v) => v.displayName !== undefined || v.language !== undefined, {
+    message: 'Niets om te wijzigen',
+  });
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 
 /** Max. size of an uploaded (already resized) profile picture. */

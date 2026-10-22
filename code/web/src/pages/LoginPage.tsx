@@ -4,9 +4,11 @@ import { errorMessage } from '../api';
 import { Alert, Field } from '../components/Field';
 import { StaticBanner } from '../components/PageTitle';
 import { db, useLiveQuery } from '../offline/db';
-import { nl } from '../i18n/nl';
+import { LanguageSwitch } from '../components/LanguageSwitch';
+import { setLanguage, useT } from '../i18n';
 
 export function LoginPage() {
+  const msg = useT();
   const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -30,15 +32,15 @@ export function LoginPage() {
 
   return (
     <>
-    <StaticBanner title={nl.login.title} />
+    <StaticBanner title={msg.login.title} />
     <div className="auth-screen">
       <form className="card auth-card" onSubmit={submit}>
         <img src="/favicon.svg" alt="" className="auth-logo" />
-        <p className="muted">{nl.login.subtitle}</p>
-        {!!unsent && <Alert kind="info">{nl.sync.loginNotice(unsent)}</Alert>}
+        <p className="muted">{msg.login.subtitle}</p>
+        {!!unsent && <Alert kind="info">{msg.sync.loginNotice(unsent)}</Alert>}
         {error && <Alert kind="error">{error}</Alert>}
         <Field
-          label={nl.login.username}
+          label={msg.login.username}
           name="username"
           autoComplete="username"
           autoCapitalize="none"
@@ -47,7 +49,7 @@ export function LoginPage() {
           onChange={(e) => setUsername(e.target.value)}
         />
         <Field
-          label={nl.login.password}
+          label={msg.login.password}
           name="password"
           type="password"
           autoComplete="current-password"
@@ -56,9 +58,10 @@ export function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
         />
         <button type="submit" className="btn btn-primary" disabled={busy}>
-          {busy ? nl.login.busy : nl.login.submit}
+          {busy ? msg.login.busy : msg.login.submit}
         </button>
       </form>
+      <LanguageSwitch onChange={setLanguage} />
     </div>
     </>
   );

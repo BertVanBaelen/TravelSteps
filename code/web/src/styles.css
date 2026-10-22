@@ -618,6 +618,8 @@ a {
   min-height: 100dvh;
   display: grid;
   place-items: center;
+  align-content: center;
+  gap: 0.75rem;
   padding: 1rem;
   background: linear-gradient(160deg, #ecfdf3, var(--bg));
 }

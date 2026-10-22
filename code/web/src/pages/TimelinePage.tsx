@@ -14,9 +14,10 @@ import { usePageTitle } from '../components/PageTitle';
 import { PostCard } from '../components/PostCard';
 import { SkeletonCards } from '../components/Skeleton';
 import { TravelPicker } from '../components/TravelPicker';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 
 export function TimelinePage() {
+  const msg = useT();
   usePageTitle(null);
   const user = useUser();
   const canWrite = isTraveller(user.role);
@@ -55,12 +56,12 @@ export function TimelinePage() {
       {canWrite && (
         <FabStack>
           {travels?.some((t) => t.canPost) === false ? (
-            <Fab to="/reizen/nieuw" icon={<PlaneIcon />} label={nl.travels.new} extended />
+            <Fab to="/reizen/nieuw" icon={<PlaneIcon />} label={msg.travels.new} extended />
           ) : (
             <Fab
               to={travelId ? `/posts/nieuw?reis=${travelId}` : '/posts/nieuw'}
               icon={<FootprintIcon />}
-              label={nl.timeline.newPost}
+              label={msg.timeline.newPost}
               extended
             />
           )}
@@ -81,6 +82,7 @@ export function Feed({
   canWrite: boolean;
   hasTravels: boolean;
 }) {
+  const msg = useT();
   const [posts, setPosts] = useState<PostSummary[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -124,7 +126,7 @@ export function Feed({
         <Alert kind="error">
           {error}{' '}
           <button type="button" className="btn-text" onClick={() => void loadMore()}>
-            {nl.common.retry}
+            {msg.common.retry}
           </button>
         </Alert>
       )}
@@ -134,7 +136,7 @@ export function Feed({
       {done && posts.length === 0 && (
         <EmptyState
           icon={!hasTravels && canWrite ? <TravelIcon /> : <FootprintIcon />}
-          text={!hasTravels && canWrite ? nl.timeline.noTravel : canWrite ? nl.timeline.emptyAdmin : nl.timeline.empty}
+          text={!hasTravels && canWrite ? msg.timeline.noTravel : canWrite ? msg.timeline.emptyAdmin : msg.timeline.empty}
           action={
             canWrite && (
               <Link
@@ -142,13 +144,13 @@ export function Feed({
                 className="btn btn-primary btn-small"
               >
                 <PlusIcon />
-                {hasTravels ? nl.timeline.newPost : nl.travels.new}
+                {hasTravels ? msg.timeline.newPost : msg.travels.new}
               </Link>
             )
           }
         />
       )}
-      {done && posts.length > 3 && <p className="muted center">{nl.timeline.end}</p>}
+      {done && posts.length > 3 && <p className="muted center">{msg.timeline.end}</p>}
       {loading && <SkeletonCards count={posts.length === 0 ? 3 : 1} media />}
       <div ref={sentinel} className="sentinel" />
     </>

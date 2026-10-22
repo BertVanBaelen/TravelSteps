@@ -10,13 +10,14 @@ import { MapView } from '../components/MapView';
 import { usePageTitle } from '../components/PageTitle';
 import { SkeletonBlock } from '../components/Skeleton';
 import { TravelPicker } from '../components/TravelPicker';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 import { TRAVEL_COLORS } from '../lib/map';
 
 const ALL = 'alle';
 
 export function MapPage() {
-  usePageTitle(nl.map.title);
+  const msg = useT();
+  usePageTitle(msg.map.title);
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [travels, setTravels] = useState<TravelSummary[] | null>(null);
@@ -76,7 +77,7 @@ export function MapPage() {
             onOpen={openPost}
             className="map-full"
           />
-          {shown.length === 0 && <EmptyState icon={<MapIcon />} text={nl.map.empty} />}
+          {shown.length === 0 && <EmptyState icon={<MapIcon />} text={msg.map.empty} />}
           {filter === ALL && shownTravels.length > 1 && (
             <ul className="map-legend">
               {shownTravels.map((t) => (

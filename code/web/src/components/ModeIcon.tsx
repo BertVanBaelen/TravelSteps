@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { TRANSPORT_MODES, type TransportMode } from '@travelsteps/shared';
-import { nl } from '../i18n/nl';
+import { messages } from '../i18n';
 import { BikeIcon, BoatIcon, CarIcon, PlaneIcon, TrainIcon, WalkIcon } from './icons';
 import type { ListboxOption } from './Listbox';
 
@@ -19,9 +19,10 @@ export function ModeIcon({ mode }: { mode: TransportMode }) {
 }
 
 /** Transport modes as listbox options, each with its icon. */
-export const modeOptions: ListboxOption[] = TRANSPORT_MODES.map((m) => ({
+export const modeOptions = (): ListboxOption[] =>
+  TRANSPORT_MODES.map((m) => ({
   id: m,
-  label: nl.modes[m],
+  label: messages().modes[m],
   icon: (
     <span className="picker-icon">
       <ModeIcon mode={m} />

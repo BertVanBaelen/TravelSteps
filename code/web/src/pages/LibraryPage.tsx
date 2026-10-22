@@ -10,7 +10,7 @@ import { PhotoIcon } from '../components/icons';
 import { SkeletonGrid } from '../components/Skeleton';
 import { Lightbox } from '../components/Gallery';
 import { usePageTitle } from '../components/PageTitle';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 import { formatDay, mediaUrl } from '../lib/format';
 
 type GroupBy = 'datum' | 'reis';
@@ -28,7 +28,8 @@ const localDay = (iso: string) => {
 };
 
 export function LibraryPage() {
-  usePageTitle(nl.library.title);
+  const msg = useT();
+  usePageTitle(msg.library.title);
   const me = useUser();
   const { selected } = useBlog();
   const [params, setParams] = useSearchParams();
@@ -63,7 +64,7 @@ export function LibraryPage() {
 
   return (
     <section className="page">
-      <div className="segmented align-start" role="group" aria-label={nl.library.groupBy}>
+      <div className="segmented align-start" role="group" aria-label={msg.library.groupBy}>
         {(['datum', 'reis'] as const).map((g) => (
           <button
             key={g}
@@ -72,20 +73,20 @@ export function LibraryPage() {
             aria-pressed={groupBy === g}
             onClick={() => setParams(g === 'datum' ? {} : { per: g }, { replace: true })}
           >
-            {g === 'datum' ? nl.library.byDate : nl.library.byTravel}
+            {g === 'datum' ? msg.library.byDate : msg.library.byTravel}
           </button>
         ))}
       </div>
       {error && <Alert kind="error">{error}</Alert>}
       {photos === null && !error && <SkeletonGrid />}
       {photos?.length === 0 && (
-        <EmptyState icon={<PhotoIcon />} text={nl.library.empty} />
+        <EmptyState icon={<PhotoIcon />} text={msg.library.empty} />
 
       )}
       {groups.map((g) => (
         <div key={g.key} className="library-group">
           <h2 className="library-head">
-            {g.label} <span className="muted">· {nl.timeline.photos(g.items.length)}</span>
+            {g.label} <span className="muted">· {msg.timeline.photos(g.items.length)}</span>
           </h2>
           <div className="library-grid">
             {g.items.map((i) => {
@@ -96,7 +97,7 @@ export function LibraryPage() {
                   type="button"
                   className="library-thumb"
                   onClick={() => setOpen(i)}
-                  aria-label={nl.library.openPhoto(p.postTitle)}
+                  aria-label={msg.library.openPhoto(p.postTitle)}
                 >
                   <img src={mediaUrl(p.assetId, 'thumbnail')} alt="" loading="lazy" />
                 </button>
@@ -109,7 +110,7 @@ export function LibraryPage() {
         <Lightbox
           photos={ids}
           start={open}
-          alt={nl.library.title}
+          alt={msg.library.title}
           allowOriginal={(i) => photos[i]?.authorId === me.id}
           onClose={() => setOpen(null)}
           extra={(i) => {

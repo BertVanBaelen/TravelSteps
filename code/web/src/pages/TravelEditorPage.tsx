@@ -10,16 +10,17 @@ import { PhotoPicker } from '../components/PhotoPicker';
 import { usePageTitle } from '../components/PageTitle';
 import { TravelSharing } from '../components/TravelSharing';
 import { SkeletonCards } from '../components/Skeleton';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 
 import { mediaUrl } from '../lib/format';
 import { CalendarIcon, CalendarRangeIcon, ImageAddIcon, SaveIcon, TrashIcon } from '../components/icons';
 
 export function TravelEditorPage() {
+  const msg = useT();
   const { id } = useParams();
   const navigate = useNavigate();
   const celebrate = useCelebrate();
-  usePageTitle(id ? nl.travelEditor.editTitle : nl.travelEditor.newTitle, { back: id ? `/reizen/${id}` : '/reizen' });
+  usePageTitle(id ? msg.travelEditor.editTitle : msg.travelEditor.newTitle, { back: id ? `/reizen/${id}` : '/reizen' });
   const [loaded, setLoaded] = useState(!id);
   const [name, setName] = useState('');
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -72,7 +73,7 @@ export function TravelEditorPage() {
     <section className="page">
       <form className="card stack" onSubmit={submit}>
         <Field
-          label={nl.travelEditor.name}
+          label={msg.travelEditor.name}
           name="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -81,7 +82,7 @@ export function TravelEditorPage() {
         />
         <div className="field">
           <span className="field-label" id="duration-label">
-            {nl.travelEditor.duration}
+            {msg.travelEditor.duration}
           </span>
           <div className="segmented segmented-wide" role="group" aria-labelledby="duration-label">
             <button
@@ -90,7 +91,7 @@ export function TravelEditorPage() {
               aria-pressed={oneDay}
               onClick={() => setOneDay(true)}
             >
-              <CalendarIcon /> {nl.travelEditor.oneDay}
+              <CalendarIcon /> {msg.travelEditor.oneDay}
             </button>
             <button
               type="button"
@@ -101,59 +102,59 @@ export function TravelEditorPage() {
                 if (endDate === startDate) setEndDate('');
               }}
             >
-              <CalendarRangeIcon /> {nl.travelEditor.multipleDays}
+              <CalendarRangeIcon /> {msg.travelEditor.multipleDays}
             </button>
           </div>
         </div>
         {oneDay ? (
-          <DateField label={nl.travelEditor.date} name="startDate" value={startDate} onChange={setStartDate} />
+          <DateField label={msg.travelEditor.date} name="startDate" value={startDate} onChange={setStartDate} />
         ) : (
           <>
             <div className="field-row">
               <DateField
-                label={nl.travelEditor.startDate}
+                label={msg.travelEditor.startDate}
                 name="startDate"
                 value={startDate}
                 onChange={setStartDate}
               />
               <DateField
-                label={nl.travelEditor.endDate}
+                label={msg.travelEditor.endDate}
                 name="endDate"
                 value={endDate}
                 min={startDate}
-                emptyLabel={nl.dateTime.noEndDate}
+                emptyLabel={msg.dateTime.noEndDate}
                 onChange={setEndDate}
               />
             </div>
-            <span className="field-hint">{nl.travelEditor.endDateHint}</span>
+            <span className="field-hint">{msg.travelEditor.endDateHint}</span>
           </>
         )}
         <div className="field">
-          <span className="field-label">{nl.travelEditor.description}</span>
+          <span className="field-label">{msg.travelEditor.description}</span>
           <LazyRichTextEditor
             id="description"
-            aria-label={nl.travelEditor.description}
+            aria-label={msg.travelEditor.description}
             minHeight={120}
             value={description}
             onChange={setDescription}
             maxLength={20_000}
           />
-          <span className="field-hint">{nl.richText.hint}</span>
+          <span className="field-hint">{msg.richText.hint}</span>
         </div>
         <div className="field">
-          <span className="field-label">{nl.travelEditor.cover}</span>
+          <span className="field-label">{msg.travelEditor.cover}</span>
           {coverAssetId && (
-            <img className="cover-preview" src={mediaUrl(coverAssetId, 'preview')} alt={nl.travelEditor.cover} />
+            <img className="cover-preview" src={mediaUrl(coverAssetId, 'preview')} alt={msg.travelEditor.cover} />
           )}
           <div className="row-actions">
             <button type="button" className="btn btn-secondary btn-small" onClick={() => setPicking(true)}>
               <ImageAddIcon />
-              {nl.travelEditor.chooseCover}
+              {msg.travelEditor.chooseCover}
             </button>
             {coverAssetId && (
               <button type="button" className="btn btn-small btn-danger" onClick={() => setCoverAssetId(null)}>
                 <TrashIcon />
-                {nl.travelEditor.removeCover}
+                {msg.travelEditor.removeCover}
               </button>
             )}
           </div>
@@ -161,7 +162,7 @@ export function TravelEditorPage() {
         {error && <Alert kind="error">{error}</Alert>}
         <button className="btn btn-primary" type="submit" disabled={busy}>
           <SaveIcon />
-          {busy ? nl.common.saving : nl.common.save}
+          {busy ? msg.common.saving : msg.common.save}
         </button>
       </form>
       {travel?.canManage && <TravelSharing travel={travel} onChange={setTravel} />}

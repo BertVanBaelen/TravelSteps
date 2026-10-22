@@ -14,7 +14,7 @@ import { PhotoPicker } from '../components/PhotoPicker';
 import { SelectedPhotos } from '../components/SelectedPhotos';
 import { StatsEditor, formToStats, statsToForm, type StatsForm } from '../components/StatsEditor';
 import { SkeletonCards } from '../components/Skeleton';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 
 import { formatDay, formatNumber, fromLocalInput, parseNumber, toLocalInput } from '../lib/format';
 import { db, newPostId, useOnline, withTimeout } from '../offline/db';
@@ -45,6 +45,7 @@ interface Suggestion {
 }
 
 export function PostEditorPage() {
+  const msg = useT();
   const me = useUser();
   const params = useParams();
   const [search, setSearch] = useSearchParams();
@@ -57,7 +58,7 @@ export function PostEditorPage() {
   // Existing post being edited, or a (restored) draft of a new post.
   const [postId] = useState(() => params.id ?? conceptId ?? newPostId());
   const isNew = !params.id;
-  usePageTitle(isNew ? nl.editor.newTitle : nl.editor.editTitle, { back: isNew ? '/' : `/post/${postId}` });
+  usePageTitle(isNew ? msg.editor.newTitle : msg.editor.editTitle, { back: isNew ? '/' : `/post/${postId}` });
 
   const [travels, setTravels] = useState<TravelSummary[] | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -125,7 +126,7 @@ export function PostEditorPage() {
         LOCAL_TIMEOUT_MS,
         undefined,
       ).catch((err: unknown) => {
-        console.warn('Lokaal concept kon niet worden gelezen', err);
+        console.warn('Local draft could not be read', err);
         return undefined;
       });
       if (cancelled) return;
@@ -186,7 +187,7 @@ export function PostEditorPage() {
         .then(() => {
           if (isNew && !conceptId && !done.current) setSearch({ concept: postId }, { replace: true });
         })
-        .catch((err: unknown) => console.warn('Concept kon niet lokaal worden bewaard', err));
+        .catch((err: unknown) => console.warn('Draft could not be stored locally', err));
       pendingSave.current = save;
     }, 800);
     return () => window.clearTimeout(t);
@@ -196,7 +197,7 @@ export function PostEditorPage() {
   function forgetLocal() {
     void pendingSave.current
       .then(() => Promise.all([db.drafts.delete(postId), db.outbox.delete(postId)]))
-      .catch((err: unknown) => console.warn('Lokaal concept kon niet worden verwijderd', err));
+      .catch((err: unknown) => console.warn('Local draft could not be deleted', err));
   }
 
   function onRoute(p: RoutePreview) {
@@ -250,7 +251,7 @@ export function PostEditorPage() {
       done.current = true;
       navigate('/', { replace: true });
     } else {
-      setError(nl.sync.localFailed);
+      setError(msg.sync.localFailed);
       setBusy(false);
     }
     return ok;
@@ -303,7 +304,7 @@ export function PostEditorPage() {
   }
 
   async function takeServer() {
-    if (!(await confirm({ title: nl.sync.takeServerTitle, message: nl.sync.confirmTakeServer }))) return;
+    if (!(await confirm({ title: msg.sync.takeServerTitle, message: msg.sync.confirmTakeServer }))) return;
     await withTimeout(Promise.all([db.drafts.delete(postId), db.outbox.delete(postId)]), LOCAL_TIMEOUT_MS, null).catch(
       () => null,
     );
@@ -315,7 +316,7 @@ export function PostEditorPage() {
   }
 
   async function discardLocal() {
-    if (!(await confirm({ title: nl.sync.discardTitle, message: nl.sync.confirmDiscard, confirmLabel: nl.sync.discard, danger: true }))) return;
+    if (!(await confirm({ title: msg.sync.discardTitle, message: msg.sync.confirmDiscard, confirmLabel: msg.sync.discard, danger: true }))) return;
     await withTimeout(Promise.all([db.drafts.delete(postId), db.outbox.delete(postId)]), LOCAL_TIMEOUT_MS, null).catch(
       () => null,
     );
@@ -330,10 +331,10 @@ export function PostEditorPage() {
     return (
       <section className="page">
         <div className="card empty">
-          <p>{nl.timeline.noTravel}</p>
+          <p>{msg.timeline.noTravel}</p>
           <Link to="/reizen/nieuw" className="btn btn-primary">
             <PlusIcon />
-            {nl.travels.new}
+            {msg.travels.new}
           </Link>
         </div>
       </section>
@@ -344,18 +345,18 @@ export function PostEditorPage() {
     <section className="page">
       {localNotice && (
         <Alert kind="info">
-          {nl.sync.localVersion}{' '}
+          {msg.sync.localVersion}{' '}
           <button type="button" className="btn-text" onClick={() => void discardLocal()}>
-            {nl.sync.discardLocal}
+            {msg.sync.discardLocal}
           </button>
         </Alert>
       )}
-      {!online && <Alert kind="info">{nl.sync.offlineEditor}</Alert>}
+      {!online && <Alert kind="info">{msg.sync.offlineEditor}</Alert>}
       <form className="stack" onSubmit={submit}>
         <div className="card stack">
           {postable && postable.length > 1 && (
             <SelectField
-              label={nl.editor.travel}
+              label={msg.editor.travel}
               name="travelId"
               value={travelId}
               onChange={setTravelId}
@@ -365,7 +366,7 @@ export function PostEditorPage() {
             />
           )}
           <Field
-            label={nl.editor.title}
+            label={msg.editor.title}
             name="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -373,45 +374,45 @@ export function PostEditorPage() {
             required
           />
           <DateTimeField
-            label={nl.editor.date}
+            label={msg.editor.date}
             name="date"
             value={date}
             onChange={setDate}
             fixedDay={fixedDay}
-            hint={fixedDay ? nl.editor.oneDayTravel(formatDay(fixedDay)) : undefined}
+            hint={fixedDay ? msg.editor.oneDayTravel(formatDay(fixedDay)) : undefined}
           />
           <div className="field">
             <div className="field-head">
-              <span className="field-label">{nl.editor.body}</span>
+              <span className="field-label">{msg.editor.body}</span>
               <div className="segmented">
                 <button type="button" className={!preview ? 'active' : ''} onClick={() => setPreview(false)}>
-                  {nl.editor.write}
+                  {msg.editor.write}
                 </button>
                 <button type="button" className={preview ? 'active' : ''} onClick={() => setPreview(true)}>
-                  {nl.editor.preview}
+                  {msg.editor.preview}
                 </button>
               </div>
             </div>
             {preview ? (
               <div className="markdown-preview">
-                {body.trim() ? <Markdown>{body}</Markdown> : <p className="muted">{nl.editor.previewEmpty}</p>}
+                {body.trim() ? <Markdown>{body}</Markdown> : <p className="muted">{msg.editor.previewEmpty}</p>}
               </div>
             ) : (
               <LazyRichTextEditor
                 id="body"
-                aria-label={nl.editor.body}
+                aria-label={msg.editor.body}
                 minHeight={220}
                 value={body}
                 onChange={setBody}
                 maxLength={50_000}
               />
             )}
-            <span className="field-hint">{nl.richText.hint}</span>
+            <span className="field-hint">{msg.richText.hint}</span>
           </div>
         </div>
 
         <div className="card stack">
-          <h2>{nl.editor.photos}</h2>
+          <h2>{msg.editor.photos}</h2>
           <SelectedPhotos photos={photos} onChange={setPhotos} />
           <button
             type="button"
@@ -419,13 +420,13 @@ export function PostEditorPage() {
             onClick={() => setPicking(true)}
             disabled={!online}
           >
-            {nl.editor.addPhotos}
+            {msg.editor.addPhotos}
           </button>
-          {!online && <p className="muted">{nl.sync.photosOnlineOnly}</p>}
+          {!online && <p className="muted">{msg.sync.photosOnlineOnly}</p>}
         </div>
 
         <div className="card stack">
-          <h2>{nl.locations.title}</h2>
+          <h2>{msg.locations.title}</h2>
           <LocationEditor
             value={route}
             onChange={setRoute}
@@ -438,16 +439,16 @@ export function PostEditorPage() {
         </div>
 
         <div className="card stack">
-          <h2>{nl.editor.stats}</h2>
-          <p className="muted">{nl.editor.statsHint}</p>
+          <h2>{msg.editor.stats}</h2>
+          <p className="muted">{msg.editor.statsHint}</p>
           {suggestion && (
             <Alert kind="info">
-              {nl.locations.suggestion(
+              {msg.locations.suggestion(
                 suggestion.afstand !== undefined ? `${formatNumber(suggestion.afstand)} km` : null,
                 suggestion.hoogtemeters !== undefined ? `${formatNumber(suggestion.hoogtemeters)} m` : null,
               )}{' '}
               <button type="button" className="btn-text" onClick={takeSuggestion}>
-                {nl.locations.takeOver}
+                {msg.locations.takeOver}
               </button>
             </Alert>
           )}
@@ -458,16 +459,16 @@ export function PostEditorPage() {
         {conflict && (
           <div className="row-actions">
             <button type="button" className="btn btn-secondary" onClick={keepMine} disabled={busy}>
-              {nl.sync.keepMine}
+              {msg.sync.keepMine}
             </button>
             <button type="button" className="btn btn-secondary" onClick={() => void takeServer()} disabled={busy}>
-              {nl.sync.takeServer}
+              {msg.sync.takeServer}
             </button>
           </div>
         )}
         <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
           <SendIcon />
-          {busy ? nl.common.saving : !online ? nl.sync.saveOffline : isNew ? nl.editor.publish : nl.common.save}
+          {busy ? msg.common.saving : !online ? msg.sync.saveOffline : isNew ? msg.editor.publish : msg.common.save}
         </button>
       </form>
 

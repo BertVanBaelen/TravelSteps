@@ -60,8 +60,8 @@ export async function profileRoutes(app: FastifyInstance): Promise<void> {
   const ctx = app.ctx;
 
   app.patch('/', async (req) => {
-    const { displayName } = updateProfileSchema.parse(req.body);
-    const user = ctx.users.update(currentUser(req).id, { displayName });
+    const { displayName, language } = updateProfileSchema.parse(req.body);
+    const user = ctx.users.update(currentUser(req).id, { displayName, language });
     return { user: toPublicUser(user) };
   });
 

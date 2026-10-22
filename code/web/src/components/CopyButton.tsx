@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 import { CheckIcon, CopyIcon } from './icons';
 
 /** Copies text; falls back to a hidden textarea where the Clipboard API is unavailable (plain http). */
@@ -25,7 +25,8 @@ export async function copyText(text: string): Promise<boolean> {
 }
 
 /** Button that copies `value` and briefly shows "Gekopieerd". */
-export function CopyButton({ value, label = nl.users.copy, className = 'btn btn-secondary' }: { value: string; label?: string; className?: string }) {
+export function CopyButton({ value, label, className = 'btn btn-secondary' }: { value: string; label?: string; className?: string }) {
+  const msg = useT();
   const [copied, setCopied] = useState(false);
   const timer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(timer.current), []);
@@ -40,7 +41,7 @@ export function CopyButton({ value, label = nl.users.copy, className = 'btn btn-
   return (
     <button type="button" className={`${className}${copied ? ' copied' : ''}`} onClick={() => void copy()} aria-live="polite">
       {copied ? <CheckIcon /> : <CopyIcon />}
-      {copied ? nl.users.copied : label}
+      {copied ? msg.users.copied : (label ?? msg.users.copy)}
     </button>
   );
 }

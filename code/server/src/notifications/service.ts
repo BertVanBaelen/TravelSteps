@@ -4,15 +4,18 @@ import webpush from 'web-push';
 import type { FastifyBaseLogger } from 'fastify';
 import type {
   AppNotification,
+  Language,
   NotificationPage,
   NotificationType,
   PushPayload,
   PushSubscriptionInput,
 } from '@travelsteps/shared';
+import { DEFAULT_LANGUAGE } from '@travelsteps/shared';
 import type { DB } from '../db.js';
 import type { ContentStore } from '../content/store.js';
 import type { UserRepository } from '../users/repository.js';
 import { excerpt, truncate } from '../content/excerpt.js';
+import { pushMessages } from './messages.js';
 
 const PAGE_SIZE = 50;
 /** Notifications older than this are removed by the housekeeping job. */
@@ -155,8 +158,16 @@ export class NotificationService {
         );
       }
     })();
-    const payload = this.payload(input);
-    for (const id of ids) void this.push(id, payload);
+    const byLanguage = new Map<Language, PushPayload>();
+    for (const id of ids) {
+      const language = this.users.findById(id)?.language ?? DEFAULT_LANGUAGE;
+      let payload = byLanguage.get(language);
+      if (!payload) {
+        payload = this.payload(input, language);
+        byLanguage.set(language, payload);
+      }
+      void this.push(id, payload);
+    }
   }
 
   private commentText(id: string | null | undefined): string | null {
@@ -167,44 +178,42 @@ export class NotificationService {
     return row?.text ?? null;
   }
 
-  private payload(input: NotifyInput): PushPayload {
-    const actor = this.users.findById(input.actorId)?.displayName ?? 'Iemand';
+  /** Push message in the recipient's language. */
+  payload(input: NotifyInput, language: Language): PushPayload {
+    const m = pushMessages(language);
+    const actor = this.users.findById(input.actorId)?.displayName ?? m.someone;
     const travel = input.travelId ? this.content.getTravel(input.travelId) : undefined;
     const post = input.postId ? this.content.getPost(input.postId) : undefined;
     const postUrl = post ? `/post/${post.id}` : '/';
-    const title = post ? `"${post.title}"` : 'je stap';
+    const title = post ? `"${post.title}"` : m.yourStep;
     switch (input.type) {
       case 'post': {
         const preview = post ? excerpt(post.body, PUSH_EXCERPT) : '';
         return {
-          title: travel
-            ? `${actor} plaatste een nieuwe stap in ${travel.name}`
-            : `${actor} plaatste een nieuwe stap`,
-          body: [post?.title, preview].filter(Boolean).join(' – ') || 'Bekijk de nieuwe stap.',
+          title: m.postTitle(actor, travel?.name ?? null),
+          body: [post?.title, preview].filter(Boolean).join(' – ') || m.postBody,
           url: postUrl,
           tag: `post-${input.postId}`,
         };
       }
       case 'invite':
         return {
-          title: `${actor} nodigt je uit om mee te reizen`,
-          body: travel
-            ? `Schrijf mee aan "${travel.name}". Open je meldingen om de uitnodiging te accepteren.`
-            : 'Open je meldingen om de uitnodiging te accepteren.',
+          title: m.inviteTitle(actor),
+          body: m.inviteBody(travel?.name ?? null),
           url: '/meldingen',
           tag: `invite-${input.travelId}`,
         };
       case 'like':
         return {
-          title: `${actor} vindt je stap leuk`,
-          body: `${actor} gaf een like op ${title}.`,
+          title: m.likeTitle(actor),
+          body: m.likeBody(actor, title),
           url: postUrl,
         };
       case 'comment': {
         const text = this.commentText(input.commentId);
         return {
-          title: `${actor} reageerde op ${title}`,
-          body: text ? `"${truncate(text, PUSH_EXCERPT)}"` : 'Bekijk de reactie bij je stap.',
+          title: m.commentTitle(actor, title),
+          body: text ? `"${truncate(text, PUSH_EXCERPT)}"` : m.commentBody,
           url: `${postUrl}#reacties`,
           ...(input.commentId ? { tag: `comment-${input.commentId}` } : {}),
         };

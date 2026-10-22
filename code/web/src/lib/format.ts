@@ -1,30 +1,65 @@
 import type { MediaSize } from '@travelsteps/shared';
+import { currentLocale } from '../i18n/store';
 
-const dateFmt = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
-const dateTimeFmt = new Intl.DateTimeFormat('nl-NL', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-});
-const relativeFmt = new Intl.RelativeTimeFormat('nl', { numeric: 'auto' });
-const numberFmt = new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 1 });
+interface Formatters {
+  date: Intl.DateTimeFormat;
+  dateTime: Intl.DateTimeFormat;
+  relative: Intl.RelativeTimeFormat;
+  number: Intl.NumberFormat;
+}
 
-export const formatDate = (iso: string) => dateFmt.format(new Date(iso));
-export const formatDateTime = (iso: string) => dateTimeFmt.format(new Date(iso));
-export const formatNumber = (n: number) => numberFmt.format(n);
+const cache = new Map<string, Formatters>();
 
-/** "2025-06-01" → "1 juni 2025" (date-only strings are not shifted by the time zone). */
-export const formatDay = (day: string) => dateFmt.format(new Date(`${day}T12:00:00`));
+/** Formatters for the current language (nl-NL / en-GB); units stay metric. */
+function fmt(): Formatters {
+  const locale = currentLocale();
+  let f = cache.get(locale);
+  if (!f) {
+    f = {
+      date: new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }),
+      dateTime: new Intl.DateTimeFormat(locale, {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      relative: new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }),
+      number: new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }),
+    };
+    cache.set(locale, f);
+  }
+  return f;
+}
+
+const custom = new Map<string, Intl.DateTimeFormat>();
+
+/** Cached Intl.DateTimeFormat for the current language. */
+export function dateFormat(options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+  const key = `${currentLocale()}|${JSON.stringify(options)}`;
+  let f = custom.get(key);
+  if (!f) {
+    f = new Intl.DateTimeFormat(currentLocale(), options);
+    custom.set(key, f);
+  }
+  return f;
+}
+
+export const formatDate = (iso: string) => fmt().date.format(new Date(iso));
+export const formatDateTime = (iso: string) => fmt().dateTime.format(new Date(iso));
+export const formatNumber = (n: number) => fmt().number.format(n);
+
+/** "2025-06-01" → "1 juni 2025" / "1 June 2025" (date-only strings are not shifted by the time zone). */
+export const formatDay = (day: string) => fmt().date.format(new Date(`${day}T12:00:00`));
 
 export function formatRange(start: string, end: string | null, ongoing: string): string {
   if (end === start) return formatDay(start);
   return `${formatDay(start)} – ${end ? formatDay(end) : ongoing}`;
 }
 
-/** "5 minuten geleden", "gisteren", or a date when older than a week. */
+/** "5 minuten geleden" / "5 minutes ago", "yesterday", or a date when older than a week. */
 export function formatRelative(iso: string, now = Date.now()): string {
+  const relativeFmt = fmt().relative;
   const diff = (new Date(iso).getTime() - now) / 1000;
   const abs = Math.abs(diff);
   if (abs < 60) return relativeFmt.format(0, 'second');

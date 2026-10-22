@@ -62,7 +62,7 @@ async function migrateLegacyStore(): Promise<void> {
       await Dexie.delete(LEGACY_NAME);
     }
   } catch (err) {
-    console.warn('Oude offline gegevens konden niet worden overgezet', err);
+    console.warn('Old offline data could not be migrated', err);
   }
   try {
     if ('caches' in window) {
@@ -85,7 +85,7 @@ export const legacyMigration = migrateLegacyStore();
 export function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timer = window.setTimeout(() => {
-      console.warn(`Lokale opslag reageert niet binnen ${ms} ms`);
+      console.warn(`Local storage did not respond within ${ms} ms`);
       resolve(fallback);
     }, ms);
     promise.then(

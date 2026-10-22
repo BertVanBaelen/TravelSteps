@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { errorMessage } from '../api';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 import { isIos, isStandalone } from '../lib/install';
 import {
   currentPushSubscription,
@@ -14,6 +14,7 @@ import { Alert } from './Field';
 
 /** Turns Web Push on or off for this device. */
 export function PushToggle() {
+  const msg = useT();
   const [on, setOn] = useState<boolean | null>(null);
   const [permission, setPermission] = useState<NotificationPermission | null>(null);
   const [busy, setBusy] = useState(false);
@@ -70,15 +71,15 @@ export function PushToggle() {
 
   return (
     <div className="card stack">
-      <h2>{nl.notifications.pushTitle}</h2>
+      <h2>{msg.notifications.pushTitle}</h2>
       {!supported ? (
         <p className="muted">
-          {isIos() && !isStandalone() ? nl.notifications.pushIos : nl.notifications.pushUnsupported}
+          {isIos() && !isStandalone() ? msg.notifications.pushIos : msg.notifications.pushUnsupported}
         </p>
       ) : (
         <>
           <p className="muted">
-            {denied ? pushDeniedMessage() : on ? nl.notifications.pushOn : nl.notifications.pushHint}
+            {denied ? pushDeniedMessage() : on ? msg.notifications.pushOn : msg.notifications.pushHint}
           </p>
           {on !== null && !denied && (
             <button
@@ -87,7 +88,7 @@ export function PushToggle() {
               disabled={busy}
               onClick={() => void toggle()}
             >
-              {on ? nl.notifications.pushDisable : nl.notifications.pushEnable}
+              {on ? msg.notifications.pushDisable : msg.notifications.pushEnable}
             </button>
           )}
           {denied && (
@@ -96,7 +97,7 @@ export function PushToggle() {
               className="btn btn-secondary align-start"
               onClick={() => void refresh()}
             >
-              {nl.notifications.pushRecheck}
+              {msg.notifications.pushRecheck}
             </button>
           )}
         </>

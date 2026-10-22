@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import type { Comment } from '@travelsteps/shared';
 import { api, errorMessage } from '../api';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 import { formatDateTime, formatRelative } from '../lib/format';
 import { useConfirm } from './ConfirmDialog';
 import { Alert } from './Field';
@@ -10,6 +10,7 @@ import { CommentSkeleton } from './Skeleton';
 import { SendIcon } from './icons';
 
 export function Comments({ postId, onCountChange }: { postId: string; onCountChange?: (n: number) => void }) {
+  const msg = useT();
   const [comments, setComments] = useState<Comment[] | null>(null);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -66,7 +67,7 @@ export function Comments({ postId, onCountChange }: { postId: string; onCountCha
   }
 
   async function remove(c: Comment) {
-    if (!(await confirm({ title: nl.comments.deleteTitle, message: nl.comments.confirmDelete, confirmLabel: nl.common.delete, danger: true }))) return;
+    if (!(await confirm({ title: msg.comments.deleteTitle, message: msg.comments.confirmDelete, confirmLabel: msg.common.delete, danger: true }))) return;
     setError(null);
     try {
       await api(`/comments/${c.id}`, { method: 'DELETE' });
@@ -78,10 +79,10 @@ export function Comments({ postId, onCountChange }: { postId: string; onCountCha
 
   return (
     <section className="card stack" id="reacties">
-      <h2>{nl.comments.title}</h2>
+      <h2>{msg.comments.title}</h2>
       {error && <Alert kind="error">{error}</Alert>}
       {comments === null && !error && <CommentSkeleton />}
-      {comments?.length === 0 && <p className="muted">{nl.comments.empty}</p>}
+      {comments?.length === 0 && <p className="muted">{msg.comments.empty}</p>}
       {comments && comments.length > 0 && (
         <ul className="comment-list">
           {comments.map((c) => (
@@ -92,7 +93,7 @@ export function Comments({ postId, onCountChange }: { postId: string; onCountCha
                   <strong>{c.author.displayName}</strong>
                   <time className="muted" dateTime={c.createdAt} title={formatDateTime(c.createdAt)}>
                     {formatRelative(c.createdAt)}
-                    {c.updatedAt !== c.createdAt && ` · ${nl.post.edited}`}
+                    {c.updatedAt !== c.createdAt && ` · ${msg.post.edited}`}
                   </time>
                 </div>
                 {editing?.id === c.id ? (
@@ -102,14 +103,14 @@ export function Comments({ postId, onCountChange }: { postId: string; onCountCha
                       maxLength={2000}
                       rows={3}
                       onChange={(e) => setEditing({ id: c.id, text: e.target.value })}
-                      aria-label={nl.common.edit}
+                      aria-label={msg.common.edit}
                     />
                     <div className="row-actions">
                       <button className="btn btn-small btn-primary" type="submit">
-                        {nl.common.save}
+                        {msg.common.save}
                       </button>
                       <button className="btn btn-small" type="button" onClick={() => setEditing(null)}>
-                        {nl.common.cancel}
+                        {msg.common.cancel}
                       </button>
                     </div>
                   </form>
@@ -120,12 +121,12 @@ export function Comments({ postId, onCountChange }: { postId: string; onCountCha
                   <div className="row-actions">
                     {c.canEdit && (
                       <button type="button" className="btn-text" onClick={() => setEditing({ id: c.id, text: c.text })}>
-                        {nl.common.edit}
+                        {msg.common.edit}
                       </button>
                     )}
                     {c.canDelete && (
                       <button type="button" className="btn-text btn-danger" onClick={() => void remove(c)}>
-                        {nl.common.delete}
+                        {msg.common.delete}
                       </button>
                     )}
                   </div>
@@ -139,15 +140,15 @@ export function Comments({ postId, onCountChange }: { postId: string; onCountCha
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder={nl.comments.placeholder}
-          aria-label={nl.comments.placeholder}
+          placeholder={msg.comments.placeholder}
+          aria-label={msg.comments.placeholder}
           maxLength={2000}
           rows={2}
           required
         />
         <button className="btn btn-primary" type="submit" disabled={busy || !text.trim()}>
           <SendIcon />
-          {nl.comments.send}
+          {msg.comments.send}
         </button>
       </form>
     </section>

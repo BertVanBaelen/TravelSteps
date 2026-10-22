@@ -89,13 +89,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth(): AuthState {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth moet binnen AuthProvider gebruikt worden');
+  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
   return ctx;
 }
 
 /** Same as useAuth but asserts a logged-in user. */
 export function useUser(): PublicUser {
   const { user } = useAuth();
-  if (!user) throw new Error('Geen ingelogde gebruiker');
+  if (!user) throw new Error('No logged-in user');
   return user;
 }

@@ -4,7 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { api, errorMessage } from '../api';
 import { Alert, Field } from '../components/Field';
 import { StaticBanner } from '../components/PageTitle';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 
 export function ChangePasswordForm({
   onDone,
@@ -13,6 +13,7 @@ export function ChangePasswordForm({
   onDone?: () => void;
   forced?: boolean;
 }) {
+  const msg = useT();
   const { setUser } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -23,7 +24,7 @@ export function ChangePasswordForm({
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (newPassword !== confirm) {
-      setError(nl.credentials.mismatch);
+      setError(msg.credentials.mismatch);
       return;
     }
     setBusy(true);
@@ -50,7 +51,7 @@ export function ChangePasswordForm({
       {error && <Alert kind="error">{error}</Alert>}
       {!forced && (
         <Field
-          label={nl.credentials.currentPassword}
+          label={msg.credentials.currentPassword}
           name="currentPassword"
           type="password"
           autoComplete="current-password"
@@ -60,18 +61,18 @@ export function ChangePasswordForm({
         />
       )}
       <Field
-        label={nl.credentials.newPassword}
+        label={msg.credentials.newPassword}
         name="newPassword"
         type="password"
         autoComplete="new-password"
         minLength={PASSWORD_MIN_LENGTH}
         required
-        hint={nl.credentials.passwordHint(PASSWORD_MIN_LENGTH)}
+        hint={msg.credentials.passwordHint(PASSWORD_MIN_LENGTH)}
         value={newPassword}
         onChange={(e) => setNewPassword(e.target.value)}
       />
       <Field
-        label={nl.credentials.confirmPassword}
+        label={msg.credentials.confirmPassword}
         name="confirmPassword"
         type="password"
         autoComplete="new-password"
@@ -80,7 +81,7 @@ export function ChangePasswordForm({
         onChange={(e) => setConfirm(e.target.value)}
       />
       <button type="submit" className="btn btn-primary" disabled={busy}>
-        {nl.credentials.submit}
+        {msg.credentials.submit}
       </button>
     </form>
   );
@@ -88,16 +89,17 @@ export function ChangePasswordForm({
 
 /** Forced for viewers that received a temporary password. */
 export function ForcedPasswordPage() {
+  const msg = useT();
   const { logout } = useAuth();
   return (
     <>
-    <StaticBanner title={nl.forcedPassword.title} />
+    <StaticBanner title={msg.forcedPassword.title} />
     <div className="auth-screen">
       <div className="card auth-card">
-        <p className="muted">{nl.forcedPassword.intro}</p>
+        <p className="muted">{msg.forcedPassword.intro}</p>
         <ChangePasswordForm forced />
         <button type="button" className="btn btn-link" onClick={() => void logout()}>
-          {nl.profile.logout}
+          {msg.profile.logout}
         </button>
       </div>
     </div>

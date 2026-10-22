@@ -113,7 +113,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
 
 export function useBlog(): BlogState {
   const ctx = useContext(Ctx);
-  if (!ctx) throw new Error('BlogProvider ontbreekt');
+  if (!ctx) throw new Error('BlogProvider is missing');
   return ctx;
 }
 

@@ -7,7 +7,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 import { ChevronLeft } from './icons';
 
 interface Header {
@@ -39,7 +39,7 @@ export function PageTitleProvider({ children }: { children: ReactNode }) {
 
 function useCtx(): PageTitleState {
   const ctx = useContext(Ctx);
-  if (!ctx) throw new Error('PageTitleProvider ontbreekt');
+  if (!ctx) throw new Error('PageTitleProvider is missing');
   return ctx;
 }
 
@@ -48,12 +48,13 @@ function useCtx(): PageTitleState {
  * `back` adds a back arrow; it goes back in history when possible, otherwise to this path.
  */
 export function usePageTitle(title: string | null, options: { back?: string } = {}) {
+  const msg = useT();
   const { setHeader } = useCtx();
   const back = options.back ?? null;
   useEffect(() => {
     setHeader({ title, back });
-    document.title = title ? `${title} – ${nl.appName}` : nl.appName;
-  }, [title, back, setHeader]);
+    document.title = title ? `${title} – ${msg.appName}` : msg.appName;
+  }, [title, back, setHeader, msg.appName]);
 }
 
 /** Renders its children on the right side of the app banner. */
@@ -69,12 +70,13 @@ export function PageStart({ children }: { children: ReactNode }) {
 }
 
 function BackButton({ to }: { to: string }) {
+  const msg = useT();
   const navigate = useNavigate();
   return (
     <button
       type="button"
       className="icon-btn banner-back"
-      aria-label={nl.common.backLabel}
+      aria-label={msg.common.backLabel}
       onClick={() => {
         // React Router stores the history index; > 0 means we navigated here inside the app.
         const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
@@ -89,9 +91,10 @@ function BackButton({ to }: { to: string }) {
 
 /** App icon at the top left of the banner; links to the timeline. */
 function BrandIcon({ link }: { link: boolean }) {
+  const msg = useT();
   const img = <img src="/favicon.svg" alt="" width={32} height={32} />;
   return link ? (
-    <Link to="/" className="banner-icon" aria-label={nl.appName}>
+    <Link to="/" className="banner-icon" aria-label={msg.appName}>
       {img}
     </Link>
   ) : (
@@ -101,6 +104,7 @@ function BrandIcon({ link }: { link: boolean }) {
 
 /** Banner used inside the layout; reads the title set by the current page. */
 export function LayoutBanner({ end }: { end?: ReactNode }) {
+  const msg = useT();
   const { header, setActionsSlot, setStartSlot } = useCtx();
   return (
     <header className="app-header">
@@ -109,7 +113,7 @@ export function LayoutBanner({ end }: { end?: ReactNode }) {
       {header.title ? (
         <h1 className="banner-title">{header.title}</h1>
       ) : (
-        <span className="brand banner-title">{nl.appName}</span>
+        <span className="brand banner-title">{msg.appName}</span>
       )}
       <div className="banner-actions" ref={setActionsSlot} />
       {end}
@@ -119,16 +123,17 @@ export function LayoutBanner({ end }: { end?: ReactNode }) {
 
 /** Same banner style for pages outside the layout (login, forced password change). */
 export function StaticBanner({ title }: { title: string | null }) {
+  const msg = useT();
   useEffect(() => {
-    document.title = title ? `${title} – ${nl.appName}` : nl.appName;
-  }, [title]);
+    document.title = title ? `${title} – ${msg.appName}` : msg.appName;
+  }, [title, msg.appName]);
   return (
     <header className="app-header">
       <BrandIcon link={false} />
       {title ? (
         <h1 className="banner-title">{title}</h1>
       ) : (
-        <span className="brand banner-title">{nl.appName}</span>
+        <span className="brand banner-title">{msg.appName}</span>
       )}
     </header>
   );

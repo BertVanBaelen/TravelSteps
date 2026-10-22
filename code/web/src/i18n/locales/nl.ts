@@ -1,4 +1,4 @@
-/** All Dutch UI texts live here. */
+/** Dutch UI texts (the base language; en.ts must have the same keys). */
 export const nl = {
   appName: 'TravelSteps',
   loading: 'Laden…',
@@ -37,7 +37,8 @@ export const nl = {
     post: (actor: string, title: string, travel: string) =>
       `${actor} plaatste een nieuwe stap "${title}" in ${travel}. Neem een kijkje!`,
     like: (actor: string, title: string) => `${actor} vindt je stap "${title}" leuk.`,
-    comment: (actor: string, title: string) => `${actor} plaatste een reactie op je stap "${title}":`,
+    comment: (actor: string, title: string) =>
+      `${actor} plaatste een reactie op je stap "${title}":`,
     invite: (actor: string, travel: string) =>
       `${actor} nodigt je uit om mee te schrijven aan ${travel}. Na het accepteren kun je stappen plaatsen in deze reis.`,
     accept: 'Accepteren',
@@ -50,8 +51,10 @@ export const nl = {
     pushEnable: 'Aanzetten',
     pushDisable: 'Uitzetten',
     pushUnsupported: 'Dit apparaat of deze browser ondersteunt geen pushmeldingen.',
-    pushIos: 'Op iPhone en iPad werken pushmeldingen alleen als TravelSteps op je beginscherm staat.',
-    pushDenied: 'Meldingen zijn geblokkeerd. Sta ze toe in de instellingen van je browser of telefoon.',
+    pushIos:
+      'Op iPhone en iPad werken pushmeldingen alleen als TravelSteps op je beginscherm staat.',
+    pushDenied:
+      'Meldingen zijn geblokkeerd. Sta ze toe in de instellingen van je browser of telefoon.',
     pushDeniedAndroidApp:
       'Meldingen zijn geblokkeerd voor deze site. Ga op je telefoon naar Instellingen → Apps → TravelSteps → Meldingen en zet ze aan. Werkt het daarna nog niet? Open de site in je browser en sta meldingen daar ook toe (slotje links van het adres → Machtigingen → Meldingen).',
     pushDeniedAndroid:
@@ -59,13 +62,15 @@ export const nl = {
     pushDeniedDesktop:
       'Meldingen zijn geblokkeerd voor deze site. Klik op het slotje links van het adres, zet Meldingen op Toestaan en herlaad de pagina.',
     pushRecheck: 'Opnieuw controleren',
-    pushDismissed: 'De vraag om meldingen toe te staan werd gesloten zonder te kiezen. Probeer opnieuw en kies "Toestaan".',
+    pushDismissed:
+      'De vraag om meldingen toe te staan werd gesloten zonder te kiezen. Probeer opnieuw en kies "Toestaan".',
     pushNoServer: 'Pushmeldingen zijn op de server niet beschikbaar.',
     pushNoWorker: 'De app is nog niet volledig geladen. Herlaad de pagina en probeer opnieuw.',
     pushSubscribeFailed: (reason: string) =>
       `Toestemming is gegeven, maar je browser kon zich niet aanmelden voor pushmeldingen (${reason}). Herlaad de app en probeer opnieuw.`,
     subscriptionsTitle: 'Meldingen over blogs',
-    subscriptionsHint: 'Kies over wiens blog je een melding krijgt bij een nieuwe stap. Dit kan ook met de bel bovenaan.',
+    subscriptionsHint:
+      'Kies over wiens blog je een melding krijgt bij een nieuwe stap. Dit kan ook met de bel bovenaan.',
     noTravellers: 'Er zijn nog geen blogs die je kunt volgen.',
   },
   phoneBanner: {
@@ -137,7 +142,11 @@ export const nl = {
       profileSummary: 'Hoe anderen je zien',
       passwordSummary: 'Kies een nieuw wachtwoord',
       notificationsSummary: (n: number) =>
-        n === 0 ? 'Pushmeldingen en wie je volgt' : n === 1 ? 'Je volgt 1 reiziger' : `Je volgt ${n} reizigers`,
+        n === 0
+          ? 'Pushmeldingen en wie je volgt'
+          : n === 1
+            ? 'Je volgt 1 reiziger'
+            : `Je volgt ${n} reizigers`,
       usersSummary: 'Uitnodigen, rollen en wachtwoorden',
       settingsSummary: 'Versie, koppelingen en configuratie',
     },
@@ -186,14 +195,57 @@ export const nl = {
     optionDelete: 'Reis verwijderen (met alle stappen)',
     optionTransfer: (name: string) => `Overdragen aan ${name}`,
     noMembers: 'Geen meeschrijvers om aan over te dragen.',
-    deleteHint: 'Stappen die deze gebruiker in reizen van anderen schreef, blijven staan als "Verwijderde gebruiker".',
+    deleteHint:
+      'Stappen die deze gebruiker in reizen van anderen schreef, blijven staan als "Verwijderde gebruiker".',
     confirmDelete: 'Verwijderen',
     confirmDisable: 'Uitschakelen',
     disabledInstead: (name: string) => `${name} is uitgeschakeld; de reizen blijven bestaan.`,
   },
+  language: {
+    title: 'Taal',
+    choose: 'Taal kiezen',
+    hint: 'Je keuze geldt op al je apparaten. Pushmeldingen krijg je ook in deze taal.',
+    names: { nl: 'Nederlands', en: 'English' },
+    saved: 'De taal is opgeslagen.',
+    offline: 'Je bent offline. De taal wordt opgeslagen zodra er weer verbinding is.',
+  },
   errors: {
     generic: 'Er ging iets mis. Probeer het opnieuw.',
     network: 'Geen verbinding met de server.',
+    /** Texts per server error code (the server message is the fallback). */
+    codes: {
+      UNAUTHENTICATED: 'Je bent niet ingelogd.',
+      FORBIDDEN: 'Je hebt hier geen toegang toe.',
+      NOT_FOUND: 'Niet gevonden.',
+      BAD_PATH: 'Ongeldig pad.',
+      BAD_REQUEST: 'Ongeldig verzoek.',
+      BAD_CURSOR: 'Ongeldige cursor.',
+      CSRF: 'Ongeldig verzoek.',
+      VALIDATION: 'Controleer de ingevulde gegevens.',
+      INTERNAL: 'Er ging iets mis op de server.',
+      TOO_MANY_REQUESTS: 'Te veel verzoeken. Probeer het later opnieuw.',
+      TOO_MANY_ATTEMPTS: 'Te veel mislukte pogingen. Probeer het later opnieuw.',
+      MUST_CHANGE_CREDENTIALS: 'Je moet eerst je gebruikersnaam en wachtwoord wijzigen.',
+      INVALID_CREDENTIALS: 'Ongeldige gebruikersnaam of wachtwoord.',
+      INVALID_PASSWORD: 'Huidig wachtwoord is onjuist.',
+      SAME_PASSWORD: 'Kies een nieuw wachtwoord.',
+      SAME_USERNAME: 'Kies een nieuwe gebruikersnaam.',
+      USERNAME_TAKEN: 'Deze gebruikersnaam is al in gebruik.',
+      ADMIN_PROTECTED: 'Dit kan niet bij de beheerder.',
+      INVALID_TRANSFER: 'Kies een reiziger als nieuwe eigenaar van elke reis.',
+      NOT_TRAVELLER: 'Dit kan alleen voor reizigers.',
+      NO_TRAVEL: 'Maak eerst een reis aan.',
+      NO_INVITATION: 'Er is geen uitnodiging voor deze reis.',
+      TRAVEL_NOT_EMPTY: 'Deze reis heeft nog stappen. Verwijder of verplaats die eerst.',
+      POST_EXISTS: 'Deze stap bestaat al.',
+      CONFLICT: 'Deze stap is intussen ergens anders gewijzigd. Kies welke versie je wilt houden.',
+      IMMICH_NOT_CONFIGURED: 'Immich is niet ingesteld.',
+      IMMICH_NO_KEY: 'Je hebt nog geen Immich API-sleutel. Stel die in bij Profiel.',
+      IMMICH_AUTH: 'Immich weigert de API-sleutel. Controleer de sleutel en de rechten.',
+      IMMICH_UNREACHABLE: 'Immich is niet bereikbaar.',
+      IMMICH_ERROR: 'Immich gaf een fout.',
+      GEOCODE_FAILED: 'Zoeken naar plaatsen lukt nu niet.',
+    },
   },
   common: {
     save: 'Opslaan',
@@ -221,7 +273,8 @@ export const nl = {
   },
   post: {
     edited: 'bewerkt',
-    confirmDelete: 'Weet je zeker dat je deze stap wilt verwijderen? Likes en reacties gaan ook verloren.',
+    confirmDelete:
+      'Weet je zeker dat je deze stap wilt verwijderen? Likes en reacties gaan ook verloren.',
     deleteTitle: 'Stap verwijderen?',
     delete: 'Stap verwijderen',
     actions: 'Acties voor deze stap',
@@ -236,7 +289,10 @@ export const nl = {
     /** "Vind ik leuk door Oma, Bert en 2 anderen". */
     likedBy: (names: string[], others: number) => {
       const parts = others > 0 ? [...names, others === 1 ? '1 ander' : `${others} anderen`] : names;
-      const list = parts.length <= 1 ? (parts[0] ?? '') : `${parts.slice(0, -1).join(', ')} en ${parts[parts.length - 1]}`;
+      const list =
+        parts.length <= 1
+          ? (parts[0] ?? '')
+          : `${parts.slice(0, -1).join(', ')} en ${parts[parts.length - 1]}`;
       return `Vind ik leuk door ${list}`;
     },
   },
@@ -305,7 +361,8 @@ export const nl = {
     invited: 'Uitnodiging',
     inviteBanner: (owner: string) => `${owner} nodigt je uit om mee te schrijven aan deze reis.`,
     leave: 'Reis verlaten',
-    confirmLeave: (name: string) => `Wil je "${name}" verlaten? Je stappen blijven in de reis staan.`,
+    confirmLeave: (name: string) =>
+      `Wil je "${name}" verlaten? Je stappen blijven in de reis staan.`,
     counts: (posts: number, photos: number) =>
       `${posts === 1 ? '1 stap' : `${posts} stappen`} · ${photos === 1 ? '1 foto' : `${photos} foto's`}`,
     confirmDelete: (name: string) => `Weet je zeker dat je reis "${name}" wilt verwijderen?`,
@@ -318,6 +375,15 @@ export const nl = {
     filter: 'Reis kiezen',
     empty: 'Er zijn nog geen stappen met een locatie.',
     openPost: (title: string) => `Kaart van "${title}" openen`,
+  },
+  stats: {
+    afstand: 'Afstand',
+    hoogtemeters: 'Hoogtemeters',
+    maxHoogte: 'Max. hoogte',
+    temperatuur: 'Temperatuur',
+    duur: 'Duur',
+    hours: 'u',
+    durationFormat: 'u:mm',
   },
   modes: {
     lopen: 'Lopen',
@@ -372,7 +438,8 @@ export const nl = {
     title: 'Concepten en wachtrij',
     untitled: '(zonder titel)',
     offline: 'Je bent offline. Je ziet de laatst geladen inhoud.',
-    offlineEditor: 'Je bent offline. Je stap wordt bewaard en verstuurd zodra er weer verbinding is.',
+    offlineEditor:
+      'Je bent offline. Je stap wordt bewaard en verstuurd zodra er weer verbinding is.',
     saveOffline: 'Bewaren en later versturen',
     sending: 'wordt verstuurd…',
     published: (title: string) => `"${title}" is gepubliceerd.`,
@@ -407,7 +474,8 @@ export const nl = {
     button: 'Installeren',
     ios: 'Op iPhone of iPad: tik in Safari op de deelknop en kies "Zet op beginscherm".',
     installed: 'De app is al geïnstalleerd.',
-    android: 'Open het menu van je browser (⋮) en kies "Toevoegen aan startscherm" of "App installeren".',
+    android:
+      'Open het menu van je browser (⋮) en kies "Toevoegen aan startscherm" of "App installeren".',
   },
   travelEditor: {
     newTitle: 'Nieuwe reis',
@@ -427,18 +495,21 @@ export const nl = {
   },
   sharing: {
     membersTitle: 'Meeschrijvers',
-    membersHint: 'Reizigers die ook stappen aan deze reis mogen toevoegen. Ze krijgen eerst een uitnodiging.',
+    membersHint:
+      'Reizigers die ook stappen aan deze reis mogen toevoegen. Ze krijgen eerst een uitnodiging.',
     owner: 'eigenaar',
     invitedStatus: 'uitgenodigd',
     choose: 'Kies een reiziger…',
     invite: 'Uitnodigen',
     invitedDone: (name: string) => `${name} is uitgenodigd.`,
     remove: (name: string) => `${name} verwijderen`,
-    confirmRemove: (name: string) => `${name} als meeschrijver verwijderen? Zijn of haar stappen blijven staan.`,
+    confirmRemove: (name: string) =>
+      `${name} als meeschrijver verwijderen? Zijn of haar stappen blijven staan.`,
     removeTitle: 'Meeschrijver verwijderen?',
     noCandidates: 'Er zijn geen andere reizigers om uit te nodigen.',
     viewersTitle: 'Wie mag meekijken',
-    viewersHint: 'De eigenaar, meeschrijvers en de beheerder zien de reis altijd. Kies wie hem verder mag bekijken.',
+    viewersHint:
+      'De eigenaar, meeschrijvers en de beheerder zien de reis altijd. Kies wie hem verder mag bekijken.',
     all: 'Iedereen',
     none: 'Niemand',
     saveViewers: 'Kijkers opslaan',
@@ -459,7 +530,8 @@ export const nl = {
     services: 'Koppelingen',
     general: 'Algemeen',
     servicesSummary: (ok: number, total: number) => `${ok} van ${total} actief`,
-    servicesFailing: (n: number) => (n === 1 ? '1 koppeling geeft een fout' : `${n} koppelingen geven een fout`),
+    servicesFailing: (n: number) =>
+      n === 1 ? '1 koppeling geeft een fout' : `${n} koppelingen geven een fout`,
     valuesSummary: (n: number) => `${n} instellingen (alleen-lezen)`,
     immich: 'Foto-integratie (Immich)',
     routing: 'Routeplanner (OpenRouteService)',
@@ -498,3 +570,5 @@ export const nl = {
     hint: 'Gebruik de knoppen voor opmaak. Markdown-sneltoetsen zoals **vet**, ## kop of - lijst werken ook.',
   },
 };
+
+export type Messages = typeof nl;

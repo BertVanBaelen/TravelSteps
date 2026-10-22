@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 import { mediaUrl } from '../lib/format';
 import { ChevronLeft, ChevronRight, CloseIcon } from './icons';
 
@@ -18,6 +18,7 @@ export function Carousel({
   onSelect: (index: number) => void;
   fit?: 'contain' | 'cover';
 }) {
+  const msg = useT();
   const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
 
@@ -42,7 +43,7 @@ export function Carousel({
             type="button"
             className="gallery-slide"
             onClick={() => onSelect(i)}
-            aria-label={nl.post.photoOf(i + 1, photos.length)}
+            aria-label={msg.post.photoOf(i + 1, photos.length)}
           >
             <img
               src={mediaUrl(id, 'preview')}
@@ -60,7 +61,7 @@ export function Carousel({
             className="gallery-nav gallery-prev"
             onClick={() => scrollTo(Math.max(0, index - 1))}
             disabled={index === 0}
-            aria-label={nl.common.previous}
+            aria-label={msg.common.previous}
           >
             <ChevronLeft />
           </button>
@@ -69,7 +70,7 @@ export function Carousel({
             className="gallery-nav gallery-next"
             onClick={() => scrollTo(Math.min(photos.length - 1, index + 1))}
             disabled={index === photos.length - 1}
-            aria-label={nl.common.next}
+            aria-label={msg.common.next}
           >
             <ChevronRight />
           </button>
@@ -128,6 +129,7 @@ export function Lightbox({
   extra?: (index: number) => ReactNode;
   onClose: () => void;
 }) {
+  const msg = useT();
   const [i, setI] = useState(start);
 
   useEffect(() => {
@@ -153,7 +155,7 @@ export function Lightbox({
       className="lightbox"
       role="dialog"
       aria-modal="true"
-      aria-label={nl.post.photoOf(i + 1, photos.length)}
+      aria-label={msg.post.photoOf(i + 1, photos.length)}
       onTouchStart={(e) => (touchX.current = e.touches[0]!.clientX)}
       onTouchEnd={(e) => {
         if (touchX.current === null) return;
@@ -172,11 +174,11 @@ export function Lightbox({
           {extra?.(i)}
           {(typeof allowOriginal === 'function' ? allowOriginal(i) : allowOriginal) && (
             <a href={mediaUrl(id, 'original')} target="_blank" rel="noopener noreferrer">
-              {nl.post.original}
+              {msg.post.original}
             </a>
           )}
         </span>
-        <button type="button" className="icon-btn" onClick={onClose} aria-label={nl.common.close}>
+        <button type="button" className="icon-btn" onClick={onClose} aria-label={msg.common.close}>
           <CloseIcon />
         </button>
       </div>
@@ -185,7 +187,7 @@ export function Lightbox({
           type="button"
           className="gallery-nav gallery-prev"
           onClick={() => setI(i - 1)}
-          aria-label={nl.common.previous}
+          aria-label={msg.common.previous}
         >
           <ChevronLeft />
         </button>
@@ -195,7 +197,7 @@ export function Lightbox({
           type="button"
           className="gallery-nav gallery-next"
           onClick={() => setI(i + 1)}
-          aria-label={nl.common.next}
+          aria-label={msg.common.next}
         >
           <ChevronRight />
         </button>

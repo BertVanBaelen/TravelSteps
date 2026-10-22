@@ -16,7 +16,7 @@ All V2 features secure, tested, documented, and released as **v2.0.0** without d
 - Both languages complete (key check + manual pass on all screens).
 - Playwright smoke extended: switch language, trust a user + download original, create/open/revoke
   share link (anonymous context), like animation present / absent with reduced motion, admin stats.
-- Docs: `Functional requirements.md`, `Technical requirements.md`, `code/README.md` (new
+- Docs: `Functional requirements.md`, `Technical requirements.md`, the root `README.md` + `README.nl.md` (new
   options), Home Assistant `config.yaml` options cleaned up.
 - Version **2.0.0** in `code/config.yaml` and `code/server/src/version.ts` (equal).
 

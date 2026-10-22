@@ -12,22 +12,22 @@ import { BellIcon, CheckIcon, CloseIcon } from '../components/icons';
 import { SkeletonCards } from '../components/Skeleton';
 import { PageActions, usePageTitle } from '../components/PageTitle';
 import { PushToggle } from '../components/PushToggle';
-import { nl } from '../i18n/nl';
+import { messages, useT } from '../i18n';
 import { formatDateTime, formatRelative } from '../lib/format';
 
 function text(n: AppNotification): string {
-  const actor = n.actor?.displayName ?? nl.blog.deletedUser;
+  const actor = n.actor?.displayName ?? messages().blog.deletedUser;
   const title = n.postTitle ?? '';
   const travel = n.travelName ?? '';
   switch (n.type) {
     case 'post':
-      return nl.notifications.post(actor, title, travel);
+      return messages().notifications.post(actor, title, travel);
     case 'like':
-      return nl.notifications.like(actor, title);
+      return messages().notifications.like(actor, title);
     case 'comment':
-      return nl.notifications.comment(actor, title);
+      return messages().notifications.comment(actor, title);
     case 'invite':
-      return nl.notifications.invite(actor, travel);
+      return messages().notifications.invite(actor, travel);
   }
 }
 
@@ -38,7 +38,8 @@ function link(n: AppNotification): string | null {
 }
 
 export function NotificationsPage() {
-  usePageTitle(nl.notifications.title);
+  const msg = useT();
+  usePageTitle(msg.notifications.title);
   const me = useUser();
   const navigate = useNavigate();
   const celebrate = useCelebrate();
@@ -81,7 +82,7 @@ export function NotificationsPage() {
       else await api(`/travels/${n.travelId}/members/${me.id}`, { method: 'DELETE' });
       setHandled((s) => new Set(s).add(n.id));
       if (accept) void celebrate('invite');
-      setNotice(accept ? nl.notifications.accepted : nl.notifications.declined);
+      setNotice(accept ? msg.notifications.accepted : msg.notifications.declined);
       if (!n.read) await markRead(n.id);
       reloadTravellers();
     } catch (err) {
@@ -95,7 +96,7 @@ export function NotificationsPage() {
         <PageActions>
           <button type="button" className="btn btn-small" onClick={() => void markRead().catch(() => undefined)}>
             <CheckIcon />
-            {nl.notifications.markAll}
+            {msg.notifications.markAll}
           </button>
         </PageActions>
       )}
@@ -103,7 +104,7 @@ export function NotificationsPage() {
       {notice && <Alert kind="success">{notice}</Alert>}
       {items === null && !error && <SkeletonCards count={4} />}
       {items?.length === 0 && (
-        <EmptyState icon={<BellIcon />} text={nl.notifications.empty} />
+        <EmptyState icon={<BellIcon />} text={msg.notifications.empty} />
 
       )}
       {items && items.length > 0 && (
@@ -127,11 +128,11 @@ export function NotificationsPage() {
                   <div className="row-actions">
                     <button type="button" className="btn btn-small btn-primary" onClick={() => void answer(n, true)}>
                       <CheckIcon />
-                      {nl.notifications.accept}
+                      {msg.notifications.accept}
                     </button>
                     <button type="button" className="btn btn-small" onClick={() => void answer(n, false)}>
                       <CloseIcon />
-                      {nl.notifications.decline}
+                      {msg.notifications.decline}
                     </button>
                     <Link to={`/reizen/${n.travelId}`} className="btn-text">
                       {n.travelName}

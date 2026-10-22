@@ -11,7 +11,7 @@ import {
   type TransportMode,
 } from '@travelsteps/shared';
 import { api, errorMessage } from '../api';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 import { formatNumber } from '../lib/format';
 import { DEFAULT_COLOR, createMap, drawSegment, fitTo, isDashed } from '../lib/map';
 import { useOnline } from '../offline/db';
@@ -82,6 +82,7 @@ export function LocationEditor({
   photos,
   onRoute,
 }: Props) {
+  const msg = useT();
   const online = useOnline();
   const mapEl = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -309,7 +310,7 @@ export function LocationEditor({
 
   function addGps() {
     void run('gps', async () => {
-      if (!navigator.geolocation) throw new Error(nl.locations.gpsUnavailable);
+      if (!navigator.geolocation) throw new Error(msg.locations.gpsUnavailable);
       const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: true,
@@ -317,7 +318,7 @@ export function LocationEditor({
           maximumAge: 30_000,
         }),
       ).catch(() => {
-        throw new Error(nl.locations.gpsFailed);
+        throw new Error(msg.locations.gpsFailed);
       });
       await addPoints([{ lat: pos.coords.latitude, lng: pos.coords.longitude }], true);
     });
@@ -345,7 +346,7 @@ export function LocationEditor({
       const withGps = assets
         .filter((a): a is ImmichAsset => !!a && a.lat !== null && a.lng !== null)
         .sort((a, b) => (a.takenAt ?? '').localeCompare(b.takenAt ?? ''));
-      if (withGps.length === 0) throw new Error(nl.locations.noPhotoGps);
+      if (withGps.length === 0) throw new Error(msg.locations.noPhotoGps);
       await addPoints(
         withGps.map((a) => ({
           lat: a.lat!,
@@ -379,15 +380,15 @@ export function LocationEditor({
   const noPlaces = value.locations.length === 0;
   const loadingLabel =
     busy === 'gps'
-      ? nl.locations.locating
+      ? msg.locations.locating
       : busy === 'search'
-        ? nl.locations.searching
+        ? msg.locations.searching
         : busy === 'photos'
-          ? nl.locations.readingPhotos
+          ? msg.locations.readingPhotos
           : naming.size > 0
-            ? nl.locations.lookingUp
+            ? msg.locations.lookingUp
             : routing
-              ? nl.locations.routing
+              ? msg.locations.routing
               : null;
 
   return (
@@ -399,7 +400,7 @@ export function LocationEditor({
           onClick={addGps}
           disabled={busy !== null}
         >
-          <PinIcon /> {busy === 'gps' ? nl.locations.locating : nl.locations.gps}
+          <PinIcon /> {busy === 'gps' ? msg.locations.locating : msg.locations.gps}
         </button>
         <button
           type="button"
@@ -407,16 +408,16 @@ export function LocationEditor({
           onClick={() => setAddMode((m) => !m)}
           aria-pressed={addMode}
         >
-          <MapIcon /> {addMode ? nl.locations.tapMap : nl.locations.mapTap}
+          <MapIcon /> {addMode ? msg.locations.tapMap : msg.locations.mapTap}
         </button>
         <button
           type="button"
           className="btn btn-small btn-secondary"
           onClick={fromPhotos}
           disabled={!online || photos.length === 0 || busy !== null}
-          title={photos.length === 0 ? nl.locations.noPhotos : undefined}
+          title={photos.length === 0 ? msg.locations.noPhotos : undefined}
         >
-          <PhotoIcon /> {busy === 'photos' ? nl.loading : nl.locations.fromPhotos}
+          <PhotoIcon /> {busy === 'photos' ? msg.loading : msg.locations.fromPhotos}
         </button>
       </div>
 
@@ -424,8 +425,8 @@ export function LocationEditor({
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={online ? nl.locations.searchPlaceholder : nl.locations.searchOffline}
-          aria-label={nl.locations.search}
+          placeholder={online ? msg.locations.searchPlaceholder : msg.locations.searchOffline}
+          aria-label={msg.locations.search}
           disabled={!online}
           enterKeyHint="search"
           onKeyDown={(e) => {
@@ -443,12 +444,12 @@ export function LocationEditor({
           disabled={!online || busy !== null}
         >
           <SearchIcon />
-          {busy === 'search' ? nl.loading : nl.locations.search}
+          {busy === 'search' ? msg.loading : msg.locations.search}
         </button>
       </div>
       {results && (
         <ul className="loc-results">
-          {results.length === 0 && <li className="muted">{nl.locations.noResults}</li>}
+          {results.length === 0 && <li className="muted">{msg.locations.noResults}</li>}
           {results.map((r, i) => (
             <li key={i}>
               <button
@@ -485,12 +486,12 @@ export function LocationEditor({
 
       <div className="field">
         <label className="field-label" htmlFor="arrival">
-          {nl.locations.arrival}
+          {msg.locations.arrival}
         </label>
         <Listbox
           id="arrival"
           variant="field"
-          title={nl.locations.arrival}
+          title={msg.locations.arrival}
           selected={noPlaces ? '' : (value.arrival?.mode ?? '')}
           disabled={noPlaces}
           onSelect={(id) =>
@@ -499,23 +500,23 @@ export function LocationEditor({
           options={[
             {
               id: '',
-              label: nl.locations.noArrival,
+              label: msg.locations.noArrival,
               icon: (
                 <span className="picker-icon picker-icon-muted">
                   <PinIcon />
                 </span>
               ),
             },
-            ...modeOptions,
+            ...modeOptions(),
           ]}
         />
         <span className="field-hint">
-          {noPlaces ? nl.locations.arrivalNeedsPlace : nl.locations.arrivalHint}
+          {noPlaces ? msg.locations.arrivalNeedsPlace : msg.locations.arrivalHint}
         </span>
       </div>
 
       {value.locations.length === 0 ? (
-        <p className="muted">{nl.locations.empty}</p>
+        <p className="muted">{msg.locations.empty}</p>
       ) : (
         <ol className="loc-list">
           {value.locations.map((loc, i) => (
@@ -527,10 +528,10 @@ export function LocationEditor({
                   onChange={(e) => setLocation(i, { name: e.target.value || undefined })}
                   placeholder={
                     naming.has(pointKey(loc))
-                      ? nl.locations.lookingUp
+                      ? msg.locations.lookingUp
                       : `${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}`
                   }
-                  aria-label={nl.locations.name(i + 1)}
+                  aria-label={msg.locations.name(i + 1)}
                   maxLength={120}
                 />
                 <button
@@ -538,7 +539,7 @@ export function LocationEditor({
                   className="icon-btn"
                   onClick={() => move(i, -1)}
                   disabled={i === 0}
-                  aria-label={nl.editor.moveUp}
+                  aria-label={msg.editor.moveUp}
                 >
                   ↑
                 </button>
@@ -547,7 +548,7 @@ export function LocationEditor({
                   className="icon-btn"
                   onClick={() => move(i, 1)}
                   disabled={i === value.locations.length - 1}
-                  aria-label={nl.editor.moveDown}
+                  aria-label={msg.editor.moveDown}
                 >
                   ↓
                 </button>
@@ -555,7 +556,7 @@ export function LocationEditor({
                   type="button"
                   className="icon-btn btn-danger"
                   onClick={() => remove(i)}
-                  aria-label={nl.common.delete}
+                  aria-label={msg.common.delete}
                 >
                   ×
                 </button>
@@ -564,10 +565,10 @@ export function LocationEditor({
                 <div className="loc-segment">
                   <Listbox
                     variant="compact"
-                    title={nl.locations.mode(i + 1, i + 2)}
+                    title={msg.locations.mode(i + 1, i + 2)}
                     selected={value.segments[i]!.mode}
                     onSelect={(id) => setMode(i, id as TransportMode)}
-                    options={modeOptions}
+                    options={modeOptions()}
                   />
                   {value.segments[i]!.distanceKm !== undefined && (
                     <span className="muted">{formatNumber(value.segments[i]!.distanceKm!)} km</span>
@@ -581,16 +582,16 @@ export function LocationEditor({
 
       <p className="muted route-status" aria-live="polite">
         {!online
-          ? nl.locations.routeOffline
+          ? msg.locations.routeOffline
           : routing
-            ? nl.locations.routing
+            ? msg.locations.routing
             : routeInfo && value.locations.length > 1
-              ? nl.locations.routeTotal(
+              ? msg.locations.routeTotal(
                   formatNumber(routeInfo.distanceKm),
                   formatNumber(routeInfo.ascentM),
                 )
               : ''}
-        {online && routeInfo?.fallback && !routing && ` ${nl.locations.fallback}`}
+        {online && routeInfo?.fallback && !routing && ` ${msg.locations.fallback}`}
       </p>
     </div>
   );

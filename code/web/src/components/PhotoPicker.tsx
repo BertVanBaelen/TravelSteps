@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import type { ImmichAlbum, ImmichAsset, ImmichAssetPage } from '@travelsteps/shared';
 import { api, errorMessage } from '../api';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 import { mediaUrl } from '../lib/format';
 import { Alert } from './Field';
 import { CloseIcon } from './icons';
@@ -19,6 +19,7 @@ interface Props {
 
 /** Modal to pick photos from Immich (timeline, albums or smart search). */
 export function PhotoPicker({ initial, max = 100, onDone, onClose }: Props) {
+  const msg = useT();
   const [tab, setTab] = useState<Tab>('timeline');
   const [selected, setSelected] = useState<string[]>(initial);
   const [album, setAlbum] = useState<ImmichAlbum | null>(null);
@@ -54,14 +55,14 @@ export function PhotoPicker({ initial, max = 100, onDone, onClose }: Props) {
           : null;
 
   return (
-    <div className="modal" role="dialog" aria-modal="true" aria-label={nl.picker.title}>
+    <div className="modal" role="dialog" aria-modal="true" aria-label={msg.picker.title}>
       <header className="modal-head">
-        <button type="button" className="icon-btn" onClick={onClose} aria-label={nl.common.close}>
+        <button type="button" className="icon-btn" onClick={onClose} aria-label={msg.common.close}>
           <CloseIcon />
         </button>
-        <strong>{nl.picker.title}</strong>
+        <strong>{msg.picker.title}</strong>
         <button type="button" className="btn btn-primary btn-small" onClick={() => onDone(selected)}>
-          {nl.picker.done(selected.length)}
+          {msg.picker.done(selected.length)}
         </button>
       </header>
       <nav className="tabs" role="tablist">
@@ -74,7 +75,7 @@ export function PhotoPicker({ initial, max = 100, onDone, onClose }: Props) {
             className={tab === t ? 'active' : ''}
             onClick={() => setTab(t)}
           >
-            {nl.picker[t]}
+            {msg.picker[t]}
           </button>
         ))}
       </nav>
@@ -83,7 +84,7 @@ export function PhotoPicker({ initial, max = 100, onDone, onClose }: Props) {
         {tab === 'albums' && album && (
           <div className="picker-subhead">
             <button type="button" className="btn btn-link" onClick={() => setAlbum(null)}>
-              {nl.picker.backToAlbums}
+              {msg.picker.backToAlbums}
             </button>
             <strong>{album.name}</strong>
           </div>
@@ -100,11 +101,11 @@ export function PhotoPicker({ initial, max = 100, onDone, onClose }: Props) {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={nl.picker.searchPlaceholder}
-              aria-label={nl.picker.search}
+              placeholder={msg.picker.searchPlaceholder}
+              aria-label={msg.picker.search}
             />
             <button className="btn btn-secondary" type="submit">
-              {nl.picker.searchButton}
+              {msg.picker.searchButton}
             </button>
           </form>
         )}
@@ -115,6 +116,7 @@ export function PhotoPicker({ initial, max = 100, onDone, onClose }: Props) {
 }
 
 function AlbumList({ onPick }: { onPick: (a: ImmichAlbum) => void }) {
+  const msg = useT();
   const [albums, setAlbums] = useState<ImmichAlbum[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -125,8 +127,8 @@ function AlbumList({ onPick }: { onPick: (a: ImmichAlbum) => void }) {
   }, []);
 
   if (error) return <Alert kind="error">{error}</Alert>;
-  if (!albums) return <p className="muted">{nl.loading}</p>;
-  if (albums.length === 0) return <p className="muted">{nl.picker.noAlbums}</p>;
+  if (!albums) return <p className="muted">{msg.loading}</p>;
+  if (albums.length === 0) return <p className="muted">{msg.picker.noAlbums}</p>;
   return (
     <ul className="album-grid">
       {albums.map((a) => (
@@ -138,7 +140,7 @@ function AlbumList({ onPick }: { onPick: (a: ImmichAlbum) => void }) {
               <span className="album-empty" />
             )}
             <strong>{a.name}</strong>
-            <span className="muted">{nl.picker.assets(a.assetCount)}</span>
+            <span className="muted">{msg.picker.assets(a.assetCount)}</span>
           </button>
         </li>
       ))}
@@ -155,6 +157,7 @@ function AssetGrid({
   selected: string[];
   onToggle: (id: string) => void;
 }) {
+  const msg = useT();
   const [assets, setAssets] = useState<ImmichAsset[]>([]);
   const [nextPage, setNextPage] = useState<number | null>(1);
   const [loading, setLoading] = useState(false);
@@ -192,7 +195,7 @@ function AssetGrid({
         <Alert kind="error">
           {error}{' '}
           <button type="button" className="btn-text" onClick={() => void loadMore()}>
-            {nl.common.retry}
+            {msg.common.retry}
           </button>
         </Alert>
       )}
@@ -216,9 +219,9 @@ function AssetGrid({
         })}
       </ul>
       {!loading && !error && nextPage === null && assets.length === 0 && (
-        <p className="muted">{nl.picker.empty}</p>
+        <p className="muted">{msg.picker.empty}</p>
       )}
-      {loading && <p className="muted">{nl.loading}</p>}
+      {loading && <p className="muted">{msg.loading}</p>}
       <div ref={sentinel} className="sentinel" />
     </>
   );

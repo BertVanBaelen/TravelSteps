@@ -1,5 +1,5 @@
 import type { TravelSummary } from '@travelsteps/shared';
-import { nl } from '../i18n/nl';
+import { messages, useT } from '../i18n';
 import { formatRange, mediaUrl } from '../lib/format';
 import { TravelIcon } from './icons';
 import { Listbox, type ListboxOption } from './Listbox';
@@ -33,7 +33,7 @@ export function travelOption(t: TravelSummary, colorFor?: (id: string) => string
   return {
     id: t.id,
     label: t.name + suffix,
-    meta: `${formatRange(t.startDate, t.endDate, nl.travels.ongoing)} · ${nl.travels.counts(t.postCount, t.photoCount)}`,
+    meta: `${formatRange(t.startDate, t.endDate, messages().travels.ongoing)} · ${messages().travels.counts(t.postCount, t.photoCount)}`,
     icon: <TravelThumb travel={t} color={colorFor?.(t.id)} />,
     triggerIcon: <TravelThumb travel={t} small />,
   };
@@ -41,6 +41,7 @@ export function travelOption(t: TravelSummary, colorFor?: (id: string) => string
 
 /** Travel filter in the left of the app header (timeline, map). */
 export function TravelPicker({ travels, value, allValue, onChange, colorFor }: Props) {
+  const msg = useT();
   const small = (
     <span className="travel-thumb travel-thumb-small" aria-hidden>
       <TravelIcon />
@@ -49,8 +50,8 @@ export function TravelPicker({ travels, value, allValue, onChange, colorFor }: P
   const options: ListboxOption[] = [
     {
       id: allValue,
-      label: nl.timeline.allTravels,
-      meta: nl.blog.travelCount(travels.length),
+      label: msg.timeline.allTravels,
+      meta: msg.blog.travelCount(travels.length),
       icon: (
         <span className="travel-thumb" aria-hidden>
           <TravelIcon />
@@ -64,7 +65,7 @@ export function TravelPicker({ travels, value, allValue, onChange, colorFor }: P
     <PageStart>
       <Listbox
         className="travel-picker"
-        title={nl.map.filter}
+        title={msg.map.filter}
         options={options}
         selected={value}
         onSelect={onChange}

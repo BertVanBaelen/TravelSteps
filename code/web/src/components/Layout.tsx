@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { isTraveller } from '@travelsteps/shared';
 import { useUser } from '../auth/AuthContext';
 import { BlogProvider, useBlog } from '../blog/BlogContext';
-import { nl } from '../i18n/nl';
+import { messages, useT } from '../i18n';
 import { useOnline } from '../offline/db';
 import { onSyncEvent, startSync } from '../offline/sync';
 import { BlogBar } from './BlogBar';
@@ -14,11 +14,11 @@ import { PhoneBanner } from './PhoneBanner';
 import { SkeletonCards } from './Skeleton';
 import { UserMenu } from './UserMenu';
 
-const items = [
-  { to: '/', label: nl.nav.timeline, icon: <TimelineIcon />, end: true },
-  { to: '/kaart', label: nl.nav.map, icon: <MapIcon /> },
-  { to: '/fotos', label: nl.nav.photos, icon: <PhotoIcon /> },
-  { to: '/reizen', label: nl.nav.travels, icon: <TravelIcon /> },
+const items = () => [
+  { to: '/', label: messages().nav.timeline, icon: <TimelineIcon />, end: true },
+  { to: '/kaart', label: messages().nav.map, icon: <MapIcon /> },
+  { to: '/fotos', label: messages().nav.photos, icon: <PhotoIcon /> },
+  { to: '/reizen', label: messages().nav.travels, icon: <TravelIcon /> },
 ];
 
 /** Pages that show one blog (or everyone's) and therefore get the blog selector. */
@@ -35,6 +35,7 @@ export function Layout() {
 }
 
 function Shell() {
+  const msg = useT();
   const user = useUser();
   const online = useOnline();
   const { unread } = useBlog();
@@ -47,7 +48,7 @@ function Shell() {
   useEffect(
     () =>
       onSyncEvent((e) => {
-        if (e.type === 'published') setToast(nl.sync.published(e.title));
+        if (e.type === 'published') setToast(messages().sync.published(e.title));
       }),
     [],
   );
@@ -66,7 +67,7 @@ function Shell() {
           {BLOG_PAGES.has(pathname) && <BlogBar />}
         </div>
         <PhoneBanner />
-        {!online && <div className="offline-bar">{nl.sync.offline}</div>}
+        {!online && <div className="offline-bar">{msg.sync.offline}</div>}
         <main className="app-main">
           <Suspense fallback={<SkeletonCards count={2} />}>
             <Outlet />
@@ -78,7 +79,7 @@ function Shell() {
           </div>
         )}
         <nav className="bottom-nav" aria-label="Hoofdmenu">
-          {items.map((item) => (
+          {items().map((item) => (
             <NavLink key={item.to} to={item.to} end={item.end}>
               {item.icon}
               <span>{item.label}</span>
@@ -89,7 +90,7 @@ function Shell() {
               <BellIcon />
               {unread > 0 && <span className="nav-badge">{unread > 99 ? '99+' : unread}</span>}
             </span>
-            <span>{nl.nav.notifications}</span>
+            <span>{msg.nav.notifications}</span>
           </NavLink>
         </nav>
       </div>

@@ -1470,6 +1470,69 @@ describe('meldingen en abonnementen', () => {
   });
 });
 
+describe('taal', () => {
+  it('bewaart de taalkeuze per gebruiker en valideert die', async () => {
+    await startApp();
+    const [, viewer] = await setupUsers();
+    const me = async () => (await call('GET', '/api/auth/me', viewer)).json().user;
+    expect((await me()).language).toBeNull();
+
+    const set = await call('PATCH', '/api/profile', viewer, { language: 'en' });
+    expect(set.statusCode).toBe(200);
+    expect(set.json().user).toMatchObject({ language: 'en', displayName: 'Oma' });
+    expect((await me()).language).toBe('en');
+
+    for (const body of [{ language: 'fr' }, { language: 1 }, {}]) {
+      const bad = await call('PATCH', '/api/profile', viewer, body);
+      expect(bad.statusCode).toBe(400);
+      expect(bad.json().error).toBe('VALIDATION');
+    }
+    expect((await me()).language).toBe('en');
+
+    const renamed = await call('PATCH', '/api/profile', viewer, { displayName: 'Oma Jet' });
+    expect(renamed.json().user).toMatchObject({ displayName: 'Oma Jet', language: 'en' });
+    const reset = await call('PATCH', '/api/profile', viewer, { language: null });
+    expect(reset.json().user.language).toBeNull();
+  });
+
+  it('verstuurt pushmeldingen in de taal van de ontvanger', async () => {
+    await startApp();
+    const { piet, kees, oma, travel } = await setupWorld();
+    await call('PUT', `/api/travellers/${piet.id}/subscription`, oma.cookie);
+    await call('PATCH', '/api/profile', kees.cookie, { language: 'en' });
+    await call('PATCH', '/api/profile', oma.cookie, { language: 'nl' });
+    const service = app!.ctx.notifications as unknown as {
+      push: (userId: string, payload: { title: string; body: string }) => Promise<void>;
+    };
+    const sent = new Map<string, { title: string; body: string }>();
+    service.push = async (userId, payload) => {
+      sent.set(userId, payload);
+    };
+
+    await createPost(piet.cookie, 'Geiser', '2025-06-02T10:00:00Z', { travelId: travel.id });
+    expect(sent.get(kees.id)!.title).toBe('Piet posted a new step in IJsland');
+    expect(sent.get(oma.id)!.title).toBe('Piet plaatste een nieuwe stap in IJsland');
+
+    sent.clear();
+    const post = await createPost(kees.cookie, 'Gletsjer', '2025-06-03T10:00:00Z', {
+      travelId: travel.id,
+    });
+    await call('PUT', `/api/posts/${post.id}/like`, oma.cookie);
+    expect(sent.get(kees.id)).toMatchObject({
+      title: 'Oma likes your step',
+      body: 'Oma liked "Gletsjer".',
+    });
+  });
+
+  it('verwijdert een gebruiker met een taalkeuze', async () => {
+    await startApp();
+    const { admin, kees } = await setupWorld();
+    await call('PATCH', '/api/profile', kees.cookie, { language: 'en' });
+    expect((await call('DELETE', `/api/users/${kees.id}`, admin, { mode: 'delete' })).statusCode).toBe(204);
+    expect((await call('GET', '/api/auth/me', kees.cookie)).statusCode).toBe(401);
+  });
+});
+
 describe('gebruikers verwijderen', () => {
   const remove = (admin: string, id: string, body: Record<string, unknown>) =>
     call('DELETE', `/api/users/${id}`, admin, body);

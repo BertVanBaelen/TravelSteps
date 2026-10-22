@@ -15,12 +15,13 @@ import { Markdown } from '../components/Markdown';
 import { PageActions, usePageTitle } from '../components/PageTitle';
 import { TravelStats } from '../components/TravelStats';
 import { SkeletonCards } from '../components/Skeleton';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 
 import { formatRange, mediaUrl } from '../lib/format';
 import { Feed } from './TimelinePage';
 
 export function TravelDetailPage() {
+  const msg = useT();
   const { id = '' } = useParams();
   const me = useUser();
   const { reloadTravellers } = useBlog();
@@ -31,7 +32,7 @@ export function TravelDetailPage() {
   const [mapPosts, setMapPosts] = useState<MapPost[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  usePageTitle(travel?.name ?? (error ? nl.travels.title : nl.loading), { back: '/reizen' });
+  usePageTitle(travel?.name ?? (error ? msg.travels.title : msg.loading), { back: '/reizen' });
   const openPost = useCallback((postId: string) => navigate(`/post/${postId}`), [navigate]);
 
   useEffect(() => {
@@ -65,9 +66,9 @@ export function TravelDetailPage() {
     if (
       !declining &&
       !(await confirm({
-          title: nl.travels.leaveTitle,
-          message: nl.travels.confirmLeave(travel.name),
-          confirmLabel: nl.travels.leave,
+          title: msg.travels.leaveTitle,
+          message: msg.travels.confirmLeave(travel.name),
+          confirmLabel: msg.travels.leave,
           danger: true,
           icon: <LeaveIcon />,
         }))
@@ -91,7 +92,7 @@ export function TravelDetailPage() {
         <PageActions>
           <button type="button" className="btn btn-small btn-danger" onClick={() => void leave(false)}>
             <LeaveIcon />
-            {nl.travels.leave}
+            {msg.travels.leave}
           </button>
         </PageActions>
       )}
@@ -101,7 +102,7 @@ export function TravelDetailPage() {
             <Fab
               to={`/reizen/${travel.id}/bewerken`}
               icon={<PencilIcon />}
-              label={nl.travelEditor.editTitle}
+              label={msg.travelEditor.editTitle}
               secondary={travel.canPost}
               extended={!travel.canPost}
             />
@@ -110,7 +111,7 @@ export function TravelDetailPage() {
             <Fab
               to={`/posts/nieuw?reis=${travel.id}`}
               icon={<FootprintIcon />}
-              label={nl.timeline.newPost}
+              label={msg.timeline.newPost}
               extended
             />
           )}
@@ -118,15 +119,15 @@ export function TravelDetailPage() {
       )}
       {travel.myRole === 'invited' && (
         <div className="card stack">
-          <p>{nl.travels.inviteBanner(travel.owner.displayName)}</p>
+          <p>{msg.travels.inviteBanner(travel.owner.displayName)}</p>
           <div className="row-actions">
             <button type="button" className="btn btn-primary btn-small" onClick={() => void accept()}>
               <CheckIcon />
-              {nl.notifications.accept}
+              {msg.notifications.accept}
             </button>
             <button type="button" className="btn btn-small" onClick={() => void leave(true)}>
               <CloseIcon />
-              {nl.notifications.decline}
+              {msg.notifications.decline}
             </button>
           </div>
         </div>
@@ -139,9 +140,9 @@ export function TravelDetailPage() {
           </div>
         )}
         <div className="stack">
-          <p className="muted">{formatRange(travel.startDate, travel.endDate, nl.travels.ongoing)}</p>
+          <p className="muted">{formatRange(travel.startDate, travel.endDate, msg.travels.ongoing)}</p>
           <TravelPeople travel={travel} />
-          <p className="muted">{nl.travels.counts(travel.postCount, travel.photoCount)}</p>
+          <p className="muted">{msg.travels.counts(travel.postCount, travel.photoCount)}</p>
           <TravelStats travel={travel} />
           {travel.description && <Markdown>{travel.description}</Markdown>}
         </div>
@@ -157,6 +158,7 @@ export function TravelDetailPage() {
 
 /** Owner and accepted co-authors of a travel. */
 export function TravelPeople({ travel }: { travel: TravelSummary }) {
+  const msg = useT();
   const accepted = travel.members.filter((m) => m.status === 'accepted');
   return (
     <div className="travel-people">
@@ -166,8 +168,8 @@ export function TravelPeople({ travel }: { travel: TravelSummary }) {
         ))}
       </span>
       <span className="muted">
-        {nl.travels.by(travel.owner.displayName)}
-        {accepted.length > 0 && ` ${nl.travels.with(accepted.map((m) => m.displayName))}`}
+        {msg.travels.by(travel.owner.displayName)}
+        {accepted.length > 0 && ` ${msg.travels.with(accepted.map((m) => m.displayName))}`}
       </span>
     </div>
   );

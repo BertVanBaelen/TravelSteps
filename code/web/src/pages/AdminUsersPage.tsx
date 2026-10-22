@@ -6,7 +6,7 @@ import { Avatar } from '../components/Avatar';
 import { useConfirm } from '../components/ConfirmDialog';
 import { Alert, Field, SelectField } from '../components/Field';
 import { usePageTitle } from '../components/PageTitle';
-import { nl } from '../i18n/nl';
+import { messages, useT } from '../i18n';
 import { Listbox, type ListboxOption } from '../components/Listbox';
 import { CopyButton } from '../components/CopyButton';
 import {
@@ -32,10 +32,11 @@ function generatePassword(length = 14): string {
 type AssignableRole = Exclude<Role, 'admin'>;
 const ASSIGNABLE: AssignableRole[] = ['traveller', 'viewer'];
 const ROLE_ICONS: Record<AssignableRole, ReactElement> = { traveller: <TravelIcon />, viewer: <ProfileIcon /> };
-const roleOptions: ListboxOption[] = ASSIGNABLE.map((r) => ({
+const roleOptions = (): ListboxOption[] =>
+  ASSIGNABLE.map((r) => ({
   id: r,
-  label: nl.profile.roles[r],
-  meta: nl.users.roleHint[r],
+  label: messages().profile.roles[r],
+  meta: messages().users.roleHint[r],
   icon: <span className="picker-icon">{ROLE_ICONS[r]}</span>,
 }));
 
@@ -52,6 +53,7 @@ function ImmichKeyDialog({
   onClose: () => void;
   onSave: (apiKey: string | null) => Promise<void>;
 }) {
+  const msg = useT();
   const [key, setKey] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,10 +100,10 @@ function ImmichKeyDialog({
         <span className="confirm-icon" aria-hidden>
           <PhotoIcon />
         </span>
-        <h2 id="key-title">{nl.users.immichDialogTitle(user.displayName)}</h2>
-        <p>{nl.users.immichDialogHint(user.displayName, user.hasImmichKey)}</p>
+        <h2 id="key-title">{msg.users.immichDialogTitle(user.displayName)}</h2>
+        <p>{msg.users.immichDialogHint(user.displayName, user.hasImmichKey)}</p>
         <Field
-          label={nl.profile.immichKey}
+          label={msg.profile.immichKey}
           name="immichKey"
           type="password"
           autoComplete="off"
@@ -114,17 +116,17 @@ function ImmichKeyDialog({
         <div className="confirm-actions">
           <button type="button" className="btn btn-secondary" onClick={close}>
             <CloseIcon />
-            {nl.common.cancel}
+            {msg.common.cancel}
           </button>
           <button type="submit" className="btn btn-primary" disabled={busy || !key.trim()}>
             <SaveIcon />
-            {nl.profile.immichSave}
+            {msg.profile.immichSave}
           </button>
         </div>
         {user.hasImmichKey && (
           <button type="button" className="btn-text btn-danger key-remove" disabled={busy} onClick={() => void save(null)}>
             <TrashIcon />
-            {nl.profile.immichRemove}
+            {msg.profile.immichRemove}
           </button>
         )}
       </form>
@@ -144,6 +146,7 @@ function DeleteUserDialog({
   onCancel: () => void;
   onDone: (notice: string | null) => void;
 }) {
+  const msg = useT();
   const [mode, setMode] = useState<'travels' | 'disable'>('travels');
   const [choice, setChoice] = useState<Record<string, string>>(() =>
     Object.fromEntries(user.ownedTravels.map((t) => [t.id, DELETE])),
@@ -158,7 +161,7 @@ function DeleteUserDialog({
     try {
       if (mode === 'disable') {
         await api(`/users/${user.id}`, { method: 'DELETE', body: { mode: 'disable' } });
-        onDone(nl.users.disabledInstead(user.displayName));
+        onDone(msg.users.disabledInstead(user.displayName));
         return;
       }
       const transfers = Object.fromEntries(Object.entries(choice).filter(([, v]) => v !== DELETE));
@@ -181,11 +184,11 @@ function DeleteUserDialog({
         onClick={(e) => e.stopPropagation()}
         onSubmit={submit}
       >
-        <h2 id="delete-user-title">{nl.users.deleteTitle(user.displayName)}</h2>
-        <p>{nl.users.deleteIntro(user.displayName, user.ownedTravels.length)}</p>
+        <h2 id="delete-user-title">{msg.users.deleteTitle(user.displayName)}</h2>
+        <p>{msg.users.deleteIntro(user.displayName, user.ownedTravels.length)}</p>
         <label className="check">
           <input type="radio" name="mode" checked={mode === 'travels'} onChange={() => setMode('travels')} />
-          <span>{nl.users.modeTravels}</span>
+          <span>{msg.users.modeTravels}</span>
         </label>
         {mode === 'travels' && (
           <ul className="transfer-list">
@@ -199,7 +202,7 @@ function DeleteUserDialog({
                   options={[
                     {
                       id: DELETE,
-                      label: nl.users.optionDelete,
+                      label: msg.users.optionDelete,
                       icon: (
                         <span className="picker-icon picker-icon-danger">
                           <TrashIcon />
@@ -208,28 +211,28 @@ function DeleteUserDialog({
                     },
                     ...t.members.map((m) => ({
                       id: m.id,
-                      label: nl.users.optionTransfer(m.displayName),
+                      label: msg.users.optionTransfer(m.displayName),
                       icon: <Avatar user={{ ...m, avatarUrl: null }} size="s" />,
                     })),
                   ]}
                 />
-                {t.members.length === 0 && <p className="muted small">{nl.users.noMembers}</p>}
+                {t.members.length === 0 && <p className="muted small">{msg.users.noMembers}</p>}
               </li>
             ))}
           </ul>
         )}
         <label className="check">
           <input type="radio" name="mode" checked={mode === 'disable'} onChange={() => setMode('disable')} />
-          <span>{nl.users.modeDisable}</span>
+          <span>{msg.users.modeDisable}</span>
         </label>
-        {mode === 'travels' && <p className="muted small">{nl.users.deleteHint}</p>}
+        {mode === 'travels' && <p className="muted small">{msg.users.deleteHint}</p>}
         {error && <Alert kind="error">{error}</Alert>}
         <div className="row-actions">
           <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={busy}>
-            {nl.common.cancel}
+            {msg.common.cancel}
           </button>
           <button type="submit" className="btn btn-danger" disabled={busy}>
-            {mode === 'disable' ? nl.users.confirmDisable : nl.users.confirmDelete}
+            {mode === 'disable' ? msg.users.confirmDisable : msg.users.confirmDelete}
           </button>
         </div>
       </form>
@@ -238,7 +241,8 @@ function DeleteUserDialog({
 }
 
 export function AdminUsersPage() {
-  usePageTitle(nl.users.title, { back: '/' });
+  const msg = useT();
+  usePageTitle(msg.users.title, { back: '/' });
   const me = useUser();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -288,7 +292,7 @@ export function AdminUsersPage() {
         method: 'POST',
         body: { username, displayName, temporaryPassword, role },
       });
-      setNotice(nl.users.created(r.user.displayName, temporaryPassword));
+      setNotice(msg.users.created(r.user.displayName, temporaryPassword));
       setNoticeCopy(temporaryPassword);
       setUsername('');
       setDisplayName('');
@@ -309,14 +313,14 @@ export function AdminUsersPage() {
     });
 
   const resetPassword = async (u: AdminUser) => {
-    if (!(await confirm({ title: nl.users.resetTitle, message: nl.users.confirmReset(u.displayName), icon: <KeyIcon /> }))) return;
+    if (!(await confirm({ title: msg.users.resetTitle, message: msg.users.confirmReset(u.displayName), icon: <KeyIcon /> }))) return;
     const pw = generatePassword();
     void run(async () => {
       await api(`/users/${u.id}/reset-password`, {
         method: 'POST',
         body: { temporaryPassword: pw },
       });
-      setNotice(nl.users.resetDone(u.displayName, pw));
+      setNotice(msg.users.resetDone(u.displayName, pw));
       setNoticeCopy(pw);
     });
   };
@@ -325,7 +329,7 @@ export function AdminUsersPage() {
     await api(`/users/${u.id}/immich-key`, { method: 'PUT', body: { apiKey } });
     setError(null);
     setNoticeCopy(null);
-    setNotice(nl.users.immichSaved(u.displayName));
+    setNotice(msg.users.immichSaved(u.displayName));
     await load();
   }
 
@@ -334,7 +338,7 @@ export function AdminUsersPage() {
       setDeleting(u);
       return;
     }
-    if (!(await confirm({ title: nl.users.removeTitle, message: nl.users.confirmRemove(u.displayName), confirmLabel: nl.common.delete, danger: true }))) {
+    if (!(await confirm({ title: msg.users.removeTitle, message: msg.users.confirmRemove(u.displayName), confirmLabel: msg.common.delete, danger: true }))) {
       return;
     }
     void run(async () => {
@@ -348,7 +352,7 @@ export function AdminUsersPage() {
       {notice && (
         <div className="notice-copy">
           <Alert kind="success">{notice}</Alert>
-          {noticeCopy && <CopyButton value={noticeCopy} label={nl.users.copyPassword} className="btn btn-small btn-secondary" />}
+          {noticeCopy && <CopyButton value={noticeCopy} label={msg.users.copyPassword} className="btn btn-small btn-secondary" />}
         </div>
       )}
 
@@ -359,46 +363,46 @@ export function AdminUsersPage() {
             <div className="user-info">
               <strong>
                 {u.displayName}
-                {u.id === me.id && <span className="muted"> ({nl.users.you})</span>}
+                {u.id === me.id && <span className="muted"> ({msg.users.you})</span>}
               </strong>
               <span className="muted">
-                {u.username} · {nl.profile.roles[u.role]}
+                {u.username} · {msg.profile.roles[u.role]}
               </span>
               <span className="badges">
-                {u.disabled && <span className="badge badge-off">{nl.users.disabled}</span>}
-                {u.mustChangePassword && <span className="badge">{nl.users.mustChange}</span>}
-                {isTraveller(u.role) && u.hasImmichKey && <span className="badge">{nl.users.hasKey}</span>}
+                {u.disabled && <span className="badge badge-off">{msg.users.disabled}</span>}
+                {u.mustChangePassword && <span className="badge">{msg.users.mustChange}</span>}
+                {isTraveller(u.role) && u.hasImmichKey && <span className="badge">{msg.users.hasKey}</span>}
               </span>
             </div>
             <div className="user-actions">
               {u.role !== 'admin' && (
                 <Listbox
                   variant="compact"
-                  title={nl.users.role}
+                  title={msg.users.role}
                   selected={u.role}
                   onSelect={(id) => void changeRole(u, id as AssignableRole)}
-                  options={roleOptions}
+                  options={roleOptions()}
                 />
               )}
               {isTraveller(u.role) && (
                 <button className="btn btn-small" onClick={() => setKeyUser(u)}>
                   <KeyIcon />
-                  {nl.users.immichKey}
+                  {msg.users.immichKey}
                 </button>
               )}
               {u.role !== 'admin' && (
                 <>
                   <button className="btn btn-small" onClick={() => void toggleDisabled(u)}>
                     <BanIcon />
-                    {u.disabled ? nl.users.enable : nl.users.disable}
+                    {u.disabled ? msg.users.enable : msg.users.disable}
                   </button>
                   <button className="btn btn-small" onClick={() => void resetPassword(u)}>
                     <RefreshIcon />
-                    {nl.users.resetPassword}
+                    {msg.users.resetPassword}
                   </button>
                   <button className="btn btn-small btn-danger" onClick={() => void remove(u)}>
                     <TrashIcon />
-                    {nl.users.remove}
+                    {msg.users.remove}
                   </button>
                 </>
               )}
@@ -408,9 +412,9 @@ export function AdminUsersPage() {
       </ul>
 
       <form className="card stack" onSubmit={create}>
-        <h2>{nl.users.add}</h2>
+        <h2>{msg.users.add}</h2>
         <Field
-          label={nl.users.username}
+          label={msg.users.username}
           name="username"
           autoCapitalize="none"
           autoComplete="off"
@@ -419,22 +423,22 @@ export function AdminUsersPage() {
           onChange={(e) => setUsername(e.target.value)}
         />
         <Field
-          label={nl.users.displayName}
+          label={msg.users.displayName}
           name="displayName"
           required
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
         />
         <SelectField
-          label={nl.users.role}
+          label={msg.users.role}
           name="role"
           value={role}
           onChange={(id) => setRole(id as AssignableRole)}
-          options={roleOptions}
+          options={roleOptions()}
         />
         <div className="field-row">
           <Field
-            label={nl.users.temporaryPassword}
+            label={msg.users.temporaryPassword}
             name="temporaryPassword"
             autoComplete="off"
             minLength={PASSWORD_MIN_LENGTH}
@@ -450,13 +454,13 @@ export function AdminUsersPage() {
               onClick={() => setTemporaryPassword(generatePassword())}
             >
               <RefreshIcon />
-              {nl.users.generate}
+              {msg.users.generate}
             </button>
           </div>
         </div>
         <button type="submit" className="btn btn-primary" disabled={busy}>
           <UserPlusIcon />
-          {nl.users.create}
+          {msg.users.create}
         </button>
       </form>
 

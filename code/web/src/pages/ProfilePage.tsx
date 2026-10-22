@@ -1,6 +1,6 @@
 import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
-import { isTraveller, type PublicUser } from '@travelsteps/shared';
+import { isTraveller, type Language, type PublicUser } from '@travelsteps/shared';
 import { api, errorMessage } from '../api';
 import { useAuth, useUser } from '../auth/AuthContext';
 import { useBlog } from '../blog/BlogContext';
@@ -10,6 +10,7 @@ import { Alert, Field } from '../components/Field';
 import {
   BellIcon,
   DownloadIcon,
+  GlobeIcon,
   ImageAddIcon,
   KeyIcon,
   LeaveIcon,
@@ -22,10 +23,11 @@ import {
   UsersIcon,
 } from '../components/icons';
 import { usePageTitle } from '../components/PageTitle';
+import { LanguageSwitch } from '../components/LanguageSwitch';
 import { PhotoPicker } from '../components/PhotoPicker';
 import { PushToggle } from '../components/PushToggle';
 import { SettingsMenu } from '../components/SettingsMenu';
-import { nl } from '../i18n/nl';
+import { messages, useChooseLanguage, useLanguage, useT } from '../i18n';
 import { useInstall } from '../lib/install';
 import { useOnline } from '../offline/db';
 import { ChangePasswordForm } from './ChangePasswordPage';
@@ -34,7 +36,7 @@ const AVATAR_SIZE = 256;
 /** Crops the image to a centred square and encodes it as a small JPEG (base64, no prefix). */
 async function resizeAvatar(file: File): Promise<string> {
   const bitmap = await createImageBitmap(file).catch(() => {
-    throw new Error(nl.profile.avatarInvalid);
+    throw new Error(messages().profile.avatarInvalid);
   });
   const side = Math.min(bitmap.width, bitmap.height);
   const canvas = document.createElement('canvas');
@@ -58,13 +60,15 @@ async function resizeAvatar(file: File): Promise<string> {
 
 /** `/profiel`: overview of all profile and app settings, each opening its own sub page. */
 export function ProfilePage() {
-  usePageTitle(nl.profile.title);
+  const msg = useT();
+  usePageTitle(msg.profile.title);
   const user = useUser();
   const { logout } = useAuth();
   const install = useInstall();
   const { travellers } = useBlog();
   const following = (travellers ?? []).filter((t) => t.id !== user.id && t.subscribed).length;
-  const p = nl.profile.menu;
+  const p = msg.profile.menu;
+  const language = useLanguage();
 
   return (
     <section className="page">
@@ -73,7 +77,7 @@ export function ProfilePage() {
         <div>
           <strong>{user.displayName}</strong>
           <div className="muted">
-            {nl.profile.username}: {user.username} · {nl.profile.roles[user.role]}
+            {msg.profile.username}: {user.username} · {msg.profile.roles[user.role]}
           </div>
         </div>
       </div>
@@ -88,7 +92,7 @@ export function ProfilePage() {
           },
           {
             icon: <LockIcon />,
-            title: nl.profile.changePassword,
+            title: msg.profile.changePassword,
             summary: p.passwordSummary,
             to: '/profiel/wachtwoord',
           },
@@ -96,8 +100,8 @@ export function ProfilePage() {
             ? [
                 {
                   icon: <KeyIcon />,
-                  title: nl.profile.immichTitle,
-                  summary: user.hasImmichKey ? nl.profile.immichSet : nl.profile.immichNone,
+                  title: msg.profile.immichTitle,
+                  summary: user.hasImmichKey ? msg.profile.immichSet : msg.profile.immichNone,
                   to: '/profiel/fotos',
                 },
               ]
@@ -109,28 +113,34 @@ export function ProfilePage() {
         rows={[
           {
             icon: <BellIcon />,
-            title: nl.notifications.title,
+            title: msg.notifications.title,
             summary: p.notificationsSummary(following),
             to: '/profiel/meldingen',
           },
+          {
+            icon: <GlobeIcon />,
+            title: msg.language.title,
+            summary: msg.language.names[language],
+            to: '/profiel/taal',
+          },
           ...(install.state !== 'installed' && install.state !== 'unavailable'
-            ? [{ icon: <DownloadIcon />, title: nl.install.title, summary: nl.install.text, to: '/profiel/app' }]
+            ? [{ icon: <DownloadIcon />, title: msg.install.title, summary: msg.install.text, to: '/profiel/app' }]
             : []),
         ]}
       />
       {user.role === 'admin' && (
         <SettingsMenu
-          title={nl.profile.admin}
+          title={msg.profile.admin}
           rows={[
             {
               icon: <UsersIcon />,
-              title: nl.profile.manageUsers,
+              title: msg.profile.manageUsers,
               summary: p.usersSummary,
               to: '/beheer/gebruikers',
             },
             {
               icon: <SettingsIcon />,
-              title: nl.profile.settings,
+              title: msg.profile.settings,
               summary: p.settingsSummary,
               to: '/beheer/instellingen',
             },
@@ -138,26 +148,28 @@ export function ProfilePage() {
         />
       )}
       <SettingsMenu
-        rows={[{ icon: <LeaveIcon />, title: nl.profile.logout, onClick: () => void logout(), danger: true }]}
+        rows={[{ icon: <LeaveIcon />, title: msg.profile.logout, onClick: () => void logout(), danger: true }]}
       />
     </section>
   );
 }
 
 const SECTIONS = {
-  account: { title: () => nl.profile.menu.profile, Page: AccountSection, travellerOnly: false },
-  wachtwoord: { title: () => nl.profile.changePassword, Page: PasswordSection, travellerOnly: false },
-  fotos: { title: () => nl.profile.immichTitle, Page: ImmichSection, travellerOnly: true },
-  meldingen: { title: () => nl.notifications.title, Page: NotificationsSection, travellerOnly: false },
-  app: { title: () => nl.install.title, Page: InstallSection, travellerOnly: false },
+  account: { title: () => messages().profile.menu.profile, Page: AccountSection, travellerOnly: false },
+  wachtwoord: { title: () => messages().profile.changePassword, Page: PasswordSection, travellerOnly: false },
+  fotos: { title: () => messages().profile.immichTitle, Page: ImmichSection, travellerOnly: true },
+  meldingen: { title: () => messages().notifications.title, Page: NotificationsSection, travellerOnly: false },
+  taal: { title: () => messages().language.title, Page: LanguageSection, travellerOnly: false },
+  app: { title: () => messages().install.title, Page: InstallSection, travellerOnly: false },
 } as const;
 
 /** `/profiel/:section`: one group of settings. */
 export function ProfileSectionPage() {
+  const msg = useT();
   const { section = '' } = useParams();
   const user = useUser();
   const entry = Object.hasOwn(SECTIONS, section) ? SECTIONS[section as keyof typeof SECTIONS] : null;
-  usePageTitle(entry ? entry.title() : nl.profile.title, { back: '/profiel' });
+  usePageTitle(entry ? entry.title() : msg.profile.title, { back: '/profiel' });
   if (!entry || (entry.travellerOnly && !isTraveller(user.role))) return <Navigate to="/profiel" replace />;
   return (
     <section className="page settings-page">
@@ -167,6 +179,7 @@ export function ProfileSectionPage() {
 }
 
 function AccountSection() {
+  const msg = useT();
   const user = useUser();
   const { setUser } = useAuth();
   const online = useOnline();
@@ -197,7 +210,7 @@ function AccountSection() {
     e.preventDefault();
     void run(
       () => api('/profile', { method: 'PATCH', body: { displayName } }),
-      nl.profile.nameSaved,
+      msg.profile.nameSaved,
     );
   }
 
@@ -208,13 +221,13 @@ function AccountSection() {
     void run(async () => {
       const image = await resizeAvatar(file);
       return api('/profile/avatar', { method: 'PUT', body: { image } });
-    }, nl.profile.avatarSaved);
+    }, msg.profile.avatarSaved);
   }
 
   return (
     <>
       <div className="card stack">
-        <h2>{nl.profile.avatarTitle}</h2>
+        <h2>{msg.profile.avatarTitle}</h2>
         <div className="profile-head">
           <Avatar user={user} size="l" />
           <div className="row-actions">
@@ -225,7 +238,7 @@ function AccountSection() {
               disabled={busy || !online}
             >
               <ImageAddIcon />
-              {nl.profile.uploadAvatar}
+              {msg.profile.uploadAvatar}
             </button>
             {isTraveller(user.role) && user.hasImmichKey && (
               <button
@@ -235,7 +248,7 @@ function AccountSection() {
                 disabled={busy || !online}
               >
                 <PhotoIcon />
-                {nl.profile.immichAvatar}
+                {msg.profile.immichAvatar}
               </button>
             )}
             {user.avatarUrl && (
@@ -245,13 +258,13 @@ function AccountSection() {
                 onClick={() =>
                   void run(
                     () => api('/profile/avatar', { method: 'DELETE' }),
-                    nl.profile.avatarRemoved,
+                    msg.profile.avatarRemoved,
                   )
                 }
                 disabled={busy || !online}
               >
                 <TrashIcon />
-                {nl.profile.removeAvatar}
+                {msg.profile.removeAvatar}
               </button>
             )}
             <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
@@ -260,11 +273,11 @@ function AccountSection() {
       </div>
       <form className="card stack" onSubmit={saveName}>
         <p className="muted">
-          {nl.profile.username}: {user.username} · {nl.profile.role}: {nl.profile.roles[user.role]}
+          {msg.profile.username}: {user.username} · {msg.profile.role}: {msg.profile.roles[user.role]}
         </p>
         <div className="inline-form">
           <Field
-            label={nl.profile.displayName}
+            label={msg.profile.displayName}
             name="displayName"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
@@ -279,7 +292,7 @@ function AccountSection() {
             }
           >
             <SaveIcon />
-            {nl.common.save}
+            {msg.common.save}
           </button>
         </div>
       </form>
@@ -294,7 +307,7 @@ function AccountSection() {
             if (ids[0]) {
               void run(
                 () => api('/profile/avatar', { method: 'PUT', body: { assetId: ids[0] } }),
-                nl.profile.avatarSaved,
+                msg.profile.avatarSaved,
               );
             }
           }}
@@ -305,16 +318,18 @@ function AccountSection() {
 }
 
 function PasswordSection() {
+  const msg = useT();
   const [changed, setChanged] = useState(false);
   return (
     <div className="card">
-      {changed && <Alert kind="success">{nl.profile.passwordChanged}</Alert>}
+      {changed && <Alert kind="success">{msg.profile.passwordChanged}</Alert>}
       <ChangePasswordForm onDone={() => setChanged(true)} />
     </div>
   );
 }
 
 function ImmichSection() {
+  const msg = useT();
   const user = useUser();
   const { setUser } = useAuth();
   const online = useOnline();
@@ -335,7 +350,7 @@ function ImmichSection() {
       setImmichKey('');
       setMessage({
         kind: 'success',
-        text: apiKey ? nl.profile.immichSaved : nl.profile.immichRemoved,
+        text: apiKey ? msg.profile.immichSaved : msg.profile.immichRemoved,
       });
     } catch (err) {
       setMessage({ kind: 'error', text: errorMessage(err) });
@@ -352,14 +367,14 @@ function ImmichSection() {
         if (immichKey.trim()) void saveImmichKey(immichKey.trim());
       }}
     >
-      <p className="muted">{nl.profile.immichHint}</p>
+      <p className="muted">{msg.profile.immichHint}</p>
       <p>
         <span className={`badge${user.hasImmichKey ? '' : ' badge-off'}`}>
-          {user.hasImmichKey ? nl.profile.immichSet : nl.profile.immichNone}
+          {user.hasImmichKey ? msg.profile.immichSet : msg.profile.immichNone}
         </span>
       </p>
       <Field
-        label={nl.profile.immichKey}
+        label={msg.profile.immichKey}
         name="immichKey"
         type="password"
         autoComplete="off"
@@ -373,7 +388,7 @@ function ImmichSection() {
           disabled={busy || !online || !immichKey.trim()}
         >
           <KeyIcon />
-          {nl.profile.immichSave}
+          {msg.profile.immichSave}
         </button>
         {user.hasImmichKey && (
           <button
@@ -382,9 +397,9 @@ function ImmichSection() {
             disabled={busy || !online}
             onClick={() => {
               void confirm({
-                title: nl.profile.immichRemoveTitle,
-                message: nl.profile.confirmImmichRemove,
-                confirmLabel: nl.profile.immichRemove,
+                title: msg.profile.immichRemoveTitle,
+                message: msg.profile.confirmImmichRemove,
+                confirmLabel: msg.profile.immichRemove,
                 danger: true,
               }).then((ok) => {
                 if (ok) void saveImmichKey(null);
@@ -392,7 +407,7 @@ function ImmichSection() {
             }}
           >
             <TrashIcon />
-            {nl.profile.immichRemove}
+            {msg.profile.immichRemove}
           </button>
         )}
       </div>
@@ -402,6 +417,7 @@ function ImmichSection() {
 }
 
 function NotificationsSection() {
+  const msg = useT();
   const user = useUser();
   const online = useOnline();
   const { travellers, setSubscribed } = useBlog();
@@ -410,10 +426,10 @@ function NotificationsSection() {
     <>
       <PushToggle />
       <div className="card stack">
-        <h2>{nl.notifications.subscriptionsTitle}</h2>
-        <p className="muted">{nl.notifications.subscriptionsHint}</p>
+        <h2>{msg.notifications.subscriptionsTitle}</h2>
+        <p className="muted">{msg.notifications.subscriptionsHint}</p>
         {others.length === 0 ? (
-          <p className="muted">{nl.notifications.noTravellers}</p>
+          <p className="muted">{msg.notifications.noTravellers}</p>
         ) : (
           <ul className="check-list">
             {others.map((t) => (
@@ -437,25 +453,54 @@ function NotificationsSection() {
   );
 }
 
+function LanguageSection() {
+  const msg = useT();
+  const choose = useChooseLanguage();
+  const [status, setStatus] = useState<{ kind: 'success' | 'info' | 'error'; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function change(language: Language) {
+    setBusy(true);
+    setStatus(null);
+    try {
+      const saved = await choose(language);
+      setStatus(saved ? { kind: 'success', text: messages().language.saved } : { kind: 'info', text: messages().language.offline });
+    } catch (err) {
+      setStatus({ kind: 'error', text: errorMessage(err) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="card stack">
+      <p className="muted">{msg.language.hint}</p>
+      <LanguageSwitch onChange={(l) => void change(l)} disabled={busy} className="segmented-wide" />
+      {status && <Alert kind={status.kind}>{status.text}</Alert>}
+    </div>
+  );
+}
+
 function InstallSection() {
+  const msg = useT();
   const install = useInstall();
-  if (install.state === 'installed') return <Alert kind="success">{nl.install.installed}</Alert>;
+  if (install.state === 'installed') return <Alert kind="success">{msg.install.installed}</Alert>;
   return (
     <div className="card stack">
       {install.state === 'prompt' ? (
         <>
-          <p className="muted">{nl.install.text}</p>
+          <p className="muted">{msg.install.text}</p>
           <button
             type="button"
             className="btn btn-primary align-start"
             onClick={() => void install.install()}
           >
             <DownloadIcon />
-            {nl.install.button}
+            {msg.install.button}
           </button>
         </>
       ) : (
-        <p className="muted">{install.state === 'ios' ? nl.install.ios : nl.install.android}</p>
+        <p className="muted">{install.state === 'ios' ? msg.install.ios : msg.install.android}</p>
       )}
     </div>
   );

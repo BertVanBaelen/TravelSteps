@@ -1,4 +1,4 @@
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 
 /** A grey shimmering placeholder block. */
 export function Skeleton({ width, height = '1em', round = false }: { width?: string; height?: string; round?: boolean }) {
@@ -7,8 +7,9 @@ export function Skeleton({ width, height = '1em', round = false }: { width?: str
 
 /** Placeholder cards while a list is loading; announced as "Laden…" to screen readers. */
 export function SkeletonCards({ count = 3, media = false }: { count?: number; media?: boolean }) {
+  const msg = useT();
   return (
-    <div className="skeleton-list" role="status" aria-label={nl.loading}>
+    <div className="skeleton-list" role="status" aria-label={msg.loading}>
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className="card skeleton-card" aria-hidden>
           <div className="skeleton-row">
@@ -26,8 +27,9 @@ export function SkeletonCards({ count = 3, media = false }: { count?: number; me
 
 /** Placeholder for a photo grid. */
 export function SkeletonGrid({ count = 9 }: { count?: number }) {
+  const msg = useT();
   return (
-    <div className="skeleton-grid" role="status" aria-label={nl.loading}>
+    <div className="skeleton-grid" role="status" aria-label={msg.loading}>
       {Array.from({ length: count }, (_, i) => (
         <Skeleton key={i} width="100%" height="100%" />
       ))}
@@ -37,8 +39,9 @@ export function SkeletonGrid({ count = 9 }: { count?: number }) {
 
 /** Placeholder for a map. */
 export function SkeletonBlock({ height = '300px' }: { height?: string }) {
+  const msg = useT();
   return (
-    <div role="status" aria-label={nl.loading}>
+    <div role="status" aria-label={msg.loading}>
       <Skeleton width="100%" height={height} />
     </div>
   );
@@ -46,8 +49,9 @@ export function SkeletonBlock({ height = '300px' }: { height?: string }) {
 
 /** Placeholder for a couple of comments. */
 export function CommentSkeleton() {
+  const msg = useT();
   return (
-    <div className="skeleton-list" role="status" aria-label={nl.loading}>
+    <div className="skeleton-list" role="status" aria-label={msg.loading}>
       {[0, 1].map((i) => (
         <div key={i} className="skeleton-row" aria-hidden>
           <Skeleton width="34px" height="34px" round />

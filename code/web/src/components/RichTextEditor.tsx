@@ -3,7 +3,7 @@ import { EditorContent, useEditor, useEditorState, type Editor } from '@tiptap/r
 import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from '@tiptap/markdown';
 import { CharacterCount, Placeholder } from '@tiptap/extensions';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 
 export interface RichTextEditorProps {
   id?: string;
@@ -101,6 +101,7 @@ export function RichTextEditor({
 }
 
 function Toolbar({ editor, disabled }: { editor: Editor; disabled: boolean }) {
+  const msg = useT();
   const state = useEditorState({
     editor,
     selector: ({ editor: e }) => ({
@@ -117,7 +118,7 @@ function Toolbar({ editor, disabled }: { editor: Editor; disabled: boolean }) {
 
   const editLink = () => {
     const current = (editor.getAttributes('link').href as string | undefined) ?? '';
-    const input = window.prompt(nl.richText.linkPrompt, current || 'https://');
+    const input = window.prompt(msg.richText.linkPrompt, current || 'https://');
     if (input === null) return;
     const href = input.trim();
     if (href === '' || href === 'https://') {
@@ -125,7 +126,7 @@ function Toolbar({ editor, disabled }: { editor: Editor; disabled: boolean }) {
       return;
     }
     if (!isAllowedLink(href)) {
-      window.alert(nl.richText.invalidLink);
+      window.alert(msg.richText.invalidLink);
       return;
     }
     if (editor.state.selection.empty && !editor.isActive('link')) {
@@ -139,7 +140,7 @@ function Toolbar({ editor, disabled }: { editor: Editor; disabled: boolean }) {
     editor.chain().focus().extendMarkRange('link').setLink({ href }).run();
   };
 
-  const t = nl.richText;
+  const t = msg.richText;
   return (
     <div className="rte-toolbar" role="toolbar" aria-label={t.toolbar}>
       <ToolButton

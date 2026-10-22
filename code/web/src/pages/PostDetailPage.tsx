@@ -16,11 +16,12 @@ import { StatsView } from '../components/StatsView';
 import { FabMenu } from '../components/Fab';
 import { CommentIcon, PencilIcon, TrashIcon } from '../components/icons';
 import { SkeletonCards } from '../components/Skeleton';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 
 import { formatDateTime, formatNumber } from '../lib/format';
 
 export function PostDetailPage() {
+  const msg = useT();
   const { id = '' } = useParams();
   const user = useUser();
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ export function PostDetailPage() {
   const [likers, setLikers] = useState<UserRef[]>([]);
   const [commentCount, setCommentCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  usePageTitle(post?.title ?? (error ? nl.post.notFound : nl.loading), { back: '/' });
+  usePageTitle(post?.title ?? (error ? msg.post.notFound : msg.loading), { back: '/' });
 
   const loadLikers = useCallback(() => {
     api<{ users: UserRef[] }>(`/posts/${id}/likes`)
@@ -60,7 +61,7 @@ export function PostDetailPage() {
   );
 
   async function remove() {
-    if (!(await confirm({ title: nl.post.deleteTitle, message: nl.post.confirmDelete, confirmLabel: nl.common.delete, danger: true }))) return;
+    if (!(await confirm({ title: msg.post.deleteTitle, message: msg.post.confirmDelete, confirmLabel: msg.common.delete, danger: true }))) return;
     try {
       await api(`/posts/${id}`, { method: 'DELETE' });
       navigate('/', { replace: true });
@@ -78,13 +79,13 @@ export function PostDetailPage() {
     <article className="page">
       {(post.canEdit || post.canDelete) && (
         <FabMenu
-          label={nl.post.actions}
+          label={msg.post.actions}
           actions={[
             ...(post.canEdit
-              ? [{ icon: <PencilIcon />, label: nl.editor.editTitle, to: `/posts/${post.id}/bewerken` }]
+              ? [{ icon: <PencilIcon />, label: msg.editor.editTitle, to: `/posts/${post.id}/bewerken` }]
               : []),
             ...(post.canDelete
-              ? [{ icon: <TrashIcon />, label: nl.post.delete, onClick: () => void remove(), danger: true }]
+              ? [{ icon: <TrashIcon />, label: msg.post.delete, onClick: () => void remove(), danger: true }]
               : []),
           ]}
         />
@@ -94,7 +95,7 @@ export function PostDetailPage() {
         <div className="post-meta">
           <span className="post-author">
             <Avatar user={post.author} size="xs" />
-            <span>{post.author?.displayName ?? nl.blog.deletedUser}</span>
+            <span>{post.author?.displayName ?? msg.blog.deletedUser}</span>
             <span aria-hidden>·</span>
             <Link to={`/reizen/${post.travelId}`} className="post-travel">
               {post.travelName}
@@ -124,7 +125,7 @@ export function PostDetailPage() {
             likedByMe={post.likedByMe}
             onChange={loadLikers}
           />
-          <a href="#reacties" className="action-btn" aria-label={nl.comments.title}>
+          <a href="#reacties" className="action-btn" aria-label={msg.comments.title}>
             <CommentIcon />
             <span>{commentCount}</span>
           </a>
@@ -132,8 +133,8 @@ export function PostDetailPage() {
         {likers.length > 0 && (
           <p className="muted likers">
             <AvatarStack users={likers} />
-            {nl.likes.likedBy(
-              likers.map((u) => (u.id === user.id ? nl.likes.you : u.displayName)),
+            {msg.likes.likedBy(
+              likers.map((u) => (u.id === user.id ? msg.likes.you : u.displayName)),
               0,
             )}
           </p>

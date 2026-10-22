@@ -22,7 +22,7 @@ const RichTextEditor = lazy(() =>
   import('./RichTextEditor')
     .then((m) => ({ default: m.RichTextEditor }))
     .catch((err: unknown) => {
-      console.warn('Teksteditor kon niet worden geladen', err);
+      console.warn('Text editor could not be loaded', err);
       return { default: PlainEditor };
     }),
 );

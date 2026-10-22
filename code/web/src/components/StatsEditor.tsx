@@ -1,5 +1,5 @@
 import { FIXED_STATS, type FixedStatKey, type Stats } from '@travelsteps/shared';
-import { nl } from '../i18n/nl';
+import { messages, useT } from '../i18n';
 import { formatDuration, parseDuration, parseNumber } from '../lib/format';
 
 export interface StatsForm {
@@ -20,7 +20,7 @@ export function statsToForm(stats: Stats): StatsForm {
   };
 }
 
-/** Throws an Error with a Dutch message when a value is invalid. */
+/** Throws an Error with a translated message when a value is invalid. */
 export function formToStats(form: StatsForm): Stats {
   const stats: Stats = { custom: [] };
   for (const def of FIXED_STATS) {
@@ -28,11 +28,11 @@ export function formToStats(form: StatsForm): Stats {
     if (!raw) continue;
     if (def.key === 'duur') {
       const minutes = parseDuration(raw);
-      if (minutes === null) throw new Error(nl.editor.invalidDuration);
+      if (minutes === null) throw new Error(messages().editor.invalidDuration);
       stats.duur = minutes;
     } else {
       const n = parseNumber(raw);
-      if (n === null) throw new Error(nl.editor.invalidNumber(def.label));
+      if (n === null) throw new Error(messages().editor.invalidNumber(messages().stats[def.key]));
       stats[def.key] = n;
     }
   }
@@ -43,6 +43,7 @@ export function formToStats(form: StatsForm): Stats {
 }
 
 export function StatsEditor({ value, onChange }: { value: StatsForm; onChange: (v: StatsForm) => void }) {
+  const msg = useT();
   const setFixed = (key: FixedStatKey, v: string) =>
     onChange({ ...value, fixed: { ...value.fixed, [key]: v } });
   const setCustom = (i: number, patch: Partial<StatsForm['custom'][number]>) =>
@@ -54,7 +55,7 @@ export function StatsEditor({ value, onChange }: { value: StatsForm; onChange: (
         {FIXED_STATS.map((def) => (
           <label key={def.key} className="field">
             <span className="field-label">
-              {def.label} <span className="muted">({def.unit})</span>
+              {msg.stats[def.key]} <span className="muted">({def.key === 'duur' ? msg.stats.durationFormat : def.unit})</span>
             </span>
             <input
               inputMode={def.key === 'duur' ? 'text' : 'decimal'}
@@ -66,26 +67,26 @@ export function StatsEditor({ value, onChange }: { value: StatsForm; onChange: (
         ))}
       </div>
 
-      <span className="field-label">{nl.editor.customStats}</span>
+      <span className="field-label">{msg.editor.customStats}</span>
       {value.custom.map((c, i) => (
         <div key={i} className="custom-stat">
           <input
-            aria-label={nl.editor.customLabel}
-            placeholder={nl.editor.customLabel}
+            aria-label={msg.editor.customLabel}
+            placeholder={msg.editor.customLabel}
             value={c.label}
             maxLength={40}
             onChange={(e) => setCustom(i, { label: e.target.value })}
           />
           <input
-            aria-label={nl.editor.customValue}
-            placeholder={nl.editor.customValue}
+            aria-label={msg.editor.customValue}
+            placeholder={msg.editor.customValue}
             value={c.value}
             maxLength={40}
             onChange={(e) => setCustom(i, { value: e.target.value })}
           />
           <input
-            aria-label={nl.editor.customUnit}
-            placeholder={nl.editor.customUnit}
+            aria-label={msg.editor.customUnit}
+            placeholder={msg.editor.customUnit}
             value={c.unit}
             maxLength={15}
             onChange={(e) => setCustom(i, { unit: e.target.value })}
@@ -93,7 +94,7 @@ export function StatsEditor({ value, onChange }: { value: StatsForm; onChange: (
           <button
             type="button"
             className="btn btn-small btn-danger"
-            aria-label={nl.common.delete}
+            aria-label={msg.common.delete}
             onClick={() => onChange({ ...value, custom: value.custom.filter((_, j) => j !== i) })}
           >
             ×
@@ -105,7 +106,7 @@ export function StatsEditor({ value, onChange }: { value: StatsForm; onChange: (
         className="btn btn-link align-start"
         onClick={() => onChange({ ...value, custom: [...value.custom, { label: '', value: '', unit: '' }] })}
       >
-        {nl.editor.addCustom}
+        {msg.editor.addCustom}
       </button>
     </div>
   );

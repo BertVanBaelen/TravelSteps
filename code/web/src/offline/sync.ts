@@ -1,6 +1,6 @@
 import type { PostDetail, PostInput } from '@travelsteps/shared';
-import { ApiError, api } from '../api';
-import { nl } from '../i18n/nl';
+import { ApiError, api, errorMessage } from '../api';
+import { messages } from '../i18n/store';
 import { db, legacyMigration, withTimeout, type OutboxItem } from './db';
 
 export type SyncEvent =
@@ -43,7 +43,7 @@ async function send(item: OutboxItem): Promise<Result> {
     return 'next';
   } catch (err) {
     if (!(err instanceof ApiError)) {
-      await db.outbox.update(item.id, { status: 'error', error: nl.errors.generic });
+      await db.outbox.update(item.id, { status: 'error', error: messages().errors.generic });
       return 'next';
     }
     // Offline, server trouble or rate limit: keep the item pending and try again later.
@@ -55,7 +55,7 @@ async function send(item: OutboxItem): Promise<Result> {
     }
     await db.outbox.update(item.id, {
       status: err.status === 409 && err.code === 'CONFLICT' ? 'conflict' : 'error',
-      error: err.message,
+      error: errorMessage(err),
     });
     return 'next';
   }

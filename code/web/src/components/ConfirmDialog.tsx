@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 import { AlertIcon, CheckIcon, CloseIcon, InfoIcon, TrashIcon } from './icons';
 
 export interface ConfirmOptions {
@@ -35,6 +35,7 @@ const CLOSE_MS = 180;
 
 /** In-app replacement for window.confirm, in the style of the app. */
 export function ConfirmProvider({ children }: { children: ReactNode }) {
+  const msg = useT();
   const [pending, setPending] = useState<Pending | null>(null);
   const [closing, setClosing] = useState(false);
   const confirmButton = useRef<HTMLButtonElement>(null);
@@ -79,7 +80,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [pending, closing, close]);
 
-  const title = pending?.title ?? (pending?.danger ? nl.confirm.dangerTitle : nl.confirm.title);
+  const title = pending?.title ?? (pending?.danger ? msg.confirm.dangerTitle : msg.confirm.title);
 
   return (
     <ConfirmContext.Provider value={confirm}>
@@ -105,7 +106,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
             <div className="confirm-actions">
               <button type="button" className="btn btn-secondary" onClick={() => close(false)}>
                 <CloseIcon />
-                {nl.common.cancel}
+                {msg.common.cancel}
               </button>
               <button
                 ref={confirmButton}
@@ -114,7 +115,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                 onClick={() => close(true)}
               >
                 {pending.icon ?? (pending.danger ? <TrashIcon /> : <CheckIcon />)}
-                {pending.confirmLabel ?? nl.common.ok}
+                {pending.confirmLabel ?? msg.common.ok}
               </button>
             </div>
           </div>

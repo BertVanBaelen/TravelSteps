@@ -7,10 +7,11 @@ import { InfoIcon, PlugIcon, SlidersIcon } from '../components/icons';
 import { usePageTitle } from '../components/PageTitle';
 import { SettingsMenu } from '../components/SettingsMenu';
 import { SkeletonCards } from '../components/Skeleton';
-import { nl } from '../i18n/nl';
+import { messages, useT } from '../i18n';
 
 function StatusBadge({ status, okLabel }: { status: ServiceStatus; okLabel: string }) {
-  const s = nl.settings;
+  const msg = useT();
+  const s = msg.settings;
   if (!status.configured) return <span className="badge badge-off">{s.notConfigured}</span>;
   if (!status.ok) return <span className="badge badge-error">{s.error}</span>;
   return <span className="badge">{okLabel}</span>;
@@ -28,7 +29,7 @@ function useSettings() {
 }
 
 function services(data: SettingsResponse) {
-  const s = nl.settings;
+  const s = messages().settings;
   return [
     [s.immich, data.immich, s.ok],
     [s.routing, data.routing, s.configured],
@@ -39,9 +40,10 @@ function services(data: SettingsResponse) {
 
 /** `/beheer/instellingen`: overview of the (read-only) server settings, grouped in sub pages. */
 export function AdminSettingsPage() {
-  usePageTitle(nl.settings.title, { back: '/profiel' });
+  const msg = useT();
+  usePageTitle(msg.settings.title, { back: '/profiel' });
   const { data, error } = useSettings();
-  const s = nl.settings;
+  const s = msg.settings;
   const list = data ? services(data) : [];
   const working = list.filter(([, st]) => st.configured && st.ok).length;
   const failing = list.filter(([, st]) => st.configured && !st.ok).length;
@@ -85,9 +87,10 @@ const SECTIONS = { algemeen: 'general', koppelingen: 'services', waarden: 'value
 
 /** `/beheer/instellingen/:section`. */
 export function AdminSettingsSectionPage() {
+  const msg = useT();
   const { section = '' } = useParams();
   const key = Object.hasOwn(SECTIONS, section) ? SECTIONS[section as keyof typeof SECTIONS] : null;
-  const s = nl.settings;
+  const s = msg.settings;
   usePageTitle(key ? s[key] : s.title, { back: '/beheer/instellingen' });
   const { data, error } = useSettings();
   if (!key) return <Navigate to="/beheer/instellingen" replace />;

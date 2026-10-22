@@ -4,6 +4,27 @@ All notable changes to TravelSteps. Versions follow `major.minor.patch`: a relea
 major number, a completed phase the minor number and a bug fix the patch number. Screenshots are
 in [`docs/changelog`](docs/changelog).
 
+## 1.3.0 – Dutch and English
+
+- **English:** the whole app is now available in English as well as Dutch – every screen, dialog,
+  message, editor button and empty state. Dates and numbers follow the language; units stay metric.
+- **Choose your language** in Profiel → Taal / Language. The choice is saved with your account, so
+  it follows you to every device and after logging in again. Changing it offline works too; it is
+  saved as soon as you are back online.
+- **Login screen toggle:** a small NL / EN switch on the login screen, remembered on that device.
+  Before you choose, the browser language decides (English browsers get English).
+- **Notifications in your language:** push notifications are sent in the language of the person
+  who receives them.
+- **Docs:** the documentation now lives in the main `README.md` (English) and `README.nl.md`
+  (Dutch).
+
+## 1.2.9 – Security updates
+
+- **Security:** updated dependencies (`zod` 4, `@fastify/rate-limit` 11) from the automatic
+  security fix on GitHub.
+- **Fix:** the server builds again with `zod` 4 (the `COOKIE_SECURE` / `TRUST_CLOUDFLARE`
+  defaults); behaviour is unchanged.
+
 ## 1.2.8 – Faster locations, one-day steps
 
 - **One-day travels:** a step in a travel of one day has no date picker any more – only the time,

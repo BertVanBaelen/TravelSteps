@@ -3,7 +3,7 @@ import type { Traveller } from '@travelsteps/shared';
 import { EVERYONE, useBlog } from '../blog/BlogContext';
 import { useUser } from '../auth/AuthContext';
 import { errorMessage } from '../api';
-import { nl } from '../i18n/nl';
+import { messages, useT } from '../i18n';
 import { Avatar } from './Avatar';
 import { BellIcon, UsersIcon } from './icons';
 import { Listbox, type ListboxOption } from './Listbox';
@@ -15,6 +15,7 @@ interface Option {
 
 /** Header bar: whose blog to show, plus a bell to get notifications about that traveller. */
 export function BlogBar() {
+  const msg = useT();
   const me = useUser();
   const { travellers, selected, select, setSubscribed } = useBlog();
   const [busy, setBusy] = useState(false);
@@ -40,7 +41,7 @@ export function BlogBar() {
     <div className="blog-bar">
       <Listbox
         className="blog-select"
-        title={nl.blog.choose}
+        title={msg.blog.choose}
         options={options.map((o) => toListbox(o, me.id))}
         selected={current ? current.id : EVERYONE}
         onSelect={select}
@@ -50,8 +51,8 @@ export function BlogBar() {
           type="button"
           className={`icon-btn blog-bell${current.subscribed ? ' on' : ''}`}
           aria-pressed={current.subscribed}
-          aria-label={current.subscribed ? nl.blog.unsubscribe(current.displayName) : nl.blog.subscribe(current.displayName)}
-          title={current.subscribed ? nl.blog.unsubscribe(current.displayName) : nl.blog.subscribe(current.displayName)}
+          aria-label={current.subscribed ? msg.blog.unsubscribe(current.displayName) : msg.blog.subscribe(current.displayName)}
+          title={current.subscribed ? msg.blog.unsubscribe(current.displayName) : msg.blog.subscribe(current.displayName)}
           disabled={busy}
           onClick={() => void toggle()}
         >
@@ -70,20 +71,20 @@ function toListbox(o: Option, meId: string): ListboxOption {
     name: t ? (
       <>
         {t.displayName}
-        {t.id === meId && <span className="badge">{nl.blog.you}</span>}
+        {t.id === meId && <span className="badge">{messages().blog.you}</span>}
       </>
     ) : (
-      nl.blog.everyone
+      messages().blog.everyone
     ),
-    meta: t ? (typeof t.travelCount === 'number' ? nl.blog.travelCount(t.travelCount) : undefined) : nl.blog.everyoneHint,
+    meta: t ? (typeof t.travelCount === 'number' ? messages().blog.travelCount(t.travelCount) : undefined) : messages().blog.everyoneHint,
     icon: <OptionAvatar option={o} size="s" />,
     triggerIcon: <OptionAvatar option={o} size="xs" />,
   };
 }
 
 function label(o: Option, meId: string): string {
-  if (!o.traveller) return nl.blog.everyone;
-  return o.traveller.id === meId ? nl.blog.me(o.traveller.displayName) : o.traveller.displayName;
+  if (!o.traveller) return messages().blog.everyone;
+  return o.traveller.id === meId ? messages().blog.me(o.traveller.displayName) : o.traveller.displayName;
 }
 
 function OptionAvatar({ option, size }: { option: Option; size: 'xs' | 's' }) {

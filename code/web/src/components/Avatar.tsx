@@ -1,4 +1,4 @@
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 
 export interface AvatarUser {
   id?: string;
@@ -31,10 +31,11 @@ export function avatarColor(key: string): string {
  * `null` is a removed user: a neutral placeholder.
  */
 export function Avatar({ user, size = 'm' }: { user: AvatarUser | null; size?: AvatarSize }) {
+  const msg = useT();
   const cls = `avatar avatar-${size}`;
   if (!user) {
     return (
-      <span className={`${cls} avatar-deleted`} aria-hidden title={nl.blog.deletedUser}>
+      <span className={`${cls} avatar-deleted`} aria-hidden title={msg.blog.deletedUser}>
         ?
       </span>
     );

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { api, errorMessage } from '../api';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 import { useCelebrate } from './Celebration';
 import { HeartIcon } from './icons';
 
@@ -13,6 +13,7 @@ interface Props {
 
 /** Optimistic like toggle. */
 export function LikeButton({ postId, likeCount, likedByMe, onChange }: Props) {
+  const msg = useT();
   const [state, setState] = useState({ likeCount, likedByMe });
   const [busy, setBusy] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
@@ -49,7 +50,7 @@ export function LikeButton({ postId, likeCount, likedByMe, onChange }: Props) {
       className={`action-btn${state.likedByMe ? ' liked' : ''}`}
       onClick={() => void toggle()}
       aria-pressed={state.likedByMe}
-      aria-label={state.likedByMe ? nl.likes.unlike : nl.likes.like}
+      aria-label={state.likedByMe ? msg.likes.unlike : msg.likes.like}
     >
       <HeartIcon filled={state.likedByMe} />
       <span>{state.likeCount}</span>

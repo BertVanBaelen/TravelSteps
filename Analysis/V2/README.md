@@ -12,7 +12,7 @@ Based on [`../../V2 roadmap.md`](../../V2%20roadmap.md). Same way of working as 
 |-------|------|--------|---------|
 | V2-1 | [Steps & UX polish](V2-1-Steps-UX.md) | "Post" becomes "Stap" in the UI, prettier blog selector with avatars, uniform components | 1.1.0 ✅ |
 | V2-2 | [Event animations](V2-2-Animations.md) | Footprints, plane, heart burst, confetti | 1.2.0 ✅ (fixes 1.2.1) |
-| V2-3 | [Multi-language](V2-3-I18n.md) | Dutch + English, per user, also push texts | 1.3.0 |
+| V2-3 | [Multi-language](V2-3-I18n.md) | Dutch + English, per user, also push texts | 1.3.0 ✅ |
 | V2-4 | [Trusted users & original download](V2-4-Trusted-Download.md) | Traveller marks users as *Vertrouwd*; they can download originals | 1.4.0 |
 | V2-5 | [Anonymous share link](V2-5-Share-Link.md) | 24h public card with one step, revocable | 1.5.0 |
 | V2-6 | [Admin statistics](V2-6-Admin-Stats.md) | Beheer → Statistieken: users, content, storage | 1.6.0 |
@@ -90,7 +90,7 @@ rules apply globally:
 8. **User deletion:** the existing delete / transfer / disable flow also cleans up the new data
    (trusted grants, share links, language, stats caches).
 9. **Docs:** when a phase is done, update `Functional requirements.md`, `Technical requirements.md`
-   and `code/README.md` (env/options) and mark the phase ✅ here.
+   and the root `README.md` + `README.nl.md` (env/options) and mark the phase ✅ here.
 
 ## Permission overview after V2
 | Action | Admin | Step author | Trusted by author | Travel owner | Other user who may see the travel | Anonymous |

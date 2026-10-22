@@ -4,10 +4,11 @@ import { useAuth, useUser } from '../auth/AuthContext';
 import { api, errorMessage } from '../api';
 import { Alert, Field } from '../components/Field';
 import { StaticBanner } from '../components/PageTitle';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 
 /** Forced on the admin's first login: new username + password. */
 export function ChangeCredentialsPage() {
+  const msg = useT();
   const user = useUser();
   const { setUser, logout } = useAuth();
   const [newUsername, setNewUsername] = useState('');
@@ -20,7 +21,7 @@ export function ChangeCredentialsPage() {
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (newPassword !== confirm) {
-      setError(nl.credentials.mismatch);
+      setError(msg.credentials.mismatch);
       return;
     }
     setBusy(true);
@@ -40,13 +41,13 @@ export function ChangeCredentialsPage() {
 
   return (
     <>
-    <StaticBanner title={nl.credentials.title} />
+    <StaticBanner title={msg.credentials.title} />
     <div className="auth-screen">
       <form className="card auth-card" onSubmit={submit}>
-        <p className="muted">{nl.credentials.intro}</p>
+        <p className="muted">{msg.credentials.intro}</p>
         {error && <Alert kind="error">{error}</Alert>}
         <Field
-          label={nl.credentials.newUsername}
+          label={msg.credentials.newUsername}
           name="newUsername"
           autoComplete="username"
           autoCapitalize="none"
@@ -55,25 +56,25 @@ export function ChangeCredentialsPage() {
           onChange={(e) => setNewUsername(e.target.value)}
         />
         <Field
-          label={nl.credentials.displayName}
+          label={msg.credentials.displayName}
           name="displayName"
           required
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
         />
         <Field
-          label={nl.credentials.newPassword}
+          label={msg.credentials.newPassword}
           name="newPassword"
           type="password"
           autoComplete="new-password"
           minLength={PASSWORD_MIN_LENGTH}
           required
-          hint={nl.credentials.passwordHint(PASSWORD_MIN_LENGTH)}
+          hint={msg.credentials.passwordHint(PASSWORD_MIN_LENGTH)}
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
         />
         <Field
-          label={nl.credentials.confirmPassword}
+          label={msg.credentials.confirmPassword}
           name="confirmPassword"
           type="password"
           autoComplete="new-password"
@@ -82,10 +83,10 @@ export function ChangeCredentialsPage() {
           onChange={(e) => setConfirm(e.target.value)}
         />
         <button type="submit" className="btn btn-primary" disabled={busy}>
-          {nl.credentials.submit}
+          {msg.credentials.submit}
         </button>
         <button type="button" className="btn btn-link" onClick={() => void logout()}>
-          {nl.profile.logout}
+          {msg.profile.logout}
         </button>
       </form>
     </div>

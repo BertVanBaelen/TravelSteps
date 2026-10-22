@@ -28,7 +28,7 @@
   .vapid.json                  # generated VAPID key pair for Web Push
   uploads/avatars/             # uploaded profile pictures (only non-Immich files)
 ```
-Main tables: `users` (+ `role` admin/traveller/viewer, encrypted Immich key), `travels` (+ `owner_id`), `travel_members` (status invited/accepted), `travel_viewers`, `posts` (+ `author_id`; locations, segments incl. cached route geometry, arrival, stats and photo asset IDs as JSON columns; photo owner = post author), `likes`, `comments`, `subscriptions`, `notifications`, `push_subscriptions`.
+Main tables: `users` (+ `role` admin/traveller/viewer, encrypted Immich key, `language` nl/en/NULL), `travels` (+ `owner_id`), `travel_members` (status invited/accepted), `travel_viewers`, `posts` (+ `author_id`; locations, segments incl. cached route geometry, arrival, stats and photo asset IDs as JSON columns; photo owner = post author), `likes`, `comments`, `subscriptions`, `notifications`, `push_subscriptions`.
 - Schema changes via the existing append-only migration list (`PRAGMA user_version`).
 - **One-time migration** of the former Markdown store (`travels/<slug>/travel.md`, `posts/*.md`): at startup, if the `travels/` folder exists and the database has no travels, all travels/posts are imported (owner/author = the admin), the global `IMMICH_API_KEY` is copied to the admin's account, and the folder is renamed to `travels.migrated/`. No Markdown export afterwards.
 - Route geometry is cached in the post row so routing is only called on change.
@@ -75,6 +75,7 @@ Main tables: `users` (+ `role` admin/traveller/viewer, encrypted Immich key), `t
 - Trust proxy headers from Cloudflare (`CF-Connecting-IP`) for rate limiting.
 
 ## PWA / offline
+- i18n: hand-written, `web/src/i18n` (`locales/nl.ts` is the base, `locales/en.ts` typed as `Messages` so missing keys fail typecheck; a unit test checks identical keys). `useT()` in components, `messages()` in non-React modules; `<html lang>` follows the language; errors translated by `code` with the server message as fallback. Server push texts in `server/src/notifications/messages.ts`.
 - Installable (manifest, icons, Dutch name), service worker with:
   - app shell precache,
   - runtime cache for API reads and media thumbnails (stale-while-revalidate),

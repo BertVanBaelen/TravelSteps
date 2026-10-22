@@ -1,6 +1,6 @@
 {
   "name": "travelsteps",
-  "version": "1.2.8",
+  "version": "1.3.0",
   "private": true,
   "description": "TravelSteps - reisblog met tijdlijn, kaart en Immich-foto's",
   "type": "module",
@@ -16,7 +16,7 @@
     "build": "npm run build -w shared && npm run build -w server && npm run build -w web",
     "dev": "npm run build -w shared && concurrently -n server,web -c blue,magenta \"npm run dev -w server\" \"npm run dev -w web\"",
     "start": "node server/dist/index.js",
-    "test": "npm run build -w shared && npm run test -w server",
+    "test": "npm run build -w shared && npm run test -w server && npm run test -w web",
     "typecheck": "npm run build -w shared && npm run typecheck -w server && npm run typecheck -w web",
     "lint": "eslint .",
     "format": "prettier --write ."

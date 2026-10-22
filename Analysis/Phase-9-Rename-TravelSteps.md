@@ -30,7 +30,7 @@ docs. Only user data must survive (database, avatars, unsynced offline drafts).
   `.env.example`, `docker/entrypoint.sh`.
 - Home Assistant add-on `config.yaml`: `name: TravelSteps`, `slug: travelsteps`, default
   `data_dir: /share/travelsteps`, install path `/addons/travelsteps`; bump `version`.
-- Docs: root `README.md`, `code/README.md`, requirements, `Analysis/*` (titles; historical phase
+- Docs: root `README.md`, `code/README.md` (since 1.3.0 merged into the root `README.md` / `README.nl.md`), requirements, `Analysis/*` (titles; historical phase
   content may keep the old name).
 - Tests: CSRF header value and temp dir prefix.
 - Outside the code: project folder / repository name `BertSteps` → `TravelSteps`.
@@ -47,7 +47,7 @@ must never block startup – on failure, log a warning and continue with a fresh
 - **Old clients:** an already-open old PWA sends the old CSRF value and gets 403 until it reloads;
   the service worker update reloads the app. Acceptable (no dual value).
 
-### Upgrade procedure (document in `code/README.md`)
+### Upgrade procedure (documented in the root `README.md` / `README.nl.md`)
 - **Home Assistant add-on:**
   1. Stop the BertSteps add-on and note its configuration (Immich URL, ORS key, …).
   2. Rename the data folder `/share/bertsteps` → `/share/travelsteps` (or set `data_dir` to the old

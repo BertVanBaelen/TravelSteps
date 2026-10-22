@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { nl } from '../i18n/nl';
+import { useT } from '../i18n';
 import { isIos, isStandalone, useInstall } from '../lib/install';
 import { CloseIcon } from './icons';
 
@@ -17,6 +17,7 @@ function dismissed(): boolean {
 
 /** On a phone in the browser: notifications need the app on the home screen. */
 export function PhoneBanner() {
+  const msg = useT();
   const install = useInstall();
   const [hidden, setHidden] = useState(() => dismissed() || !isPhone() || isStandalone());
   const [showIos, setShowIos] = useState(false);
@@ -40,15 +41,15 @@ export function PhoneBanner() {
   return (
     <div className="phone-banner" role="status">
       <div className="phone-banner-row">
-        <span>{nl.phoneBanner.text}</span>
+        <span>{msg.phoneBanner.text}</span>
         <button type="button" className="btn btn-small btn-primary" onClick={onInstall}>
-          {nl.phoneBanner.button}
+          {msg.phoneBanner.button}
         </button>
-        <button type="button" className="icon-btn" aria-label={nl.phoneBanner.dismiss} onClick={close}>
+        <button type="button" className="icon-btn" aria-label={msg.phoneBanner.dismiss} onClick={close}>
           <CloseIcon />
         </button>
       </div>
-      {showIos && <p className="phone-banner-help">{install.state === 'ios' ? nl.install.ios : nl.install.android}</p>}
+      {showIos && <p className="phone-banner-help">{install.state === 'ios' ? msg.install.ios : msg.install.android}</p>}
     </div>
   );
 }
