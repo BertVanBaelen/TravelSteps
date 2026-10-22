@@ -41,55 +41,55 @@ export function ChangeCredentialsPage() {
 
   return (
     <>
-    <StaticBanner title={msg.credentials.title} />
-    <div className="auth-screen">
-      <form className="card auth-card" onSubmit={submit}>
-        <p className="muted">{msg.credentials.intro}</p>
-        {error && <Alert kind="error">{error}</Alert>}
-        <Field
-          label={msg.credentials.newUsername}
-          name="newUsername"
-          autoComplete="username"
-          autoCapitalize="none"
-          required
-          value={newUsername}
-          onChange={(e) => setNewUsername(e.target.value)}
-        />
-        <Field
-          label={msg.credentials.displayName}
-          name="displayName"
-          required
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-        />
-        <Field
-          label={msg.credentials.newPassword}
-          name="newPassword"
-          type="password"
-          autoComplete="new-password"
-          minLength={PASSWORD_MIN_LENGTH}
-          required
-          hint={msg.credentials.passwordHint(PASSWORD_MIN_LENGTH)}
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-        />
-        <Field
-          label={msg.credentials.confirmPassword}
-          name="confirmPassword"
-          type="password"
-          autoComplete="new-password"
-          required
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-        />
-        <button type="submit" className="btn btn-primary" disabled={busy}>
-          {msg.credentials.submit}
-        </button>
-        <button type="button" className="btn btn-link" onClick={() => void logout()}>
-          {msg.profile.logout}
-        </button>
-      </form>
-    </div>
+      <StaticBanner title={msg.credentials.title} />
+      <div className="auth-screen">
+        <form className="card auth-card" onSubmit={submit}>
+          <p className="muted">{msg.credentials.intro}</p>
+          {error && <Alert kind="error">{error}</Alert>}
+          <Field
+            label={msg.credentials.newUsername}
+            name="newUsername"
+            autoComplete="username"
+            autoCapitalize="none"
+            required
+            value={newUsername}
+            onChange={(e) => setNewUsername(e.target.value)}
+          />
+          <Field
+            label={msg.credentials.displayName}
+            name="displayName"
+            required
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+          />
+          <Field
+            label={msg.credentials.newPassword}
+            name="newPassword"
+            type="password"
+            autoComplete="new-password"
+            minLength={PASSWORD_MIN_LENGTH}
+            required
+            hint={msg.credentials.passwordHint(PASSWORD_MIN_LENGTH)}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+          <Field
+            label={msg.credentials.confirmPassword}
+            name="confirmPassword"
+            type="password"
+            autoComplete="new-password"
+            required
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+          />
+          <button type="submit" className="btn btn-primary" disabled={busy}>
+            {msg.credentials.submit}
+          </button>
+          <button type="button" className="btn btn-link" onClick={() => void logout()}>
+            {msg.profile.logout}
+          </button>
+        </form>
+      </div>
     </>
   );
 }

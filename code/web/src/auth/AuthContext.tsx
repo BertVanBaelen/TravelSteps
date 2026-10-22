@@ -58,13 +58,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return onUnauthorized(() => setUserState(null));
   }, [setUserState]);
 
-  const login = useCallback(async (username: string, password: string) => {
-    const r = await api<{ user: PublicUser }>('/auth/login', {
-      method: 'POST',
-      body: { username, password },
-    });
-    setUserState(r.user);
-  }, [setUserState]);
+  const login = useCallback(
+    async (username: string, password: string) => {
+      const r = await api<{ user: PublicUser }>('/auth/login', {
+        method: 'POST',
+        body: { username, password },
+      });
+      setUserState(r.user);
+    },
+    [setUserState],
+  );
 
   const logout = useCallback(async () => {
     // Stop push messages to this device while it is still authenticated.

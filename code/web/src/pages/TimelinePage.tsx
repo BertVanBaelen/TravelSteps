@@ -113,9 +113,12 @@ export function Feed({
   useEffect(() => {
     const el = sentinel.current;
     if (!el || error || done) return;
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0]?.isIntersecting) void loadMore();
-    }, { rootMargin: '600px' });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) void loadMore();
+      },
+      { rootMargin: '600px' },
+    );
     observer.observe(el);
     return () => observer.disconnect();
   }, [loadMore, error, done]);
@@ -136,11 +139,23 @@ export function Feed({
       {done && posts.length === 0 && (
         <EmptyState
           icon={!hasTravels && canWrite ? <TravelIcon /> : <FootprintIcon />}
-          text={!hasTravels && canWrite ? msg.timeline.noTravel : canWrite ? msg.timeline.emptyAdmin : msg.timeline.empty}
+          text={
+            !hasTravels && canWrite
+              ? msg.timeline.noTravel
+              : canWrite
+                ? msg.timeline.emptyAdmin
+                : msg.timeline.empty
+          }
           action={
             canWrite && (
               <Link
-                to={hasTravels ? (travelId ? `/posts/nieuw?reis=${travelId}` : '/posts/nieuw') : '/reizen/nieuw'}
+                to={
+                  hasTravels
+                    ? travelId
+                      ? `/posts/nieuw?reis=${travelId}`
+                      : '/posts/nieuw'
+                    : '/reizen/nieuw'
+                }
                 className="btn btn-primary btn-small"
               >
                 <PlusIcon />

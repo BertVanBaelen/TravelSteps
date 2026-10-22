@@ -41,7 +41,13 @@ export function useInstall(): { state: InstallState; install: () => Promise<void
       listeners.delete(l);
     };
   }, []);
-  const state: InstallState = isStandalone() ? 'installed' : deferred ? 'prompt' : isIos() ? 'ios' : 'unavailable';
+  const state: InstallState = isStandalone()
+    ? 'installed'
+    : deferred
+      ? 'prompt'
+      : isIos()
+        ? 'ios'
+        : 'unavailable';
   return {
     state,
     install: async () => {

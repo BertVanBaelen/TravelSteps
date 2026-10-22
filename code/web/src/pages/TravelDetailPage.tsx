@@ -56,7 +56,9 @@ export function TravelDetailPage() {
 
   const accept = () =>
     run(async () => {
-      const r = await api<{ travel: TravelSummary }>(`/travels/${id}/invitation/accept`, { method: 'POST' });
+      const r = await api<{ travel: TravelSummary }>(`/travels/${id}/invitation/accept`, {
+        method: 'POST',
+      });
       setTravel(r.travel);
       void celebrate('invite');
     });
@@ -66,12 +68,12 @@ export function TravelDetailPage() {
     if (
       !declining &&
       !(await confirm({
-          title: msg.travels.leaveTitle,
-          message: msg.travels.confirmLeave(travel.name),
-          confirmLabel: msg.travels.leave,
-          danger: true,
-          icon: <LeaveIcon />,
-        }))
+        title: msg.travels.leaveTitle,
+        message: msg.travels.confirmLeave(travel.name),
+        confirmLabel: msg.travels.leave,
+        danger: true,
+        icon: <LeaveIcon />,
+      }))
     ) {
       return;
     }
@@ -90,7 +92,11 @@ export function TravelDetailPage() {
     <section className="page">
       {!travel.canManage && travel.myRole === 'member' && (
         <PageActions>
-          <button type="button" className="btn btn-small btn-danger" onClick={() => void leave(false)}>
+          <button
+            type="button"
+            className="btn btn-small btn-danger"
+            onClick={() => void leave(false)}
+          >
             <LeaveIcon />
             {msg.travels.leave}
           </button>
@@ -121,7 +127,11 @@ export function TravelDetailPage() {
         <div className="card stack">
           <p>{msg.travels.inviteBanner(travel.owner.displayName)}</p>
           <div className="row-actions">
-            <button type="button" className="btn btn-primary btn-small" onClick={() => void accept()}>
+            <button
+              type="button"
+              className="btn btn-primary btn-small"
+              onClick={() => void accept()}
+            >
               <CheckIcon />
               {msg.notifications.accept}
             </button>
@@ -140,7 +150,9 @@ export function TravelDetailPage() {
           </div>
         )}
         <div className="stack">
-          <p className="muted">{formatRange(travel.startDate, travel.endDate, msg.travels.ongoing)}</p>
+          <p className="muted">
+            {formatRange(travel.startDate, travel.endDate, msg.travels.ongoing)}
+          </p>
           <TravelPeople travel={travel} />
           <p className="muted">{msg.travels.counts(travel.postCount, travel.photoCount)}</p>
           <TravelStats travel={travel} />

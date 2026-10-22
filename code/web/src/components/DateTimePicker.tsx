@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useT } from '../i18n';
 import { dateFormat } from '../lib/format';
-import { CalendarIcon, ChevronDown, ChevronLeft, ChevronRight, ClockIcon, CloseIcon } from './icons';
+import {
+  CalendarIcon,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ClockIcon,
+  CloseIcon,
+} from './icons';
 import { Sheet, useDismiss } from './Sheet';
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -12,16 +19,24 @@ function parseDay(value: string): Date | null {
   return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null;
 }
 
-const longFmt = () => dateFormat({ weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+const longFmt = () =>
+  dateFormat({ weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
 const monthFmt = () => dateFormat({ month: 'long', year: 'numeric' });
-const dayLabelFmt = () => dateFormat({ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-const weekdays = () => Array.from({ length: 7 }, (_, i) => dateFormat({ weekday: 'short' }).format(new Date(2024, 0, 1 + i)));
+const dayLabelFmt = () =>
+  dateFormat({ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+const weekdays = () =>
+  Array.from({ length: 7 }, (_, i) =>
+    dateFormat({ weekday: 'short' }).format(new Date(2024, 0, 1 + i)),
+  );
 
 /** The 42 days (6 weeks, Monday first) shown for the month of `month`. */
 function monthGrid(month: Date): Date[] {
   const first = new Date(month.getFullYear(), month.getMonth(), 1);
   const offset = (first.getDay() + 6) % 7;
-  return Array.from({ length: 42 }, (_, i) => new Date(first.getFullYear(), first.getMonth(), 1 - offset + i));
+  return Array.from(
+    { length: 42 },
+    (_, i) => new Date(first.getFullYear(), first.getMonth(), 1 - offset + i),
+  );
 }
 
 interface DatePickerProps {
@@ -62,7 +77,8 @@ export function DatePicker({ value, onChange, id, title, min, emptyLabel }: Date
   }
 
   useEffect(() => {
-    if (open) grid.current?.querySelector<HTMLButtonElement>(`[data-day="${toIso(focus)}"]`)?.focus();
+    if (open)
+      grid.current?.querySelector<HTMLButtonElement>(`[data-day="${toIso(focus)}"]`)?.focus();
   }, [open, focus]);
 
   const disabledDay = (iso: string) => !!min && iso < min;
@@ -77,11 +93,17 @@ export function DatePicker({ value, onChange, id, title, min, emptyLabel }: Date
   function moveFocus(days: number) {
     const next = new Date(focus.getFullYear(), focus.getMonth(), focus.getDate() + days);
     setFocus(next);
-    if (next.getMonth() !== month.getMonth() || next.getFullYear() !== month.getFullYear()) setMonth(next);
+    if (next.getMonth() !== month.getMonth() || next.getFullYear() !== month.getFullYear())
+      setMonth(next);
   }
 
   function onGridKey(e: KeyboardEvent) {
-    const moves: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+    const moves: Record<string, number> = {
+      ArrowLeft: -1,
+      ArrowRight: 1,
+      ArrowUp: -7,
+      ArrowDown: 7,
+    };
     if (e.key in moves) {
       e.preventDefault();
       moveFocus(moves[e.key]!);
@@ -123,11 +145,21 @@ export function DatePicker({ value, onChange, id, title, min, emptyLabel }: Date
         <div role="dialog" aria-label={title}>
           <p className="sheet-title">{title}</p>
           <div className="cal-head">
-            <button type="button" className="icon-btn" onClick={() => shiftMonth(-1)} aria-label={msg.dateTime.prevMonth}>
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() => shiftMonth(-1)}
+              aria-label={msg.dateTime.prevMonth}
+            >
               <ChevronLeft />
             </button>
             <strong aria-live="polite">{monthFmt().format(month)}</strong>
-            <button type="button" className="icon-btn" onClick={() => shiftMonth(1)} aria-label={msg.dateTime.nextMonth}>
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() => shiftMonth(1)}
+              aria-label={msg.dateTime.nextMonth}
+            >
               <ChevronRight />
             </button>
           </div>
@@ -178,7 +210,12 @@ export function DatePicker({ value, onChange, id, title, min, emptyLabel }: Date
                 {emptyLabel}
               </button>
             )}
-            <button type="button" className="btn btn-small btn-secondary" onClick={() => pick(new Date())} disabled={disabledDay(today)}>
+            <button
+              type="button"
+              className="btn btn-small btn-secondary"
+              onClick={() => pick(new Date())}
+              disabled={disabledDay(today)}
+            >
               <CalendarIcon />
               {msg.dateTime.today}
             </button>
@@ -217,7 +254,9 @@ export function TimePicker({ value, onChange, title }: TimePickerProps) {
 
   useEffect(() => {
     if (!open) return;
-    sheet.current?.querySelectorAll<HTMLElement>('.time-option.selected').forEach((el) => el.scrollIntoView({ block: 'center' }));
+    sheet.current
+      ?.querySelectorAll<HTMLElement>('.time-option.selected')
+      .forEach((el) => el.scrollIntoView({ block: 'center' }));
     sheet.current?.querySelector<HTMLElement>('.time-option.selected')?.focus();
   }, [open]);
 
@@ -344,9 +383,18 @@ export function DateTimeField({
       </label>
       <div className="datetime-row">
         {!fixedDay && (
-          <DatePicker id={name} title={label} value={day} onChange={(d) => onChange(`${d}T${time}`)} />
+          <DatePicker
+            id={name}
+            title={label}
+            value={day}
+            onChange={(d) => onChange(`${d}T${time}`)}
+          />
         )}
-        <TimePicker title={msg.dateTime.time} value={time} onChange={(t) => onChange(`${day}T${t}`)} />
+        <TimePicker
+          title={msg.dateTime.time}
+          value={time}
+          onChange={(t) => onChange(`${day}T${t}`)}
+        />
       </div>
       {hint && <span className="field-hint">{hint}</span>}
     </div>

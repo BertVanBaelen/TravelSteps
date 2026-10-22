@@ -6,7 +6,7 @@ Travel blog (PWA) with a timeline, map and Immich photos for several travellers.
 Docker container (or Home Assistant add-on) on the Home Assistant server and is made publicly
 reachable through a Cloudflare Tunnel. The app is available in **Dutch and English**.
 
-Version **1.3.0** – changes per version (with screenshots) in [code/CHANGELOG.md](code/CHANGELOG.md).
+Version **1.4.0** – changes per version (with screenshots) in [code/CHANGELOG.md](code/CHANGELOG.md).
 Planned extensions: see the [V2 roadmap](V2%20roadmap.md).
 
 | Folder / file                | Contents                                     |
@@ -90,7 +90,7 @@ folder `/share/travelsteps` simply stays) and start. Then remove the local add-o
    docker compose up -d --build
    docker compose logs -f
    ```
-4. Check: `curl http://localhost:8080/api/health` → `{"status":"ok","version":"1.3.0"}`.
+4. Check: `curl http://localhost:8080/api/health` → `{"status":"ok","version":"1.4.0"}`.
 
 ## Cloudflare Tunnel
 
@@ -180,6 +180,11 @@ One Immich address for the whole app; **each traveller has their own API key**.
 
 Photos always go through TravelSteps with the key of whoever posted the photo. Viewers have no
 access to Immich itself and only see photos from travels they may view.
+
+**Original photos:** the author of a photo and the administrator can download the original via
+**Download original** in the photo viewer. A traveller can also mark people as **trusted** in
+**Profile → Trusted people**; they may then download the originals of that traveller's photos, but
+only in travels they can see. Revoking works immediately. Originals are never cached on the device.
 
 ## Routes (OpenRouteService)
 

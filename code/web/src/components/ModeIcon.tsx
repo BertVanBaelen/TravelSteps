@@ -21,11 +21,11 @@ export function ModeIcon({ mode }: { mode: TransportMode }) {
 /** Transport modes as listbox options, each with its icon. */
 export const modeOptions = (): ListboxOption[] =>
   TRANSPORT_MODES.map((m) => ({
-  id: m,
-  label: messages().modes[m],
-  icon: (
-    <span className="picker-icon">
-      <ModeIcon mode={m} />
-    </span>
-  ),
-}));
+    id: m,
+    label: messages().modes[m],
+    icon: (
+      <span className="picker-icon">
+        <ModeIcon mode={m} />
+      </span>
+    ),
+  }));

@@ -130,9 +130,15 @@ export function summarizeStats(posts: Post[]): { distanceKm: number; stats: Trav
   }
 
   const stats: TravelStat[] = [];
-  if (seen.afstand) stats.push({ key: 'afstand', label: 'Afstand', unit: 'km', value: round2(fixed.afstand) });
+  if (seen.afstand)
+    stats.push({ key: 'afstand', label: 'Afstand', unit: 'km', value: round2(fixed.afstand) });
   if (seen.hoogtemeters) {
-    stats.push({ key: 'hoogtemeters', label: 'Hoogtemeters', unit: 'm', value: round2(fixed.hoogtemeters) });
+    stats.push({
+      key: 'hoogtemeters',
+      label: 'Hoogtemeters',
+      unit: 'm',
+      value: round2(fixed.hoogtemeters),
+    });
   }
   if (seen.maxHoogte) {
     stats.push({ key: 'maxHoogte', label: 'Max. hoogte', unit: 'm', value: fixed.maxHoogte });
@@ -358,9 +364,7 @@ export class ContentStore {
   defaultTravelFor(userId: string): TravelRecord | undefined {
     const own = this.listTravels().filter((t) => this.isAuthor(t.id, userId));
     const now = today();
-    return (
-      own.find((t) => t.startDate <= now && (!t.endDate || t.endDate >= now)) ?? own[0]
-    );
+    return own.find((t) => t.startDate <= now && (!t.endDate || t.endDate >= now)) ?? own[0];
   }
 
   private travelSlugTaken = (slug: string, exceptId?: string) =>
@@ -487,9 +491,7 @@ export class ContentStore {
       throw new HttpError(404, 'NO_INVITATION', 'Er is geen uitnodiging voor deze reis.');
     }
     this.db
-      .prepare(
-        `UPDATE travel_members SET status = 'accepted' WHERE travel_id = ? AND user_id = ?`,
-      )
+      .prepare(`UPDATE travel_members SET status = 'accepted' WHERE travel_id = ? AND user_id = ?`)
       .run(travelId, userId);
     m.status = 'accepted';
     this.invalidate();

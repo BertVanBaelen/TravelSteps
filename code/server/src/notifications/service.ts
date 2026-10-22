@@ -60,7 +60,10 @@ function loadOrCreateVapid(dataDir: string, log?: FastifyBaseLogger): VapidKeys 
     fs.writeFileSync(file, JSON.stringify(keys), { mode: 0o600 });
     return keys;
   } catch (err) {
-    log?.error({ err: String(err) }, 'VAPID-sleutels konden niet worden gemaakt; geen pushmeldingen');
+    log?.error(
+      { err: String(err) },
+      'VAPID-sleutels konden niet worden gemaakt; geen pushmeldingen',
+    );
     return null;
   }
 }
@@ -173,8 +176,7 @@ export class NotificationService {
   private commentText(id: string | null | undefined): string | null {
     if (!id) return null;
     const row = this.db.prepare('SELECT text FROM comments WHERE id = ?').get(id) as
-      | { text: string }
-      | undefined;
+      { text: string } | undefined;
     return row?.text ?? null;
   }
 

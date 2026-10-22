@@ -61,7 +61,15 @@ export function PostDetailPage() {
   );
 
   async function remove() {
-    if (!(await confirm({ title: msg.post.deleteTitle, message: msg.post.confirmDelete, confirmLabel: msg.common.delete, danger: true }))) return;
+    if (
+      !(await confirm({
+        title: msg.post.deleteTitle,
+        message: msg.post.confirmDelete,
+        confirmLabel: msg.common.delete,
+        danger: true,
+      }))
+    )
+      return;
     try {
       await api(`/posts/${id}`, { method: 'DELETE' });
       navigate('/', { replace: true });
@@ -82,10 +90,23 @@ export function PostDetailPage() {
           label={msg.post.actions}
           actions={[
             ...(post.canEdit
-              ? [{ icon: <PencilIcon />, label: msg.editor.editTitle, to: `/posts/${post.id}/bewerken` }]
+              ? [
+                  {
+                    icon: <PencilIcon />,
+                    label: msg.editor.editTitle,
+                    to: `/posts/${post.id}/bewerken`,
+                  },
+                ]
               : []),
             ...(post.canDelete
-              ? [{ icon: <TrashIcon />, label: msg.post.delete, onClick: () => void remove(), danger: true }]
+              ? [
+                  {
+                    icon: <TrashIcon />,
+                    label: msg.post.delete,
+                    onClick: () => void remove(),
+                    danger: true,
+                  },
+                ]
               : []),
           ]}
         />
@@ -103,7 +124,7 @@ export function PostDetailPage() {
           </span>
           <time dateTime={post.date}>{formatDateTime(post.date)}</time>
         </div>
-        <Gallery photos={post.photos} alt={post.title} allowOriginal={post.authorId === user.id} />
+        <Gallery photos={post.photos} alt={post.title} canDownload={post.canDownloadOriginal} />
         <StatsView stats={post.stats} />
         {post.body && <Markdown>{post.body}</Markdown>}
         {post.locations.length > 0 && (

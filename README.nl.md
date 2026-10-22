@@ -6,7 +6,7 @@ Reisblog (PWA) met tijdlijn, kaart en Immich-foto's voor meerdere reizigers. Dra
 Docker-container (of Home Assistant-add-on) op de Home Assistant-server en wordt via een
 Cloudflare Tunnel publiek bereikbaar gemaakt. De app is beschikbaar in het **Nederlands en Engels**.
 
-Versie **1.3.0** – wijzigingen per versie (met schermafbeeldingen) in
+Versie **1.4.0** – wijzigingen per versie (met schermafbeeldingen) in
 [code/CHANGELOG.md](code/CHANGELOG.md). Geplande uitbreidingen: zie de [V2-roadmap](V2%20roadmap.md).
 
 | Map / bestand                | Inhoud                                       |
@@ -90,7 +90,7 @@ lokale add-on, installeer TravelSteps uit de repository, vul dezelfde configurat
    docker compose up -d --build
    docker compose logs -f
    ```
-4. Controle: `curl http://localhost:8080/api/health` → `{"status":"ok","version":"1.3.0"}`.
+4. Controle: `curl http://localhost:8080/api/health` → `{"status":"ok","version":"1.4.0"}`.
 
 ## Cloudflare Tunnel
 
@@ -182,6 +182,12 @@ Eén Immich-adres voor de hele app; **elke reiziger heeft een eigen API-sleutel*
 
 Foto's gaan altijd via TravelSteps met de sleutel van wie de foto plaatste. Kijkers hebben geen
 toegang tot Immich zelf en zien alleen foto's uit reizen die ze mogen bekijken.
+
+**Originele foto's:** de auteur van een foto en de beheerder kunnen het origineel downloaden via
+**Download origineel** in de fotoweergave. Een reiziger kan ook personen als **vertrouwd**
+markeren bij **Profiel → Vertrouwde personen**; zij mogen dan de originelen van de foto's van die
+reiziger downloaden, maar alleen in reizen die ze mogen zien. Intrekken werkt meteen. Originelen
+worden nooit op het toestel gecachet.
 
 ## Routes (OpenRouteService)
 

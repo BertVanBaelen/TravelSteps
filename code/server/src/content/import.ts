@@ -2,7 +2,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { z } from 'zod';
 import type { FastifyBaseLogger } from 'fastify';
-import { assetIdSchema, locationSchema, segmentSchema, statsSchema, type Post } from '@travelsteps/shared';
+import {
+  assetIdSchema,
+  locationSchema,
+  segmentSchema,
+  statsSchema,
+  type Post,
+} from '@travelsteps/shared';
 import { parseFrontmatter } from './files.js';
 import type { ContentStore, TravelRecord } from './store.js';
 

@@ -74,7 +74,10 @@ export async function pushRoutes(app: FastifyInstance): Promise<void> {
     '/subscriptions',
     { config: { rateLimit: { max: 20, timeWindow: '1 minute' } } },
     async (req, reply) => {
-      notifications.addPushSubscription(currentUser(req).id, pushSubscriptionSchema.parse(req.body));
+      notifications.addPushSubscription(
+        currentUser(req).id,
+        pushSubscriptionSchema.parse(req.body),
+      );
       return reply.code(204).send();
     },
   );

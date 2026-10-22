@@ -12,7 +12,11 @@ export function UserMenu() {
   const { logout } = useAuth();
 
   return (
-    <Menu trigger={<Avatar user={user} size="s" />} label={msg.userMenu.open} triggerClassName="banner-avatar">
+    <Menu
+      trigger={<Avatar user={user} size="s" />}
+      label={msg.userMenu.open}
+      triggerClassName="banner-avatar"
+    >
       <div className="menu-head">
         <Avatar user={user} size="m" />
         <span>

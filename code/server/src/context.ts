@@ -12,6 +12,9 @@ import { NotificationService } from './notifications/service.js';
 import { SocialRepository } from './social/repository.js';
 import { RoutingService } from './routing/service.js';
 import { BackupService } from './backup.js';
+import { TrustRepository } from './trust/repository.js';
+import { canUseAuthorRights } from './trust/permissions.js';
+import type { Actor } from './content/store.js';
 
 export interface AppContext {
   config: AppConfig;
@@ -25,6 +28,8 @@ export interface AppContext {
   notifications: NotificationService;
   routing: RoutingService;
   backups: BackupService;
+  trust: TrustRepository;
+  canUseAuthorRights(requester: Actor, authorId: string | null, travelId: string): boolean;
   /** Folder for uploaded profile pictures. */
   avatarDir: string;
 }
@@ -32,6 +37,11 @@ export interface AppContext {
 export function createContext(config: AppConfig, db: DB, log?: FastifyBaseLogger): AppContext {
   const users = new UserRepository(db);
   const content = new ContentStore(db, log);
+  const trust = new TrustRepository(db);
+  const deps = {
+    canView: (actor: Actor, travelId: string) => content.canView(actor, travelId),
+    isTrusted: (ownerId: string, trustedId: string) => trust.isTrusted(ownerId, trustedId),
+  };
   return {
     config,
     db,
@@ -45,10 +55,20 @@ export function createContext(config: AppConfig, db: DB, log?: FastifyBaseLogger
     content,
     social: new SocialRepository(db),
     immich: new ImmichService(config.immichUrl, users, new KeyBox(config.sessionSecret)),
-    notifications: new NotificationService(db, content, users, config.dataDir, config.publicUrl, log),
+    notifications: new NotificationService(
+      db,
+      content,
+      users,
+      config.dataDir,
+      config.publicUrl,
+      log,
+    ),
     routing: new RoutingService(config.orsApiKey, config.orsUrl, log),
     backups: new BackupService(db, config.dataDir, config.backupKeep ?? 0, log),
     avatarDir: path.join(config.dataDir, 'uploads', 'avatars'),
+    trust,
+    canUseAuthorRights: (requester, authorId, travelId) =>
+      canUseAuthorRights(deps, requester, authorId, travelId),
   };
 }
 

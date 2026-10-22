@@ -20,7 +20,8 @@ import { formatDay, formatNumber, fromLocalInput, parseNumber, toLocalInput } fr
 import { db, newPostId, useOnline, withTimeout } from '../offline/db';
 import { queuePost, savePost } from '../offline/sync';
 import { useCelebrate } from '../components/Celebration';
-import { useConfirm } from '../components/ConfirmDialog';
+import { useConfirm } from '../components/ConfirmDialog';
+
 import { PlusIcon, SendIcon } from '../components/icons';
 
 const EMPTY_ROUTE: RouteValue = { locations: [], segments: [], arrival: { mode: 'lopen' } };
@@ -30,7 +31,9 @@ const LOCAL_TIMEOUT_MS = 2000;
 /** The requested travel (?reis=) if the user may post in it, else the most recent ongoing one, else the newest. */
 function defaultTravel(travels: TravelSummary[], requested: string | null): string {
   const today = new Date().toISOString().slice(0, 10);
-  const postable = travels.filter((t) => t.canPost).sort((a, b) => b.startDate.localeCompare(a.startDate));
+  const postable = travels
+    .filter((t) => t.canPost)
+    .sort((a, b) => b.startDate.localeCompare(a.startDate));
   return (
     postable.find((t) => t.id === requested)?.id ??
     postable.find((t) => t.startDate <= today && (!t.endDate || t.endDate >= today))?.id ??
@@ -58,7 +61,9 @@ export function PostEditorPage() {
   // Existing post being edited, or a (restored) draft of a new post.
   const [postId] = useState(() => params.id ?? conceptId ?? newPostId());
   const isNew = !params.id;
-  usePageTitle(isNew ? msg.editor.newTitle : msg.editor.editTitle, { back: isNew ? '/' : `/post/${postId}` });
+  usePageTitle(isNew ? msg.editor.newTitle : msg.editor.editTitle, {
+    back: isNew ? '/' : `/post/${postId}`,
+  });
 
   const [travels, setTravels] = useState<TravelSummary[] | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -83,7 +88,9 @@ export function PostEditorPage() {
   const fixedDay = travels?.find((t) => t.id === travelId && t.endDate === t.startDate)?.startDate;
   useEffect(() => {
     if (!fixedDay) return;
-    setDate((d) => (d.startsWith(`${fixedDay}T`) ? d : `${fixedDay}T${d.split('T')[1] ?? '12:00'}`));
+    setDate((d) =>
+      d.startsWith(`${fixedDay}T`) ? d : `${fixedDay}T${d.split('T')[1] ?? '12:00'}`,
+    );
   }, [fixedDay]);
 
   function applyInput(input: PostInput, statsForm?: StatsForm) {
@@ -168,7 +175,11 @@ export function PostEditorPage() {
   }
 
   // Autosave a local draft while writing.
-  const routeSig = [route.locations, route.segments.map((s) => s.mode), route.arrival?.mode ?? null];
+  const routeSig = [
+    route.locations,
+    route.segments.map((s) => s.mode),
+    route.arrival?.mode ?? null,
+  ];
   const snapshot = JSON.stringify([travelId, title, date, body, photos, routeSig, stats]);
   const first = useRef(true);
   /** Set once the post is published or queued: no more autosaves or URL changes. */
@@ -185,7 +196,8 @@ export function PostEditorPage() {
       const save = db.drafts
         .put({ id: postId, isNew, input: buildInput(false), statsForm: stats, savedAt: Date.now() })
         .then(() => {
-          if (isNew && !conceptId && !done.current) setSearch({ concept: postId }, { replace: true });
+          if (isNew && !conceptId && !done.current)
+            setSearch({ concept: postId }, { replace: true });
         })
         .catch((err: unknown) => console.warn('Draft could not be stored locally', err));
       pendingSave.current = save;
@@ -233,8 +245,12 @@ export function PostEditorPage() {
       ...s,
       fixed: {
         ...s.fixed,
-        ...(suggestion.afstand !== undefined ? { afstand: String(suggestion.afstand).replace('.', ',') } : {}),
-        ...(suggestion.hoogtemeters !== undefined ? { hoogtemeters: String(suggestion.hoogtemeters) } : {}),
+        ...(suggestion.afstand !== undefined
+          ? { afstand: String(suggestion.afstand).replace('.', ',') }
+          : {}),
+        ...(suggestion.hoogtemeters !== undefined
+          ? { hoogtemeters: String(suggestion.hoogtemeters) }
+          : {}),
       },
     }));
     setSuggestion(null);
@@ -278,7 +294,8 @@ export function PostEditorPage() {
         await queueLocally(input);
         return;
       }
-      if (err instanceof ApiError && err.status === 409 && err.code === 'CONFLICT') setConflict(true);
+      if (err instanceof ApiError && err.status === 409 && err.code === 'CONFLICT')
+        setConflict(true);
       setError(errorMessage(err));
       setBusy(false);
     }
@@ -304,10 +321,13 @@ export function PostEditorPage() {
   }
 
   async function takeServer() {
-    if (!(await confirm({ title: msg.sync.takeServerTitle, message: msg.sync.confirmTakeServer }))) return;
-    await withTimeout(Promise.all([db.drafts.delete(postId), db.outbox.delete(postId)]), LOCAL_TIMEOUT_MS, null).catch(
-      () => null,
-    );
+    if (!(await confirm({ title: msg.sync.takeServerTitle, message: msg.sync.confirmTakeServer })))
+      return;
+    await withTimeout(
+      Promise.all([db.drafts.delete(postId), db.outbox.delete(postId)]),
+      LOCAL_TIMEOUT_MS,
+      null,
+    ).catch(() => null);
     setConflict(false);
     setError(null);
     setLocalNotice(false);
@@ -316,10 +336,20 @@ export function PostEditorPage() {
   }
 
   async function discardLocal() {
-    if (!(await confirm({ title: msg.sync.discardTitle, message: msg.sync.confirmDiscard, confirmLabel: msg.sync.discard, danger: true }))) return;
-    await withTimeout(Promise.all([db.drafts.delete(postId), db.outbox.delete(postId)]), LOCAL_TIMEOUT_MS, null).catch(
-      () => null,
-    );
+    if (
+      !(await confirm({
+        title: msg.sync.discardTitle,
+        message: msg.sync.confirmDiscard,
+        confirmLabel: msg.sync.discard,
+        danger: true,
+      }))
+    )
+      return;
+    await withTimeout(
+      Promise.all([db.drafts.delete(postId), db.outbox.delete(postId)]),
+      LOCAL_TIMEOUT_MS,
+      null,
+    ).catch(() => null);
     setLocalNotice(false);
     first.current = true;
     await loadServer().catch((err) => setError(errorMessage(err)));
@@ -385,17 +415,29 @@ export function PostEditorPage() {
             <div className="field-head">
               <span className="field-label">{msg.editor.body}</span>
               <div className="segmented">
-                <button type="button" className={!preview ? 'active' : ''} onClick={() => setPreview(false)}>
+                <button
+                  type="button"
+                  className={!preview ? 'active' : ''}
+                  onClick={() => setPreview(false)}
+                >
                   {msg.editor.write}
                 </button>
-                <button type="button" className={preview ? 'active' : ''} onClick={() => setPreview(true)}>
+                <button
+                  type="button"
+                  className={preview ? 'active' : ''}
+                  onClick={() => setPreview(true)}
+                >
                   {msg.editor.preview}
                 </button>
               </div>
             </div>
             {preview ? (
               <div className="markdown-preview">
-                {body.trim() ? <Markdown>{body}</Markdown> : <p className="muted">{msg.editor.previewEmpty}</p>}
+                {body.trim() ? (
+                  <Markdown>{body}</Markdown>
+                ) : (
+                  <p className="muted">{msg.editor.previewEmpty}</p>
+                )}
               </div>
             ) : (
               <LazyRichTextEditor
@@ -445,7 +487,9 @@ export function PostEditorPage() {
             <Alert kind="info">
               {msg.locations.suggestion(
                 suggestion.afstand !== undefined ? `${formatNumber(suggestion.afstand)} km` : null,
-                suggestion.hoogtemeters !== undefined ? `${formatNumber(suggestion.hoogtemeters)} m` : null,
+                suggestion.hoogtemeters !== undefined
+                  ? `${formatNumber(suggestion.hoogtemeters)} m`
+                  : null,
               )}{' '}
               <button type="button" className="btn-text" onClick={takeSuggestion}>
                 {msg.locations.takeOver}
@@ -461,14 +505,25 @@ export function PostEditorPage() {
             <button type="button" className="btn btn-secondary" onClick={keepMine} disabled={busy}>
               {msg.sync.keepMine}
             </button>
-            <button type="button" className="btn btn-secondary" onClick={() => void takeServer()} disabled={busy}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => void takeServer()}
+              disabled={busy}
+            >
               {msg.sync.takeServer}
             </button>
           </div>
         )}
         <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
           <SendIcon />
-          {busy ? msg.common.saving : !online ? msg.sync.saveOffline : isNew ? msg.editor.publish : msg.common.save}
+          {busy
+            ? msg.common.saving
+            : !online
+              ? msg.sync.saveOffline
+              : isNew
+                ? msg.editor.publish
+                : msg.common.save}
         </button>
       </form>
 
@@ -487,7 +542,10 @@ export function PostEditorPage() {
 }
 
 /** Only the keys that were empty in `current` (so typing in the meantime is never overwritten). */
-function pick(filled: StatsForm['fixed'], current: StatsForm['fixed']): Partial<StatsForm['fixed']> {
+function pick(
+  filled: StatsForm['fixed'],
+  current: StatsForm['fixed'],
+): Partial<StatsForm['fixed']> {
   const out: Partial<StatsForm['fixed']> = {};
   for (const key of ['afstand', 'hoogtemeters'] as const) {
     if (!current[key].trim() && filled[key]) out[key] = filled[key];

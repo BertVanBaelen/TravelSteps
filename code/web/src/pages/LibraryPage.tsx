@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { LibraryPhoto } from '@travelsteps/shared';
 import { api, errorMessage } from '../api';
-import { useUser } from '../auth/AuthContext';
 import { useBlog, withTraveller } from '../blog/BlogContext';
 import { EmptyState } from '../components/EmptyState';
 import { Alert } from '../components/Field';
@@ -30,7 +29,6 @@ const localDay = (iso: string) => {
 export function LibraryPage() {
   const msg = useT();
   usePageTitle(msg.library.title);
-  const me = useUser();
   const { selected } = useBlog();
   const [params, setParams] = useSearchParams();
   const groupBy: GroupBy = params.get('per') === 'reis' ? 'reis' : 'datum';
@@ -79,10 +77,7 @@ export function LibraryPage() {
       </div>
       {error && <Alert kind="error">{error}</Alert>}
       {photos === null && !error && <SkeletonGrid />}
-      {photos?.length === 0 && (
-        <EmptyState icon={<PhotoIcon />} text={msg.library.empty} />
-
-      )}
+      {photos?.length === 0 && <EmptyState icon={<PhotoIcon />} text={msg.library.empty} />}
       {groups.map((g) => (
         <div key={g.key} className="library-group">
           <h2 className="library-head">
@@ -111,7 +106,7 @@ export function LibraryPage() {
           photos={ids}
           start={open}
           alt={msg.library.title}
-          allowOriginal={(i) => photos[i]?.authorId === me.id}
+          canDownload={(i) => photos[i]?.canDownloadOriginal === true}
           onClose={() => setOpen(null)}
           extra={(i) => {
             const p = photos[i];

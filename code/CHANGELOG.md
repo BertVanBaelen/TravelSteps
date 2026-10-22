@@ -4,6 +4,17 @@ All notable changes to TravelSteps. Versions follow `major.minor.patch`: a relea
 major number, a completed phase the minor number and a bug fix the patch number. Screenshots are
 in [`docs/changelog`](docs/changelog).
 
+## 1.4.0 – Trusted people and original downloads
+
+- **Download original:** the photo viewer has a **Download original** button that saves the photo
+  in full quality with its original file name. It replaces the old author-only "Open original"
+  link and is hidden while offline.
+- **Trusted people:** travellers can mark people as trusted in Profile → Trusted people. Only people
+  who can see at least one of your travels can be added. Trusted people may download the originals
+  of your photos, but only in travels they can see. Revoking works immediately.
+- **Privacy:** others (also co-writers and viewers) can no longer request originals; originals are
+  never stored in the offline cache.
+
 ## 1.3.0 – Dutch and English
 
 - **English:** the whole app is now available in English as well as Dutch – every screen, dialog,

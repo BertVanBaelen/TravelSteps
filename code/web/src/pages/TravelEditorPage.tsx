@@ -12,15 +12,24 @@ import { TravelSharing } from '../components/TravelSharing';
 import { SkeletonCards } from '../components/Skeleton';
 import { useT } from '../i18n';
 
-import { mediaUrl } from '../lib/format';
-import { CalendarIcon, CalendarRangeIcon, ImageAddIcon, SaveIcon, TrashIcon } from '../components/icons';
+import { mediaUrl } from '../lib/format';
+
+import {
+  CalendarIcon,
+  CalendarRangeIcon,
+  ImageAddIcon,
+  SaveIcon,
+  TrashIcon,
+} from '../components/icons';
 
 export function TravelEditorPage() {
   const msg = useT();
   const { id } = useParams();
   const navigate = useNavigate();
   const celebrate = useCelebrate();
-  usePageTitle(id ? msg.travelEditor.editTitle : msg.travelEditor.newTitle, { back: id ? `/reizen/${id}` : '/reizen' });
+  usePageTitle(id ? msg.travelEditor.editTitle : msg.travelEditor.newTitle, {
+    back: id ? `/reizen/${id}` : '/reizen',
+  });
   const [loaded, setLoaded] = useState(!id);
   const [name, setName] = useState('');
   const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -58,7 +67,13 @@ export function TravelEditorPage() {
     try {
       await api(id ? `/travels/${id}` : '/travels', {
         method: id ? 'PUT' : 'POST',
-        body: { name, startDate, endDate: oneDay ? startDate : endDate || null, description, coverAssetId },
+        body: {
+          name,
+          startDate,
+          endDate: oneDay ? startDate : endDate || null,
+          description,
+          coverAssetId,
+        },
       });
       navigate(id ? `/reizen/${id}` : '/reizen', { replace: true });
     } catch (err) {
@@ -107,7 +122,12 @@ export function TravelEditorPage() {
           </div>
         </div>
         {oneDay ? (
-          <DateField label={msg.travelEditor.date} name="startDate" value={startDate} onChange={setStartDate} />
+          <DateField
+            label={msg.travelEditor.date}
+            name="startDate"
+            value={startDate}
+            onChange={setStartDate}
+          />
         ) : (
           <>
             <div className="field-row">
@@ -144,15 +164,27 @@ export function TravelEditorPage() {
         <div className="field">
           <span className="field-label">{msg.travelEditor.cover}</span>
           {coverAssetId && (
-            <img className="cover-preview" src={mediaUrl(coverAssetId, 'preview')} alt={msg.travelEditor.cover} />
+            <img
+              className="cover-preview"
+              src={mediaUrl(coverAssetId, 'preview')}
+              alt={msg.travelEditor.cover}
+            />
           )}
           <div className="row-actions">
-            <button type="button" className="btn btn-secondary btn-small" onClick={() => setPicking(true)}>
+            <button
+              type="button"
+              className="btn btn-secondary btn-small"
+              onClick={() => setPicking(true)}
+            >
               <ImageAddIcon />
               {msg.travelEditor.chooseCover}
             </button>
             {coverAssetId && (
-              <button type="button" className="btn btn-small btn-danger" onClick={() => setCoverAssetId(null)}>
+              <button
+                type="button"
+                className="btn btn-small btn-danger"
+                onClick={() => setCoverAssetId(null)}
+              >
                 <TrashIcon />
                 {msg.travelEditor.removeCover}
               </button>

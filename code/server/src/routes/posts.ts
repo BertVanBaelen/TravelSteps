@@ -58,6 +58,8 @@ export function postPermissions(ctx: AppContext, post: Post, me: Actor): PostPer
   return {
     canEdit: isAuthor,
     canDelete: isAuthor || ctx.content.canManage(me, post.travelId),
+    canDownloadOriginal:
+      post.photos.length > 0 && ctx.canUseAuthorRights(me, post.authorId, post.travelId),
   };
 }
 
@@ -92,8 +94,7 @@ export async function postRoutes(app: FastifyInstance): Promise<void> {
   };
 
   const travelName = (id: string) => content.getTravel(id)?.name ?? '';
-  const author = (refs: Map<string, UserRef>, id: string | null) =>
-    (id && refs.get(id)) || null;
+  const author = (refs: Map<string, UserRef>, id: string | null) => (id && refs.get(id)) || null;
 
   const toDetail = (post: Post, me: Actor): PostDetail => ({
     ...post,
@@ -196,11 +197,18 @@ export async function postRoutes(app: FastifyInstance): Promise<void> {
     const body = (req.body ?? {}) as { id?: unknown; travelId?: unknown };
     const existing = typeof body.id === 'string' ? content.getPost(body.id) : undefined;
     if (existing) {
-      if (existing.authorId !== me.id) throw new HttpError(409, 'POST_EXISTS', 'Deze stap bestaat al.');
+      if (existing.authorId !== me.id)
+        throw new HttpError(409, 'POST_EXISTS', 'Deze stap bestaat al.');
       return reply.code(200).send({ post: toDetail(existing, me) });
     }
-    const travelId = postableTravel(me, typeof body.travelId === 'string' ? body.travelId : undefined);
-    const post = content.createPost(await postRouting.prepare(req.body as PostInput, travelId), me.id);
+    const travelId = postableTravel(
+      me,
+      typeof body.travelId === 'string' ? body.travelId : undefined,
+    );
+    const post = content.createPost(
+      await postRouting.prepare(req.body as PostInput, travelId),
+      me.id,
+    );
     await postRouting.refreshArrivals([post.travelId]);
     req.log.info({ postId: post.id }, 'Post aangemaakt');
     notifications.notify(notifications.postRecipients(post.travelId, me.id), {

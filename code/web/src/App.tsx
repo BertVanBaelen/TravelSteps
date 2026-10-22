@@ -21,7 +21,10 @@ function page<K extends string>(load: () => Promise<Record<K, ComponentType>>, n
 
 const AdminUsersPage = page(() => import('./pages/AdminUsersPage'), 'AdminUsersPage');
 const AdminSettingsPage = page(() => import('./pages/AdminSettingsPage'), 'AdminSettingsPage');
-const AdminSettingsSectionPage = page(() => import('./pages/AdminSettingsPage'), 'AdminSettingsSectionPage');
+const AdminSettingsSectionPage = page(
+  () => import('./pages/AdminSettingsPage'),
+  'AdminSettingsSectionPage',
+);
 const LibraryPage = page(() => import('./pages/LibraryPage'), 'LibraryPage');
 const MapPage = page(() => import('./pages/MapPage'), 'MapPage');
 const PostEditorPage = page(() => import('./pages/PostEditorPage'), 'PostEditorPage');

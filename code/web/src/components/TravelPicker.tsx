@@ -16,11 +16,24 @@ interface Props {
 }
 
 /** Cover thumbnail of a travel (or a travel icon), optionally with a map colour swatch. */
-export function TravelThumb({ travel, color, small }: { travel: TravelSummary; color?: string; small?: boolean }) {
+export function TravelThumb({
+  travel,
+  color,
+  small,
+}: {
+  travel: TravelSummary;
+  color?: string;
+  small?: boolean;
+}) {
   const className = `travel-thumb${small ? ' travel-thumb-small' : ''}`;
   const style = color ? { ['--swatch' as string]: color } : undefined;
   return travel.coverAssetId ? (
-    <img className={className} src={mediaUrl(travel.coverAssetId, 'thumbnail')} alt="" style={style} />
+    <img
+      className={className}
+      src={mediaUrl(travel.coverAssetId, 'thumbnail')}
+      alt=""
+      style={style}
+    />
   ) : (
     <span className={className} aria-hidden style={style}>
       <TravelIcon />
@@ -29,7 +42,11 @@ export function TravelThumb({ travel, color, small }: { travel: TravelSummary; c
 }
 
 /** A travel as listbox option: cover, name and dates/counts. */
-export function travelOption(t: TravelSummary, colorFor?: (id: string) => string, suffix = ''): ListboxOption {
+export function travelOption(
+  t: TravelSummary,
+  colorFor?: (id: string) => string,
+  suffix = '',
+): ListboxOption {
   return {
     id: t.id,
     label: t.name + suffix,

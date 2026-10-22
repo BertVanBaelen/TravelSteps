@@ -3,31 +3,40 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Readable } from 'node:stream';
 import type { ReadableStream as WebReadableStream } from 'node:stream/web';
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import {
   AVATAR_MAX_BYTES,
   avatarInputSchema,
   immichKeySchema,
   isTraveller,
   updateProfileSchema,
+  uuidSchema,
+  type TrustedUsers,
 } from '@travelsteps/shared';
-import { currentUser } from '../auth/guard.js';
+import { currentUser, requireTraveller } from '../auth/guard.js';
 import { HttpError, forbidden, notFound } from '../errors.js';
 import { toPublicUser } from '../users/repository.js';
 import type { AppContext } from '../context.js';
+import type { Actor } from '../content/store.js';
 import { ImmichClient } from '../immich/client.js';
 
 const IMAGE_TYPES = [
-  { ext: 'jpg', type: 'image/jpeg', test: (b: Buffer) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
+  {
+    ext: 'jpg',
+    type: 'image/jpeg',
+    test: (b: Buffer) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff,
+  },
   {
     ext: 'png',
     type: 'image/png',
-    test: (b: Buffer) => b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
+    test: (b: Buffer) =>
+      b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
   },
   {
     ext: 'webp',
     type: 'image/webp',
-    test: (b: Buffer) => b.toString('ascii', 0, 4) === 'RIFF' && b.toString('ascii', 8, 12) === 'WEBP',
+    test: (b: Buffer) =>
+      b.toString('ascii', 0, 4) === 'RIFF' && b.toString('ascii', 8, 12) === 'WEBP',
   },
 ] as const;
 
@@ -82,7 +91,8 @@ export async function profileRoutes(app: FastifyInstance): Promise<void> {
           throw new HttpError(400, 'VALIDATION', 'Afbeelding is te groot.');
         }
         const kind = IMAGE_TYPES.find((t) => t.test(data));
-        if (!kind) throw new HttpError(400, 'VALIDATION', 'Alleen JPEG, PNG of WebP is toegestaan.');
+        if (!kind)
+          throw new HttpError(400, 'VALIDATION', 'Alleen JPEG, PNG of WebP is toegestaan.');
         const name = `${user.id}-${crypto.randomBytes(9).toString('base64url')}.${kind.ext}`;
         fs.mkdirSync(ctx.avatarDir, { recursive: true });
         fs.writeFileSync(path.join(ctx.avatarDir, name), data);
@@ -104,7 +114,10 @@ export async function profileRoutes(app: FastifyInstance): Promise<void> {
       const { apiKey } = immichKeySchema.parse(req.body);
       if (apiKey) await verifyImmichKey(ctx, apiKey);
       ctx.immich.setKey(user.id, apiKey);
-      req.log.info({ userId: user.id }, apiKey ? 'Immich-sleutel ingesteld' : 'Immich-sleutel verwijderd');
+      req.log.info(
+        { userId: user.id },
+        apiKey ? 'Immich-sleutel ingesteld' : 'Immich-sleutel verwijderd',
+      );
       return { user: toPublicUser(ctx.users.findById(user.id)!) };
     },
   );
@@ -114,6 +127,66 @@ export async function profileRoutes(app: FastifyInstance): Promise<void> {
     removeAvatarFile(ctx, user.avatar);
     return { user: toPublicUser(ctx.users.update(user.id, { avatar: null })) };
   });
+
+  const trustedList = (me: Actor): TrustedUsers => {
+    const refs = ctx.users.refs();
+    const trustedIds = ctx.trust.trustedBy(me.id);
+    const audience = new Set<string>();
+    for (const t of ctx.content.listTravels()) {
+      if (ctx.content.isAuthor(t.id, me.id))
+        for (const id of ctx.content.audience(t.id)) audience.add(id);
+    }
+    audience.delete(me.id);
+    for (const id of trustedIds) audience.delete(id);
+    const disabled = new Set(
+      ctx.users
+        .list()
+        .filter((u) => u.disabled)
+        .map((u) => u.id),
+    );
+    const toRefs = (ids: Iterable<string>) =>
+      [...ids].flatMap((id) => (refs.has(id) && !disabled.has(id) ? [refs.get(id)!] : []));
+    return {
+      trusted: trustedIds.flatMap((id) => (refs.has(id) ? [refs.get(id)!] : [])),
+      candidates: toRefs(audience).sort((a, b) => a.displayName.localeCompare(b.displayName)),
+    };
+  };
+
+  const trustTarget = (req: FastifyRequest<{ Params: { userId: string } }>) => {
+    const me = currentUser(req);
+    const userId = uuidSchema.parse(req.params.userId);
+    if (userId === me.id) throw new HttpError(400, 'TRUST_SELF', 'Je kunt jezelf niet vertrouwen.');
+    return { me, userId };
+  };
+
+  app.get('/trusted', { preHandler: requireTraveller }, async (req) =>
+    trustedList(currentUser(req)),
+  );
+
+  app.put<{ Params: { userId: string } }>(
+    '/trusted/:userId',
+    { preHandler: requireTraveller },
+    async (req) => {
+      const { me, userId } = trustTarget(req);
+      const target = ctx.users.findById(userId);
+      if (!target || target.disabled) throw notFound('Gebruiker');
+      if (ctx.trust.add(me.id, userId))
+        req.log.info({ ownerId: me.id, trustedId: userId }, 'Vertrouwd');
+      return trustedList(me);
+    },
+  );
+
+  app.delete<{ Params: { userId: string } }>(
+    '/trusted/:userId',
+    { preHandler: requireTraveller },
+    async (req) => {
+      const { me, userId } = trustTarget(req);
+      if (ctx.trust.remove(me.id, userId)) {
+        req.log.info({ ownerId: me.id, trustedId: userId }, 'Vertrouwen ingetrokken');
+      }
+      return trustedList(me);
+    },
+  );
 }
 
 /** Profile pictures, visible to every logged-in user. */

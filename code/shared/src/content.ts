@@ -33,7 +33,8 @@ export const customStatSchema = z.object({
 });
 export type CustomStat = z.infer<typeof customStatSchema>;
 
-const optionalNumber = (min: number, max: number) => z.number().finite().min(min).max(max).optional();
+const optionalNumber = (min: number, max: number) =>
+  z.number().finite().min(min).max(max).optional();
 
 export const statsSchema = z.object({
   /** km */
@@ -68,7 +69,10 @@ export const ROUTED_MODES: readonly TransportMode[] = ['lopen', 'fietsen', 'auto
 export const segmentSchema = z.object({
   mode: z.enum(TRANSPORT_MODES),
   /** Cached route as [lat, lng] pairs. */
-  geometry: z.array(z.tuple([z.number(), z.number()])).max(20_000).optional(),
+  geometry: z
+    .array(z.tuple([z.number(), z.number()]))
+    .max(20_000)
+    .optional(),
   distanceKm: z.number().min(0).optional(),
   /** Elevation gain in metres (routed segments only). */
   ascentM: z.number().min(0).optional(),
@@ -122,13 +126,17 @@ export interface Travel {
   canManage: boolean;
   /** Owner or accepted member: may add posts. */
   canPost: boolean;
+  canDownloadOriginal: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export const travelMemberInputSchema = z.object({ userId: uuidSchema });
 export const travelViewersInputSchema = z.object({
-  userIds: z.array(uuidSchema).max(500).refine((a) => new Set(a).size === a.length, 'Dubbele gebruiker'),
+  userIds: z
+    .array(uuidSchema)
+    .max(500)
+    .refine((a) => new Set(a).size === a.length, 'Dubbele gebruiker'),
 });
 
 /** A stat summed (or maximised) over all posts of a travel. */
@@ -200,6 +208,7 @@ export interface SocialCounts {
 export interface PostPermissions {
   canEdit: boolean;
   canDelete: boolean;
+  canDownloadOriginal: boolean;
 }
 
 export interface PostSummary extends SocialCounts, PostPermissions {
@@ -355,8 +364,9 @@ export interface LibraryPhoto {
   assetId: string;
   postId: string;
   postTitle: string;
-  /** Who published the photo; only they can open the original. */
+  /** Who published the photo. */
   authorId: string | null;
+  canDownloadOriginal: boolean;
   date: string;
   travelId: string;
   travelName: string;
@@ -421,6 +431,11 @@ export interface ImmichAlbum {
 }
 
 export type MediaSize = 'thumbnail' | 'preview' | 'original';
+
+export interface TrustedUsers {
+  trusted: UserRef[];
+  candidates: UserRef[];
+}
 
 // ---------- Settings ----------
 

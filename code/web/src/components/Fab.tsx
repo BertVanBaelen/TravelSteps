@@ -17,7 +17,9 @@ interface FabProps {
 
 /** Floating action button for the main add/edit actions of a page. Put it in a {@link FabStack}. */
 export function Fab({ icon, label, to, onClick, secondary = false, extended = false }: FabProps) {
-  const cls = ['fab', secondary && 'fab-secondary', extended && 'fab-extended'].filter(Boolean).join(' ');
+  const cls = ['fab', secondary && 'fab-secondary', extended && 'fab-extended']
+    .filter(Boolean)
+    .join(' ');
   const content = (
     <>
       {icon}

@@ -93,16 +93,16 @@ export function ForcedPasswordPage() {
   const { logout } = useAuth();
   return (
     <>
-    <StaticBanner title={msg.forcedPassword.title} />
-    <div className="auth-screen">
-      <div className="card auth-card">
-        <p className="muted">{msg.forcedPassword.intro}</p>
-        <ChangePasswordForm forced />
-        <button type="button" className="btn btn-link" onClick={() => void logout()}>
-          {msg.profile.logout}
-        </button>
+      <StaticBanner title={msg.forcedPassword.title} />
+      <div className="auth-screen">
+        <div className="card auth-card">
+          <p className="muted">{msg.forcedPassword.intro}</p>
+          <ChangePasswordForm forced />
+          <button type="button" className="btn btn-link" onClick={() => void logout()}>
+            {msg.profile.logout}
+          </button>
+        </div>
       </div>
-    </div>
     </>
   );
 }

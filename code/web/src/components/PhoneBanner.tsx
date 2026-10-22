@@ -45,11 +45,20 @@ export function PhoneBanner() {
         <button type="button" className="btn btn-small btn-primary" onClick={onInstall}>
           {msg.phoneBanner.button}
         </button>
-        <button type="button" className="icon-btn" aria-label={msg.phoneBanner.dismiss} onClick={close}>
+        <button
+          type="button"
+          className="icon-btn"
+          aria-label={msg.phoneBanner.dismiss}
+          onClick={close}
+        >
           <CloseIcon />
         </button>
       </div>
-      {showIos && <p className="phone-banner-help">{install.state === 'ios' ? msg.install.ios : msg.install.android}</p>}
+      {showIos && (
+        <p className="phone-banner-help">
+          {install.state === 'ios' ? msg.install.ios : msg.install.android}
+        </p>
+      )}
     </div>
   );
 }

@@ -25,7 +25,15 @@ export async function copyText(text: string): Promise<boolean> {
 }
 
 /** Button that copies `value` and briefly shows "Gekopieerd". */
-export function CopyButton({ value, label, className = 'btn btn-secondary' }: { value: string; label?: string; className?: string }) {
+export function CopyButton({
+  value,
+  label,
+  className = 'btn btn-secondary',
+}: {
+  value: string;
+  label?: string;
+  className?: string;
+}) {
   const msg = useT();
   const [copied, setCopied] = useState(false);
   const timer = useRef<number | undefined>(undefined);
@@ -39,7 +47,12 @@ export function CopyButton({ value, label, className = 'btn btn-secondary' }: { 
   }
 
   return (
-    <button type="button" className={`${className}${copied ? ' copied' : ''}`} onClick={() => void copy()} aria-live="polite">
+    <button
+      type="button"
+      className={`${className}${copied ? ' copied' : ''}`}
+      onClick={() => void copy()}
+      aria-live="polite"
+    >
       {copied ? <CheckIcon /> : <CopyIcon />}
       {copied ? msg.users.copied : (label ?? msg.users.copy)}
     </button>

@@ -130,7 +130,12 @@ export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 
 /** Set (string) or remove (null) a personal Immich API key. */
 export const immichKeySchema = z.object({
-  apiKey: z.string().trim().min(10, 'Ongeldige API-sleutel').max(200, 'Ongeldige API-sleutel').nullable(),
+  apiKey: z
+    .string()
+    .trim()
+    .min(10, 'Ongeldige API-sleutel')
+    .max(200, 'Ongeldige API-sleutel')
+    .nullable(),
 });
 export type ImmichKeyInput = z.infer<typeof immichKeySchema>;
 

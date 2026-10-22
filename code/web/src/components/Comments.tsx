@@ -6,10 +6,17 @@ import { formatDateTime, formatRelative } from '../lib/format';
 import { useConfirm } from './ConfirmDialog';
 import { Alert } from './Field';
 import { Avatar } from './Avatar';
-import { CommentSkeleton } from './Skeleton';
+import { CommentSkeleton } from './Skeleton';
+
 import { SendIcon } from './icons';
 
-export function Comments({ postId, onCountChange }: { postId: string; onCountChange?: (n: number) => void }) {
+export function Comments({
+  postId,
+  onCountChange,
+}: {
+  postId: string;
+  onCountChange?: (n: number) => void;
+}) {
   const msg = useT();
   const [comments, setComments] = useState<Comment[] | null>(null);
   const [text, setText] = useState('');
@@ -67,7 +74,15 @@ export function Comments({ postId, onCountChange }: { postId: string; onCountCha
   }
 
   async function remove(c: Comment) {
-    if (!(await confirm({ title: msg.comments.deleteTitle, message: msg.comments.confirmDelete, confirmLabel: msg.common.delete, danger: true }))) return;
+    if (
+      !(await confirm({
+        title: msg.comments.deleteTitle,
+        message: msg.comments.confirmDelete,
+        confirmLabel: msg.common.delete,
+        danger: true,
+      }))
+    )
+      return;
     setError(null);
     try {
       await api(`/comments/${c.id}`, { method: 'DELETE' });
@@ -91,7 +106,11 @@ export function Comments({ postId, onCountChange }: { postId: string; onCountCha
               <div className="comment-body">
                 <div className="comment-head">
                   <strong>{c.author.displayName}</strong>
-                  <time className="muted" dateTime={c.createdAt} title={formatDateTime(c.createdAt)}>
+                  <time
+                    className="muted"
+                    dateTime={c.createdAt}
+                    title={formatDateTime(c.createdAt)}
+                  >
                     {formatRelative(c.createdAt)}
                     {c.updatedAt !== c.createdAt && ` · ${msg.post.edited}`}
                   </time>
@@ -109,7 +128,11 @@ export function Comments({ postId, onCountChange }: { postId: string; onCountCha
                       <button className="btn btn-small btn-primary" type="submit">
                         {msg.common.save}
                       </button>
-                      <button className="btn btn-small" type="button" onClick={() => setEditing(null)}>
+                      <button
+                        className="btn btn-small"
+                        type="button"
+                        onClick={() => setEditing(null)}
+                      >
                         {msg.common.cancel}
                       </button>
                     </div>
@@ -120,12 +143,20 @@ export function Comments({ postId, onCountChange }: { postId: string; onCountCha
                 {editing?.id !== c.id && (c.canEdit || c.canDelete) && (
                   <div className="row-actions">
                     {c.canEdit && (
-                      <button type="button" className="btn-text" onClick={() => setEditing({ id: c.id, text: c.text })}>
+                      <button
+                        type="button"
+                        className="btn-text"
+                        onClick={() => setEditing({ id: c.id, text: c.text })}
+                      >
                         {msg.common.edit}
                       </button>
                     )}
                     {c.canDelete && (
-                      <button type="button" className="btn-text btn-danger" onClick={() => void remove(c)}>
+                      <button
+                        type="button"
+                        className="btn-text btn-danger"
+                        onClick={() => void remove(c)}
+                      >
                         {msg.common.delete}
                       </button>
                     )}

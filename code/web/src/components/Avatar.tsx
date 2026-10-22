@@ -8,7 +8,16 @@ export interface AvatarUser {
 
 export type AvatarSize = 'xs' | 's' | 'm' | 'l';
 
-const PALETTE = ['#16a34a', '#0284c7', '#7c3aed', '#db2777', '#ea580c', '#0d9488', '#4f46e5', '#b45309'];
+const PALETTE = [
+  '#16a34a',
+  '#0284c7',
+  '#7c3aed',
+  '#db2777',
+  '#ea580c',
+  '#0d9488',
+  '#4f46e5',
+  '#b45309',
+];
 
 /** Up to two initials: first letters of the first and last word. */
 export function initials(name: string): string {
@@ -44,7 +53,11 @@ export function Avatar({ user, size = 'm' }: { user: AvatarUser | null; size?: A
     return <img className={cls} src={user.avatarUrl} alt="" loading="lazy" />;
   }
   return (
-    <span className={cls} aria-hidden style={{ background: avatarColor(user.id ?? user.displayName) }}>
+    <span
+      className={cls}
+      aria-hidden
+      style={{ background: avatarColor(user.id ?? user.displayName) }}
+    >
       {initials(user.displayName)}
     </span>
   );
@@ -59,7 +72,9 @@ export function AvatarStack({ users, max = 5 }: { users: AvatarUser[]; max?: num
       {shown.map((u, i) => (
         <Avatar key={u.id ?? i} user={u} size="xs" />
       ))}
-      {users.length > max && <span className="avatar avatar-xs avatar-more">+{users.length - max}</span>}
+      {users.length > max && (
+        <span className="avatar avatar-xs avatar-more">+{users.length - max}</span>
+      )}
     </span>
   );
 }

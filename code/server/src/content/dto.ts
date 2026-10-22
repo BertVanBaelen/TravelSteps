@@ -29,6 +29,7 @@ export function toTravel(
     myRole: content.roleIn(t.id, actor.id),
     canManage,
     canPost: content.canPost(actor, t.id),
+    canDownloadOriginal: Boolean(t.coverAssetId) && ctx.canUseAuthorRights(actor, t.ownerId, t.id),
     createdAt: t.createdAt,
     updatedAt: t.updatedAt,
   };

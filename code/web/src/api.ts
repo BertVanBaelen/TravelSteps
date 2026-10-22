@@ -66,5 +66,8 @@ export function errorMessage(err: unknown): string {
   // Server texts are Dutch and sometimes more specific (validation details, waiting time).
   if (err.fromServer && getLanguage() === DEFAULT_LANGUAGE) return err.message;
   const codes: Record<string, string | undefined> = m.codes;
-  return (err.status === 429 ? codes[err.code] ?? m.codes.TOO_MANY_REQUESTS : codes[err.code]) ?? m.generic;
+  return (
+    (err.status === 429 ? (codes[err.code] ?? m.codes.TOO_MANY_REQUESTS) : codes[err.code]) ??
+    m.generic
+  );
 }

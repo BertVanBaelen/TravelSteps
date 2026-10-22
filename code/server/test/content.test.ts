@@ -205,7 +205,9 @@ async function addMember(manager: string, travelId: string, member: TestUser) {
   expect(accepted.statusCode).toBe(200);
 }
 
-async function notificationsOf(cookie: string): Promise<{ items: AppNotification[]; unread: number }> {
+async function notificationsOf(
+  cookie: string,
+): Promise<{ items: AppNotification[]; unread: number }> {
   const res = await call('GET', '/api/notifications', cookie);
   expect(res.statusCode).toBe(200);
   return res.json();
@@ -237,7 +239,12 @@ async function startFakeImmich(): Promise<string> {
       return json({ assets: { items: [{ id: ASSET_A, type: 'IMAGE' }], nextPage: null } });
     }
     if (req.url?.startsWith('/api/assets/') && !req.url.includes('/', 12)) {
-      return json({ id: req.url.slice(12), type: 'IMAGE' });
+      const id = req.url.slice(12);
+      return json({
+        id,
+        type: 'IMAGE',
+        ...(id === ASSET_A ? { originalFileName: 'IMG_0001.jpg' } : {}),
+      });
     }
     const m =
       /^\/api\/assets\/([^/]+)\/thumbnail\?size=(\w+)$/.exec(req.url ?? '') ??
@@ -327,7 +334,11 @@ describe('reizen en posts', () => {
     expect(reloaded.travelName).toBe('Noorwegen 2025');
     expect(reloaded.author?.id).toBe(adminId);
     const t = await getTravel(admin, travel.id);
-    expect(t).toMatchObject({ description: 'Een **mooie** reis', viewerIds: [omaId], postCount: 1 });
+    expect(t).toMatchObject({
+      description: 'Een **mooie** reis',
+      viewerIds: [omaId],
+      postCount: 1,
+    });
   });
 
   it('verplaatst posts tussen reizen en houdt slugs uniek', async () => {
@@ -381,7 +392,10 @@ describe('reizen en posts', () => {
     await createTravel(admin, 'Oud', { startDate: '2020-01-01', endDate: '2020-02-01' });
     const ongoing = await createTravel(admin, 'Lopend', { startDate: '2021-01-01' });
     await createTravel(admin, 'Toekomst', { startDate: '2099-01-01' });
-    await createTravel(piet.cookie, 'Piet vroeger', { startDate: '2019-01-01', endDate: '2019-01-10' });
+    await createTravel(piet.cookie, 'Piet vroeger', {
+      startDate: '2019-01-01',
+      endDate: '2019-01-10',
+    });
     const later = await createTravel(piet.cookie, 'Piet later', { startDate: '2098-01-01' });
 
     expect((await createPost(admin, 'A', '2025-06-02T10:00:00Z')).travelId).toBe(ongoing.id);
@@ -437,8 +451,12 @@ describe('reizen en posts', () => {
     ).toBe(403);
     expect((await call('DELETE', `/api/travels/${travel.id}`, viewer)).statusCode).toBe(403);
     expect(
-      (await call('PUT', `/api/travels/${travel.id}`, viewer, { name: 'Y', startDate: '2025-01-01' }))
-        .statusCode,
+      (
+        await call('PUT', `/api/travels/${travel.id}`, viewer, {
+          name: 'Y',
+          startDate: '2025-01-01',
+        })
+      ).statusCode,
     ).toBe(403);
     expect(
       (await call('POST', '/api/posts', viewer, { title: 'Y', date: '2025-01-01' })).statusCode,
@@ -511,7 +529,10 @@ describe('reizen en posts', () => {
     expect(fs.existsSync(path.join(`${root}.migrated`, 'b', 'posts', 'x.md'))).toBe(true);
 
     // Once the database has travels, a new folder is not imported again.
-    write('c/travel.md', '---\nid: cccccccc-cccc-4ccc-8ccc-cccccccccccc\nname: C\nstartDate: 2025-03-01\n---\n');
+    write(
+      'c/travel.md',
+      '---\nid: cccccccc-cccc-4ccc-8ccc-cccccccccccc\nname: C\nstartDate: 2025-03-01\n---\n',
+    );
     await restart();
     expect((await call('GET', '/api/travels', admin)).json().travels).toHaveLength(2);
     expect(fs.existsSync(root)).toBe(true);
@@ -607,8 +628,8 @@ describe('immich', () => {
     expect((await call('GET', `/api/media/${ASSET_B}/preview`, viewer)).statusCode).toBe(404);
     expect((await call('GET', `/api/media/${ASSET_B}/preview`, admin)).statusCode).toBe(200);
     expect((await call('GET', `/api/media/${ASSET_A}/huge`, admin)).statusCode).toBe(404);
-    // Originals (full EXIF/GPS) only via one's own key, even for published photos.
-    expect((await call('GET', `/api/media/${ASSET_A}/original`, viewer)).statusCode).toBe(404);
+    // Originals (full EXIF/GPS) only for the author, admins and trusted people.
+    expect((await call('GET', `/api/media/${ASSET_A}/original`, viewer)).statusCode).toBe(403);
     expect((await call('GET', `/api/media/${ASSET_A}/original`, admin)).statusCode).toBe(200);
     expect((await call('GET', '/api/media/../preview', admin)).statusCode).toBe(404);
 
@@ -760,7 +781,11 @@ describe('routes en kaart', () => {
             features: [
               {
                 geometry: {
-                  coordinates: [[...a, 10], [a[0]! + 0.01, b[1]!, 30], [...b, 20]],
+                  coordinates: [
+                    [...a, 10],
+                    [a[0]! + 0.01, b[1]!, 30],
+                    [...b, 20],
+                  ],
                 },
                 properties: { summary: { distance: 1500 }, ascent: 42 },
               },
@@ -1033,11 +1058,17 @@ describe('zichtbaarheid', () => {
       ['PUT', `/api/posts/${post.id}/like`],
       ['DELETE', `/api/posts/${post.id}`],
     ] as const) {
-      const res = await call(method, url, jan.cookie, method === 'PUT' ? { userIds: [] } : undefined);
+      const res = await call(
+        method,
+        url,
+        jan.cookie,
+        method === 'PUT' ? { userIds: [] } : undefined,
+      );
       expect(res.statusCode, `${method} ${url}`).toBe(404);
     }
     expect(
-      (await call('POST', `/api/posts/${post.id}/comments`, jan.cookie, { text: 'Hoi' })).statusCode,
+      (await call('POST', `/api/posts/${post.id}/comments`, jan.cookie, { text: 'Hoi' }))
+        .statusCode,
     ).toBe(404);
     expect((await call('GET', '/api/travels', jan.cookie)).json().travels).toEqual([]);
     expect(await feedTitles(jan.cookie)).toEqual([]);
@@ -1046,7 +1077,12 @@ describe('zichtbaarheid', () => {
 
     // Owner sees members and viewers; others see the travel without the viewer list.
     const asPiet = await getTravel(piet.cookie, travel.id);
-    expect(asPiet).toMatchObject({ myRole: 'owner', canManage: true, canPost: true, viewerIds: [oma.id] });
+    expect(asPiet).toMatchObject({
+      myRole: 'owner',
+      canManage: true,
+      canPost: true,
+      viewerIds: [oma.id],
+    });
     expect(asPiet.members).toEqual([expect.objectContaining({ id: kees.id, status: 'accepted' })]);
     expect(await getTravel(kees.cookie, travel.id)).toMatchObject({
       myRole: 'member',
@@ -1070,7 +1106,9 @@ describe('zichtbaarheid', () => {
 
     // Forbidden write actions on a visible travel give 403.
     const edit = { name: 'Anders', startDate: '2025-06-01' };
-    expect((await call('PUT', `/api/travels/${travel.id}`, kees.cookie, edit)).statusCode).toBe(403);
+    expect((await call('PUT', `/api/travels/${travel.id}`, kees.cookie, edit)).statusCode).toBe(
+      403,
+    );
     expect((await call('DELETE', `/api/travels/${travel.id}`, kees.cookie)).statusCode).toBe(403);
     expect(
       (await call('PUT', `/api/travels/${travel.id}/viewers`, kees.cookie, { userIds: [] }))
@@ -1127,9 +1165,9 @@ describe('zichtbaarheid', () => {
     expect(await feedTitles(oma.cookie, `?traveller=${oma.id}`)).toEqual([]);
 
     const travels = async (query: string) =>
-      ((await call('GET', `/api/travels${query}`, oma.cookie)).json().travels as TravelSummary[]).map(
-        (t) => t.name,
-      );
+      (
+        (await call('GET', `/api/travels${query}`, oma.cookie)).json().travels as TravelSummary[]
+      ).map((t) => t.name);
     expect(await travels('')).toEqual(['Bert reis', 'IJsland']);
     expect(await travels(`?traveller=${piet.id}`)).toEqual(['IJsland']);
     expect(await travels(`?traveller=${adminId}`)).toEqual(['Bert reis']);
@@ -1139,7 +1177,9 @@ describe('zichtbaarheid', () => {
 
     const library = (await call('GET', `/api/library?traveller=${piet.id}`, oma.cookie)).json()
       .photos;
-    expect(library.map((p: { assetId: string; authorId: string }) => [p.assetId, p.authorId])).toEqual(
+    expect(
+      library.map((p: { assetId: string; authorId: string }) => [p.assetId, p.authorId]),
+    ).toEqual(
       expect.arrayContaining([
         [ASSET_A, piet.id],
         [ASSET_B, kees.id],
@@ -1204,7 +1244,10 @@ describe('meeschrijvers', () => {
     ).toBe(404);
 
     // Invited: may see the travel but not post yet.
-    expect(await getTravel(kees.cookie, travel.id)).toMatchObject({ myRole: 'invited', canPost: false });
+    expect(await getTravel(kees.cookie, travel.id)).toMatchObject({
+      myRole: 'invited',
+      canPost: false,
+    });
     const early = await call('POST', '/api/posts', kees.cookie, {
       title: 'Te vroeg',
       date: '2025-06-02T10:00:00Z',
@@ -1227,14 +1270,20 @@ describe('meeschrijvers', () => {
     // Anna declines; a member may not remove others.
     await call('POST', `/api/travels/${travel.id}/members`, piet.cookie, { userId: anna.id });
     expect(
-      (await call('DELETE', `/api/travels/${travel.id}/members/${anna.id}`, kees.cookie)).statusCode,
+      (await call('DELETE', `/api/travels/${travel.id}/members/${anna.id}`, kees.cookie))
+        .statusCode,
     ).toBe(403);
-    const declined = await call('DELETE', `/api/travels/${travel.id}/members/${anna.id}`, anna.cookie);
+    const declined = await call(
+      'DELETE',
+      `/api/travels/${travel.id}/members/${anna.id}`,
+      anna.cookie,
+    );
     expect(declined.statusCode).toBe(200);
     expect(declined.json()).toEqual({ travel: null });
     expect((await call('GET', `/api/travels/${travel.id}`, anna.cookie)).statusCode).toBe(404);
     expect(
-      (await call('DELETE', `/api/travels/${travel.id}/members/${anna.id}`, piet.cookie)).statusCode,
+      (await call('DELETE', `/api/travels/${travel.id}/members/${anna.id}`, piet.cookie))
+        .statusCode,
     ).toBe(404);
 
     // Kees leaves; his post stays.
@@ -1246,7 +1295,11 @@ describe('meeschrijvers', () => {
 
     // The owner removes a member.
     await addMember(piet.cookie, travel.id, kees);
-    const removed = await call('DELETE', `/api/travels/${travel.id}/members/${kees.id}`, piet.cookie);
+    const removed = await call(
+      'DELETE',
+      `/api/travels/${travel.id}/members/${kees.id}`,
+      piet.cookie,
+    );
     expect(removed.statusCode).toBe(200);
     expect(removed.json().travel.members).toEqual([]);
   });
@@ -1315,7 +1368,8 @@ describe('rechten op posts en reacties', () => {
       return res.json().comment as { id: string; canEdit: boolean; canDelete: boolean };
     };
     expect(
-      (await call('POST', `/api/posts/${post.id}/comments`, jan.cookie, { text: 'Hoi' })).statusCode,
+      (await call('POST', `/api/posts/${post.id}/comments`, jan.cookie, { text: 'Hoi' }))
+        .statusCode,
     ).toBe(404);
     await setViewers(piet.cookie, travel.id, [oma.id, jan.id]);
 
@@ -1326,20 +1380,22 @@ describe('rechten op posts en reacties', () => {
     const byJan = await comment(jan.cookie, 'van Jan');
 
     const asSeenBy = async (cookie: string) =>
-      ((await call('GET', `/api/posts/${post.id}/comments`, cookie)).json().comments as {
-        id: string;
-        canEdit: boolean;
-        canDelete: boolean;
-      }[]).map((c) => [c.canEdit, c.canDelete]);
+      (
+        (await call('GET', `/api/posts/${post.id}/comments`, cookie)).json().comments as {
+          id: string;
+          canEdit: boolean;
+          canDelete: boolean;
+        }[]
+      ).map((c) => [c.canEdit, c.canDelete]);
     expect((await asSeenBy(kees.cookie))[0]).toEqual([false, true]);
     expect((await asSeenBy(piet.cookie))[0]).toEqual([false, true]);
     expect((await asSeenBy(jan.cookie))[0]).toEqual([false, false]);
     expect((await asSeenBy(jan.cookie))[4]).toEqual([true, true]);
 
     expect((await call('DELETE', `/api/comments/${c1.id}`, jan.cookie)).statusCode).toBe(403);
-    expect((await call('PATCH', `/api/comments/${c1.id}`, kees.cookie, { text: 'x' })).statusCode).toBe(
-      403,
-    );
+    expect(
+      (await call('PATCH', `/api/comments/${c1.id}`, kees.cookie, { text: 'x' })).statusCode,
+    ).toBe(403);
     expect((await call('DELETE', `/api/comments/${c1.id}`, oma.cookie)).statusCode).toBe(204);
     expect((await call('DELETE', `/api/comments/${c2.id}`, kees.cookie)).statusCode).toBe(204);
     expect((await call('DELETE', `/api/comments/${c3.id}`, piet.cookie)).statusCode).toBe(204);
@@ -1359,13 +1415,14 @@ describe('meldingen en abonnementen', () => {
     await call('POST', '/api/notifications/read', kees.cookie, {});
 
     // Only travellers whose blog I can see can be followed.
-    expect((await call('PUT', `/api/travellers/${piet.id}/subscription`, jan.cookie)).statusCode).toBe(
-      404,
-    );
+    expect(
+      (await call('PUT', `/api/travellers/${piet.id}/subscription`, jan.cookie)).statusCode,
+    ).toBe(404);
     const sub = await call('PUT', `/api/travellers/${piet.id}/subscription`, oma.cookie);
     expect(sub.json()).toEqual({ subscribed: true });
     await call('PUT', `/api/travellers/${kees.id}/subscription`, admin);
-    const list = (await call('GET', '/api/travellers', oma.cookie)).json().travellers as Traveller[];
+    const list = (await call('GET', '/api/travellers', oma.cookie)).json()
+      .travellers as Traveller[];
     expect(list.map((t) => [t.displayName, t.subscribed])).toEqual([
       ['Kees', false],
       ['Piet', true],
@@ -1528,7 +1585,9 @@ describe('taal', () => {
     await startApp();
     const { admin, kees } = await setupWorld();
     await call('PATCH', '/api/profile', kees.cookie, { language: 'en' });
-    expect((await call('DELETE', `/api/users/${kees.id}`, admin, { mode: 'delete' })).statusCode).toBe(204);
+    expect(
+      (await call('DELETE', `/api/users/${kees.id}`, admin, { mode: 'delete' })).statusCode,
+    ).toBe(204);
     expect((await call('GET', '/api/auth/me', kees.cookie)).statusCode).toBe(401);
   });
 });
@@ -1568,10 +1627,17 @@ describe('gebruikers verwijderen', () => {
     expect((await remove(admin, kees.id, { mode: 'delete' })).statusCode).toBe(204);
     expect((await call('GET', `/api/travels/${keesTravel.id}`, admin)).statusCode).toBe(404);
     expect((await call('GET', `/api/posts/${inOwn.id}`, admin)).statusCode).toBe(404);
-    const kept: PostDetail = (await call('GET', `/api/posts/${inPiets.id}`, piet.cookie)).json().post;
-    expect(kept).toMatchObject({ title: 'Bij Piet', author: null, canEdit: false, canDelete: true });
+    const kept: PostDetail = (await call('GET', `/api/posts/${inPiets.id}`, piet.cookie)).json()
+      .post;
+    expect(kept).toMatchObject({
+      title: 'Bij Piet',
+      author: null,
+      canEdit: false,
+      canDelete: true,
+    });
     expect((await getTravel(piet.cookie, travel.id)).members).toEqual([]);
-    const liked: PostDetail = (await call('GET', `/api/posts/${byPiet.id}`, piet.cookie)).json().post;
+    const liked: PostDetail = (await call('GET', `/api/posts/${byPiet.id}`, piet.cookie)).json()
+      .post;
     expect(liked).toMatchObject({ likeCount: 0, commentCount: 0 });
     expect(await feedTitles(oma.cookie)).toEqual(['Van Piet', 'Bij Piet']);
     expect(count('posts')).toBe(2);
@@ -1585,7 +1651,9 @@ describe('gebruikers verwijderen', () => {
     await startApp();
     const { admin, piet, kees, oma, travel } = await setupWorld();
     const other = await createTravel(piet.cookie, 'Schotland');
-    const p1 = await createPost(piet.cookie, 'IJs', '2025-06-02T10:00:00Z', { travelId: travel.id });
+    const p1 = await createPost(piet.cookie, 'IJs', '2025-06-02T10:00:00Z', {
+      travelId: travel.id,
+    });
     const p2 = await createPost(piet.cookie, 'Hooglanden', '2025-06-02T10:00:00Z', {
       travelId: other.id,
     });
@@ -1647,7 +1715,9 @@ describe('gebruikers verwijderen', () => {
 
     // Without owned travels "disable" just deletes the user.
     expect((await remove(admin, jan.id, { mode: 'disable' })).statusCode).toBe(204);
-    const ids = ((await call('GET', '/api/users', admin)).json().users as AdminUser[]).map((u) => u.id);
+    const ids = ((await call('GET', '/api/users', admin)).json().users as AdminUser[]).map(
+      (u) => u.id,
+    );
     expect(ids).not.toContain(jan.id);
     expect(ids).toContain(piet.id);
   });
@@ -1659,9 +1729,13 @@ describe('gebruikers verwijderen', () => {
     expect(res.statusCode).toBe(200);
     expect(res.json().user.role).toBe('viewer');
     // Still a member, but viewers cannot post.
-    expect(await getTravel(kees.cookie, travel.id)).toMatchObject({ myRole: 'member', canPost: false });
+    expect(await getTravel(kees.cookie, travel.id)).toMatchObject({
+      myRole: 'member',
+      canPost: false,
+    });
     expect(
-      (await call('POST', '/api/posts', kees.cookie, { title: 'X', date: '2025-06-02' })).statusCode,
+      (await call('POST', '/api/posts', kees.cookie, { title: 'X', date: '2025-06-02' }))
+        .statusCode,
     ).toBe(403);
     const adminRole = await call('PATCH', `/api/users/${adminId}`, admin, { role: 'viewer' });
     expect(adminRole.json().error).toBe('ADMIN_PROTECTED');
@@ -1697,8 +1771,8 @@ describe('eigen Immich-sleutel', () => {
     expect(await media(oma.cookie, ASSET_A)).toBe(`jpeg:piet:${ASSET_A}:preview`);
     expect(await media(kees.cookie, ASSET_A)).toBe(`jpeg:piet:${ASSET_A}:preview`);
     expect(await media(jan.cookie, ASSET_A)).toBe(404);
-    expect(await media(oma.cookie, ASSET_A, 'original')).toBe(404);
-    expect(await media(kees.cookie, ASSET_A, 'original')).toBe(404);
+    expect(await media(oma.cookie, ASSET_A, 'original')).toBe(403);
+    expect(await media(kees.cookie, ASSET_A, 'original')).toBe(403);
     expect(await media(piet.cookie, ASSET_A, 'original')).toBe(`jpeg:piet:${ASSET_A}:original`);
     // Unpublished: only from one's own library.
     expect(await media(oma.cookie, ASSET_D)).toBe(404);
@@ -1749,8 +1823,119 @@ describe('eigen Immich-sleutel', () => {
     const removed = await call('PUT', '/api/profile/immich-key', piet.cookie, { apiKey: null });
     expect(removed.json().user.hasImmichKey).toBe(false);
     expect(immichKeyRow(piet.id)).toBeNull();
-    expect((await call('GET', '/api/immich/albums', piet.cookie)).json().error).toBe('IMMICH_NO_KEY');
+    expect((await call('GET', '/api/immich/albums', piet.cookie)).json().error).toBe(
+      'IMMICH_NO_KEY',
+    );
     expect(await media(oma.cookie, ASSET_A)).toBe(404);
+  });
+});
+
+describe('vertrouwde personen', () => {
+  const original = (cookie: string, asset = ASSET_A) =>
+    call('GET', `/api/media/${asset}/original`, cookie);
+
+  it('beheert vertrouwde personen met validatie', async () => {
+    await startApp();
+    const { admin, piet, kees, oma, jan } = await setupWorld();
+    const empty = await call('GET', '/api/profile/trusted', piet.cookie);
+    expect(empty.statusCode).toBe(200);
+    expect(empty.json().trusted).toEqual([]);
+    const candidates = empty.json().candidates.map((u: { id: string }) => u.id);
+    expect(candidates).toEqual(expect.arrayContaining([kees.id, oma.id]));
+    expect(candidates).not.toContain(jan.id);
+    expect(candidates).not.toContain(piet.id);
+
+    expect((await call('GET', '/api/profile/trusted', oma.cookie)).statusCode).toBe(403);
+    expect((await call('PUT', `/api/profile/trusted/${kees.id}`, oma.cookie)).statusCode).toBe(403);
+    const self = await call('PUT', `/api/profile/trusted/${piet.id}`, piet.cookie);
+    expect(self.statusCode).toBe(400);
+    expect(self.json().error).toBe('TRUST_SELF');
+    const unknown = await call('PUT', `/api/profile/trusted/${crypto.randomUUID()}`, piet.cookie);
+    expect(unknown.statusCode).toBe(404);
+    expect((await call('PUT', '/api/profile/trusted/geen-id', piet.cookie)).statusCode).toBe(400);
+
+    const added = await call('PUT', `/api/profile/trusted/${oma.id}`, piet.cookie);
+    expect(added.statusCode).toBe(200);
+    expect(added.json().trusted.map((u: { id: string }) => u.id)).toEqual([oma.id]);
+    expect(added.json().candidates.map((u: { id: string }) => u.id)).not.toContain(oma.id);
+    expect((await call('PUT', `/api/profile/trusted/${oma.id}`, piet.cookie)).statusCode).toBe(200);
+    expect(count('trusted_users')).toBe(1);
+
+    const removed = await call('DELETE', `/api/profile/trusted/${oma.id}`, piet.cookie);
+    expect(removed.json().trusted).toEqual([]);
+    expect(count('trusted_users')).toBe(0);
+
+    await call('PUT', `/api/profile/trusted/${oma.id}`, piet.cookie);
+    await call('PUT', `/api/profile/trusted/${piet.id}`, kees.cookie);
+    expect(
+      (await call('DELETE', `/api/users/${oma.id}`, admin, { mode: 'delete' })).statusCode,
+    ).toBe(204);
+    expect(count('trusted_users')).toBe(1);
+    expect(
+      (await call('DELETE', `/api/users/${kees.id}`, admin, { mode: 'delete' })).statusCode,
+    ).toBe(204);
+    expect(count('trusted_users')).toBe(0);
+  });
+
+  it('geeft originelen alleen aan auteur, beheerder en vertrouwde personen met zicht op de reis', async () => {
+    const url = await startFakeImmich();
+    await startApp({ immichUrl: url });
+    const { admin, piet, kees, oma, jan, travel } = await setupWorld();
+    app!.ctx.immich.setKey(piet.id, PIET_KEY);
+    const post = await createPost(piet.cookie, 'Van Piet', '2025-06-02T10:00:00Z', {
+      photos: [ASSET_A, ASSET_B],
+    });
+
+    const own = await original(piet.cookie);
+    expect(own.statusCode).toBe(200);
+    expect(own.body).toBe(`jpeg:piet:${ASSET_A}:original`);
+    expect(own.headers['content-disposition']).toBe(
+      `attachment; filename="IMG_0001.jpg"; filename*=UTF-8''IMG_0001.jpg`,
+    );
+    expect(own.headers['cache-control']).toBe('private, no-store');
+    expect((await original(piet.cookie, ASSET_B)).headers['content-disposition']).toContain(
+      `filename="${ASSET_B}.jpg"`,
+    );
+    expect((await original(admin)).statusCode).toBe(200);
+    expect((await original(oma.cookie)).statusCode).toBe(403);
+    expect((await original(kees.cookie)).statusCode).toBe(403);
+    expect((await original(jan.cookie)).statusCode).toBe(404);
+
+    const flag = async (cookie: string) =>
+      (await call('GET', `/api/posts/${post.id}`, cookie)).json().post.canDownloadOriginal;
+    expect(await flag(piet.cookie)).toBe(true);
+    expect(await flag(admin)).toBe(true);
+    expect(await flag(oma.cookie)).toBe(false);
+
+    await call('PUT', `/api/profile/trusted/${oma.id}`, piet.cookie);
+    await call('PUT', `/api/profile/trusted/${jan.id}`, piet.cookie);
+    const trusted = await original(oma.cookie);
+    expect(trusted.statusCode).toBe(200);
+    expect(trusted.body).toBe(`jpeg:piet:${ASSET_A}:original`);
+    expect(await flag(oma.cookie)).toBe(true);
+    const library = (await call('GET', '/api/library', oma.cookie)).json();
+    expect(library.photos).toHaveLength(2);
+    expect(
+      library.photos.every((p: { canDownloadOriginal: boolean }) => p.canDownloadOriginal),
+    ).toBe(true);
+    // Trusted, but the travel is not visible.
+    expect((await original(jan.cookie)).statusCode).toBe(404);
+    await setViewers(piet.cookie, travel.id, [oma.id, jan.id]);
+    expect((await original(jan.cookie)).statusCode).toBe(200);
+    await setViewers(piet.cookie, travel.id, [oma.id]);
+    expect((await original(jan.cookie)).statusCode).toBe(404);
+
+    // Revoking takes effect immediately.
+    await call('DELETE', `/api/profile/trusted/${oma.id}`, piet.cookie);
+    expect((await original(oma.cookie)).statusCode).toBe(403);
+    expect(await flag(oma.cookie)).toBe(false);
+
+    // Without the owner's key the original is unavailable.
+    await call('PUT', `/api/profile/trusted/${oma.id}`, piet.cookie);
+    app!.ctx.immich.setKey(piet.id, null);
+    const missing = await original(oma.cookie);
+    expect(missing.statusCode).toBe(404);
+    expect(missing.json().error).toBe('ORIGINAL_UNAVAILABLE');
   });
 });
 
@@ -1764,11 +1949,7 @@ describe('oude database', () => {
     fs.writeFileSync(`${old}-shm`, '');
 
     expect(renameLegacyDatabase(dataDir)).toBe(true);
-    expect(fs.readdirSync(dataDir).sort()).toEqual([
-      DB_FILE,
-      `${DB_FILE}-shm`,
-      `${DB_FILE}-wal`,
-    ]);
+    expect(fs.readdirSync(dataDir).sort()).toEqual([DB_FILE, `${DB_FILE}-shm`, `${DB_FILE}-wal`]);
     fs.rmSync(path.join(dataDir, `${DB_FILE}-wal`));
     fs.rmSync(path.join(dataDir, `${DB_FILE}-shm`));
     const reopened = openDatabase(dbPath());

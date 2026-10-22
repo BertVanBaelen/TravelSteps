@@ -135,6 +135,20 @@ export const nl = {
     confirmImmichRemove: "Immich-sleutel verwijderen? Je kunt dan geen foto's meer kiezen.",
     immichRemoveTitle: 'Immich-sleutel verwijderen?',
     avatarTitle: 'Profielfoto',
+    trustedTitle: 'Vertrouwde personen',
+    trustedHint:
+      "Vertrouwde personen mogen de originele foto's van jouw berichten downloaden, maar alleen van reizen die ze mogen zien. Je kunt dit altijd weer intrekken.",
+    trustedNone: 'Je vertrouwt nog niemand.',
+    trustedAdd: 'Persoon toevoegen',
+    trustedChoose: 'Kies een persoon',
+    trustedNoCandidates:
+      'Er is niemand meer die je kunt toevoegen. Alleen wie minstens een van je reizen kan zien, komt in aanmerking.',
+    trustedRemove: 'Vertrouwen intrekken',
+    trustedRemoveTitle: 'Vertrouwen intrekken?',
+    trustedConfirmRemove: (name: string) =>
+      `${name} kan daarna geen originele foto's van jou meer downloaden.`,
+    trustedAdded: (name: string) => `${name} is toegevoegd.`,
+    trustedRemoved: (name: string) => `${name} is verwijderd.`,
     menu: {
       account: 'Account',
       app: 'App',
@@ -149,6 +163,7 @@ export const nl = {
             : `Je volgt ${n} reizigers`,
       usersSummary: 'Uitnodigen, rollen en wachtwoorden',
       settingsSummary: 'Versie, koppelingen en configuratie',
+      trustedSummary: "Wie je originele foto's mag downloaden",
     },
   },
   users: {
@@ -223,6 +238,8 @@ export const nl = {
       CSRF: 'Ongeldig verzoek.',
       VALIDATION: 'Controleer de ingevulde gegevens.',
       INTERNAL: 'Er ging iets mis op de server.',
+      TRUST_SELF: 'Je kunt jezelf niet vertrouwen.',
+      ORIGINAL_UNAVAILABLE: 'Het origineel is niet beschikbaar.',
       TOO_MANY_REQUESTS: 'Te veel verzoeken. Probeer het later opnieuw.',
       TOO_MANY_ATTEMPTS: 'Te veel mislukte pogingen. Probeer het later opnieuw.',
       MUST_CHANGE_CREDENTIALS: 'Je moet eerst je gebruikersnaam en wachtwoord wijzigen.',
@@ -279,7 +296,7 @@ export const nl = {
     delete: 'Stap verwijderen',
     actions: 'Acties voor deze stap',
     notFound: 'Stap niet gevonden',
-    original: 'Origineel openen',
+    original: 'Download origineel',
     photoOf: (i: number, n: number) => `Foto ${i} van ${n}`,
   },
   likes: {

@@ -16,8 +16,9 @@ export function excerpt(markdown: string, length = EXCERPT_LENGTH): string {
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
     .replace(/^\s{0,3}(#{1,6}|>|[-*+]|\d+\.)\s+/gm, '')
     .replace(/[*_~`]+/g, '')
-    .replace(/&(lt|gt|amp|quot|#39);/g, (_, e: string) =>
-      ({ lt: '<', gt: '>', amp: '&', quot: '"', '#39': "'" })[e] ?? '',
+    .replace(
+      /&(lt|gt|amp|quot|#39);/g,
+      (_, e: string) => ({ lt: '<', gt: '>', amp: '&', quot: '"', '#39': "'" })[e] ?? '',
     )
     .replace(/\\([\\`*_{}[\]()#+\-.!<>|~])/g, '$1');
   return truncate(text, length);

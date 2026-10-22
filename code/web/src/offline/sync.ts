@@ -4,8 +4,7 @@ import { messages } from '../i18n/store';
 import { db, legacyMigration, withTimeout, type OutboxItem } from './db';
 
 export type SyncEvent =
-  | { type: 'published'; postId: string; title: string }
-  | { type: 'unauthorized' };
+  { type: 'published'; postId: string; title: string } | { type: 'unauthorized' };
 
 const listeners = new Set<(e: SyncEvent) => void>();
 
@@ -77,7 +76,10 @@ export async function syncOutbox(): Promise<void> {
     await withTimeout(legacyMigration, 5000, undefined);
     do {
       again = false;
-      const items = await db.outbox.orderBy('queuedAt').filter((i) => i.status === 'pending').toArray();
+      const items = await db.outbox
+        .orderBy('queuedAt')
+        .filter((i) => i.status === 'pending')
+        .toArray();
       for (const item of items) {
         if ((await send(item)) === 'stop') return;
       }

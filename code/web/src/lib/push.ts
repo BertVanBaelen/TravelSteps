@@ -5,9 +5,13 @@ import { isAndroid, isStandalone } from './install';
 /** Explains how to unblock notifications on this platform (a page cannot ask again once blocked). */
 export function pushDeniedMessage(): string {
   if (isAndroid()) {
-    return isStandalone() ? messages().notifications.pushDeniedAndroidApp : messages().notifications.pushDeniedAndroid;
+    return isStandalone()
+      ? messages().notifications.pushDeniedAndroidApp
+      : messages().notifications.pushDeniedAndroid;
   }
-  return isStandalone() ? messages().notifications.pushDenied : messages().notifications.pushDeniedDesktop;
+  return isStandalone()
+    ? messages().notifications.pushDenied
+    : messages().notifications.pushDeniedDesktop;
 }
 
 /** Current permission; the Permissions API is preferred because some browsers update it sooner. */
@@ -83,7 +87,11 @@ export async function enablePush(): Promise<void> {
   const { publicKey } = await api<{ publicKey: string | null }>('/push/key');
   if (!publicKey) throw new Error(messages().notifications.pushNoServer);
   const key = keyToBytes(publicKey);
-  const reg = await timeout(navigator.serviceWorker.ready, 10_000, messages().notifications.pushNoWorker);
+  const reg = await timeout(
+    navigator.serviceWorker.ready,
+    10_000,
+    messages().notifications.pushNoWorker,
+  );
   let sub = await reg.pushManager.getSubscription();
   // A subscription made with another server key (e.g. a new data folder) cannot be reused.
   if (sub && !sameKey(sub.options.applicationServerKey, key)) {
@@ -96,7 +104,9 @@ export async function enablePush(): Promise<void> {
     } catch (err) {
       console.warn('Push subscription failed', err);
       throw new Error(
-        messages().notifications.pushSubscribeFailed(err instanceof Error ? err.message : String(err)),
+        messages().notifications.pushSubscribeFailed(
+          err instanceof Error ? err.message : String(err),
+        ),
       );
     }
   }

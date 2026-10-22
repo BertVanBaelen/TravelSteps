@@ -42,7 +42,9 @@ export function PhotoPicker({ initial, max = 100, onDone, onClose }: Props) {
       setSelected((s) => (s[0] === id ? [] : [id]));
       return;
     }
-    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : s.length >= max ? s : [...s, id]));
+    setSelected((s) =>
+      s.includes(id) ? s.filter((x) => x !== id) : s.length >= max ? s : [...s, id],
+    );
   };
 
   const source =
@@ -61,7 +63,11 @@ export function PhotoPicker({ initial, max = 100, onDone, onClose }: Props) {
           <CloseIcon />
         </button>
         <strong>{msg.picker.title}</strong>
-        <button type="button" className="btn btn-primary btn-small" onClick={() => onDone(selected)}>
+        <button
+          type="button"
+          className="btn btn-primary btn-small"
+          onClick={() => onDone(selected)}
+        >
           {msg.picker.done(selected.length)}
         </button>
       </header>
@@ -182,9 +188,12 @@ function AssetGrid({
   useEffect(() => {
     const el = sentinel.current;
     if (!el || error) return;
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0]?.isIntersecting) void loadMore();
-    }, { rootMargin: '400px' });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) void loadMore();
+      },
+      { rootMargin: '400px' },
+    );
     observer.observe(el);
     return () => observer.disconnect();
   }, [loadMore, error]);

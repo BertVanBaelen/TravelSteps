@@ -1,4 +1,13 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import { FootprintIcon, HeartIcon, PlaneIcon } from './icons';
 
 export type CelebrationKind = 'step' | 'travel' | 'like' | 'invite';
@@ -77,7 +86,10 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
       }
       setItems((list) => [...list.slice(-3), item]);
       const { total, resolve } = TIMING[kind];
-      window.setTimeout(() => setItems((list) => list.filter((i) => i.id !== item.id)), total + 100);
+      window.setTimeout(
+        () => setItems((list) => list.filter((i) => i.id !== item.id)),
+        total + 100,
+      );
       return new Promise<void>((done) => window.setTimeout(done, resolve));
     } catch {
       // A failed animation must never affect the action itself.
@@ -111,7 +123,9 @@ function Animation({ c }: { c: Celebration }) {
             <span
               key={i}
               className={`footprint ${i % 2 ? 'right' : 'left'}`}
-              style={{ '--i': i, left: `${2 + i * 9.6}%`, top: `${78 - i * 6.6}%` } as CSSProperties}
+              style={
+                { '--i': i, left: `${2 + i * 9.6}%`, top: `${78 - i * 6.6}%` } as CSSProperties
+              }
             >
               <FootprintIcon />
             </span>
@@ -146,7 +160,11 @@ function Animation({ c }: { c: Celebration }) {
             style={{ left: c.x ?? window.innerWidth / 2, top: c.y ?? window.innerHeight / 2 }}
           >
             {Array.from({ length: 8 }, (_, i) => (
-              <span key={i} className="burst-heart" style={{ '--a': `${i * 45}deg` } as CSSProperties}>
+              <span
+                key={i}
+                className="burst-heart"
+                style={{ '--a': `${i * 45}deg` } as CSSProperties}
+              >
                 <HeartIcon filled />
               </span>
             ))}

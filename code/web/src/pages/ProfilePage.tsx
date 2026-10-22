@@ -1,12 +1,17 @@
-import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
-import { isTraveller, type Language, type PublicUser } from '@travelsteps/shared';
+import {
+  isTraveller,
+  type Language,
+  type PublicUser,
+  type TrustedUsers,
+} from '@travelsteps/shared';
 import { api, errorMessage } from '../api';
 import { useAuth, useUser } from '../auth/AuthContext';
 import { useBlog } from '../blog/BlogContext';
 import { Avatar } from '../components/Avatar';
 import { useConfirm } from '../components/ConfirmDialog';
-import { Alert, Field } from '../components/Field';
+import { Alert, Field, SelectField } from '../components/Field';
 import {
   BellIcon,
   DownloadIcon,
@@ -20,6 +25,7 @@ import {
   SaveIcon,
   SettingsIcon,
   TrashIcon,
+  UserPlusIcon,
   UsersIcon,
 } from '../components/icons';
 import { usePageTitle } from '../components/PageTitle';
@@ -104,6 +110,12 @@ export function ProfilePage() {
                   summary: user.hasImmichKey ? msg.profile.immichSet : msg.profile.immichNone,
                   to: '/profiel/fotos',
                 },
+                {
+                  icon: <UsersIcon />,
+                  title: msg.profile.trustedTitle,
+                  summary: p.trustedSummary,
+                  to: '/profiel/vertrouwd',
+                },
               ]
             : []),
         ]}
@@ -124,7 +136,14 @@ export function ProfilePage() {
             to: '/profiel/taal',
           },
           ...(install.state !== 'installed' && install.state !== 'unavailable'
-            ? [{ icon: <DownloadIcon />, title: msg.install.title, summary: msg.install.text, to: '/profiel/app' }]
+            ? [
+                {
+                  icon: <DownloadIcon />,
+                  title: msg.install.title,
+                  summary: msg.install.text,
+                  to: '/profiel/app',
+                },
+              ]
             : []),
         ]}
       />
@@ -148,17 +167,41 @@ export function ProfilePage() {
         />
       )}
       <SettingsMenu
-        rows={[{ icon: <LeaveIcon />, title: msg.profile.logout, onClick: () => void logout(), danger: true }]}
+        rows={[
+          {
+            icon: <LeaveIcon />,
+            title: msg.profile.logout,
+            onClick: () => void logout(),
+            danger: true,
+          },
+        ]}
       />
     </section>
   );
 }
 
 const SECTIONS = {
-  account: { title: () => messages().profile.menu.profile, Page: AccountSection, travellerOnly: false },
-  wachtwoord: { title: () => messages().profile.changePassword, Page: PasswordSection, travellerOnly: false },
+  account: {
+    title: () => messages().profile.menu.profile,
+    Page: AccountSection,
+    travellerOnly: false,
+  },
+  wachtwoord: {
+    title: () => messages().profile.changePassword,
+    Page: PasswordSection,
+    travellerOnly: false,
+  },
   fotos: { title: () => messages().profile.immichTitle, Page: ImmichSection, travellerOnly: true },
-  meldingen: { title: () => messages().notifications.title, Page: NotificationsSection, travellerOnly: false },
+  vertrouwd: {
+    title: () => messages().profile.trustedTitle,
+    Page: TrustedSection,
+    travellerOnly: true,
+  },
+  meldingen: {
+    title: () => messages().notifications.title,
+    Page: NotificationsSection,
+    travellerOnly: false,
+  },
   taal: { title: () => messages().language.title, Page: LanguageSection, travellerOnly: false },
   app: { title: () => messages().install.title, Page: InstallSection, travellerOnly: false },
 } as const;
@@ -168,9 +211,12 @@ export function ProfileSectionPage() {
   const msg = useT();
   const { section = '' } = useParams();
   const user = useUser();
-  const entry = Object.hasOwn(SECTIONS, section) ? SECTIONS[section as keyof typeof SECTIONS] : null;
+  const entry = Object.hasOwn(SECTIONS, section)
+    ? SECTIONS[section as keyof typeof SECTIONS]
+    : null;
   usePageTitle(entry ? entry.title() : msg.profile.title, { back: '/profiel' });
-  if (!entry || (entry.travellerOnly && !isTraveller(user.role))) return <Navigate to="/profiel" replace />;
+  if (!entry || (entry.travellerOnly && !isTraveller(user.role)))
+    return <Navigate to="/profiel" replace />;
   return (
     <section className="page settings-page">
       <entry.Page />
@@ -273,7 +319,8 @@ function AccountSection() {
       </div>
       <form className="card stack" onSubmit={saveName}>
         <p className="muted">
-          {msg.profile.username}: {user.username} · {msg.profile.role}: {msg.profile.roles[user.role]}
+          {msg.profile.username}: {user.username} · {msg.profile.role}:{' '}
+          {msg.profile.roles[user.role]}
         </p>
         <div className="inline-form">
           <Field
@@ -416,6 +463,124 @@ function ImmichSection() {
   );
 }
 
+function TrustedSection() {
+  const msg = useT();
+  const user = useUser();
+  const online = useOnline();
+  const confirm = useConfirm();
+  const [data, setData] = useState<TrustedUsers | null>(null);
+  const [choice, setChoice] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<{ kind: 'error' | 'success'; text: string } | null>(null);
+
+  useEffect(() => {
+    api<TrustedUsers>('/profile/trusted')
+      .then(setData)
+      .catch((err) => setMessage({ kind: 'error', text: errorMessage(err) }));
+  }, []);
+
+  async function change(method: 'PUT' | 'DELETE', id: string, success: string) {
+    setBusy(true);
+    setMessage(null);
+    try {
+      setData(await api<TrustedUsers>(`/profile/trusted/${id}`, { method }));
+      setChoice('');
+      setMessage({ kind: 'success', text: success });
+    } catch (err) {
+      setMessage({ kind: 'error', text: errorMessage(err) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const candidates = (data?.candidates ?? []).filter(
+    (c) => c.id !== user.id && !data?.trusted.some((t) => t.id === c.id),
+  );
+  const chosen = candidates.find((c) => c.id === choice);
+
+  return (
+    <div className="card stack">
+      <p className="muted">{msg.profile.trustedHint}</p>
+      {data && (
+        <>
+          {data.trusted.length === 0 ? (
+            <p className="muted">{msg.profile.trustedNone}</p>
+          ) : (
+            <ul className="member-list">
+              {data.trusted.map((u) => (
+                <li key={u.id}>
+                  <Avatar user={u} size="xs" />
+                  <span>{u.displayName}</span>
+                  <button
+                    type="button"
+                    className="btn btn-small btn-danger member-remove"
+                    disabled={busy || !online}
+                    onClick={() => {
+                      void confirm({
+                        title: msg.profile.trustedRemoveTitle,
+                        message: msg.profile.trustedConfirmRemove(u.displayName),
+                        confirmLabel: msg.profile.trustedRemove,
+                        danger: true,
+                      }).then((ok) => {
+                        if (ok)
+                          void change('DELETE', u.id, msg.profile.trustedRemoved(u.displayName));
+                      });
+                    }}
+                  >
+                    {msg.profile.trustedRemove}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {candidates.length === 0 ? (
+            <p className="muted">{msg.profile.trustedNoCandidates}</p>
+          ) : (
+            <div className="field-row">
+              <SelectField
+                label={msg.profile.trustedAdd}
+                name="trusted"
+                value={choice}
+                onChange={setChoice}
+                disabled={busy || !online}
+                options={[
+                  {
+                    id: '',
+                    label: msg.profile.trustedChoose,
+                    icon: (
+                      <span className="picker-icon picker-icon-muted">
+                        <UserPlusIcon />
+                      </span>
+                    ),
+                  },
+                  ...candidates.map((u) => ({
+                    id: u.id,
+                    label: u.displayName,
+                    icon: <Avatar user={u} size="s" />,
+                  })),
+                ]}
+              />
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={busy || !online || !chosen}
+                onClick={() =>
+                  chosen &&
+                  void change('PUT', chosen.id, msg.profile.trustedAdded(chosen.displayName))
+                }
+              >
+                <UserPlusIcon />
+                {msg.profile.trustedAdd}
+              </button>
+            </div>
+          )}
+        </>
+      )}
+      {message && <Alert kind={message.kind}>{message.text}</Alert>}
+    </div>
+  );
+}
+
 function NotificationsSection() {
   const msg = useT();
   const user = useUser();
@@ -456,7 +621,9 @@ function NotificationsSection() {
 function LanguageSection() {
   const msg = useT();
   const choose = useChooseLanguage();
-  const [status, setStatus] = useState<{ kind: 'success' | 'info' | 'error'; text: string } | null>(null);
+  const [status, setStatus] = useState<{ kind: 'success' | 'info' | 'error'; text: string } | null>(
+    null,
+  );
   const [busy, setBusy] = useState(false);
 
   async function change(language: Language) {
@@ -464,7 +631,11 @@ function LanguageSection() {
     setStatus(null);
     try {
       const saved = await choose(language);
-      setStatus(saved ? { kind: 'success', text: messages().language.saved } : { kind: 'info', text: messages().language.offline });
+      setStatus(
+        saved
+          ? { kind: 'success', text: messages().language.saved }
+          : { kind: 'info', text: messages().language.offline },
+      );
     } catch (err) {
       setStatus({ kind: 'error', text: errorMessage(err) });
     } finally {

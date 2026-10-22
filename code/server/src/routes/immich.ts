@@ -4,8 +4,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { assetIdSchema, isTraveller, type MediaSize } from '@travelsteps/shared';
 import { currentUser, requireTraveller } from '../auth/guard.js';
-import { notFound } from '../errors.js';
-import type { ImmichClient } from '../immich/client.js';
+import { HttpError, forbidden, notFound } from '../errors.js';
 
 const pageQuerySchema = z.object({
   page: z.coerce.number().int().min(1).max(10_000).default(1),
@@ -38,10 +37,31 @@ export async function immichRoutes(app: FastifyInstance): Promise<void> {
 
 const MEDIA_SIZES: readonly MediaSize[] = ['thumbnail', 'preview', 'original'];
 const FORWARD_HEADERS = ['content-type', 'content-length', 'etag', 'last-modified'];
+const EXTENSIONS: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/heic': 'heic',
+  'image/heif': 'heif',
+  'image/gif': 'gif',
+  'image/tiff': 'tif',
+};
+
+const originalUnavailable = () =>
+  new HttpError(404, 'ORIGINAL_UNAVAILABLE', 'Het origineel is niet beschikbaar.');
+
+export function attachmentHeader(fileName: string | null, assetId: string, type: string | null) {
+  const base = fileName?.split(/[\\/]/).pop()?.trim();
+  const ext = EXTENSIONS[type?.split(';')[0]?.trim().toLowerCase() ?? ''] ?? 'jpg';
+  const name = base || `${assetId}.${ext}`;
+  const ascii = name.replace(/[^\x20-\x7e]/g, '_').replace(/["\\]/g, '_');
+  return `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(name)}`;
+}
 
 /** Image proxy: the browser never talks to Immich directly. */
 export async function mediaRoutes(app: FastifyInstance): Promise<void> {
-  const { immich, content } = app.ctx;
+  const ctx = app.ctx;
+  const { immich, content } = ctx;
 
   app.get<{ Params: { assetId: string; size: string } }>('/:assetId/:size', async (req, reply) => {
     const parsed = assetIdSchema.safeParse(req.params.assetId);
@@ -50,20 +70,43 @@ export async function mediaRoutes(app: FastifyInstance): Promise<void> {
     const assetId = parsed.data;
     const user = currentUser(req);
     const own = isTraveller(user.role) ? immich.tryClient(user.id) : null;
+    const sources = content
+      .assetSources(assetId)
+      .filter((s) => s.userId && content.canView(user, s.travelId));
+
+    if (size === 'original') {
+      const allowed = sources.filter((s) => ctx.canUseAuthorRights(user, s.userId, s.travelId));
+      if (sources.length > 0 && allowed.length === 0) throw forbidden();
+      const source = allowed.find((s) => s.userId === user.id) ?? allowed[0];
+      const ownerId = source ? source.userId! : user.id;
+      const client = source ? immich.tryClient(ownerId) : own;
+      if (!client) throw source ? originalUnavailable() : notFound('Foto');
+      let res: Response;
+      let fileName: string | null = null;
+      try {
+        fileName = (await client.asset(assetId)).fileName;
+        res = await client.media(assetId, 'original', {});
+      } catch (err) {
+        if (err instanceof HttpError && err.statusCode === 404) throw originalUnavailable();
+        throw err;
+      }
+      if (!res.body) throw originalUnavailable();
+      const type = res.headers.get('content-type');
+      for (const name of ['content-type', 'content-length']) {
+        const value = res.headers.get(name);
+        if (value) reply.header(name, value);
+      }
+      reply.header('Content-Disposition', attachmentHeader(fileName, assetId, type));
+      reply.header('Cache-Control', 'private, no-store');
+      reply.header('X-Content-Type-Options', 'nosniff');
+      req.log.info({ requesterId: user.id, ownerId, assetId }, 'Origineel gedownload');
+      return reply.send(Readable.fromWeb(res.body as WebReadableStream));
+    }
 
     // A published photo is loaded with the key of whoever published it, if the user may see
     // that travel. A traveller can also load photos from their own library (photo picker).
-    // The original file (full EXIF/GPS metadata) only ever comes from the user's own library.
-    let client: ImmichClient | null = null;
-    if (size === 'original') {
-      client = own;
-    } else {
-      const sources = content
-        .assetSources(assetId)
-        .filter((s) => s.userId && content.canView(user, s.travelId));
-      const source = sources.find((s) => s.userId === user.id) ?? sources[0];
-      client = source ? (immich.tryClient(source.userId) ?? own) : own;
-    }
+    const source = sources.find((s) => s.userId === user.id) ?? sources[0];
+    const client = source ? (immich.tryClient(source.userId) ?? own) : own;
     if (!client) throw notFound('Foto');
 
     const conditional: Record<string, string> = {};

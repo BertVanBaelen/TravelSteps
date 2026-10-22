@@ -131,7 +131,12 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
         const targetId = transfers[travel.id];
         if (!targetId) continue;
         const newOwner = ctx.users.findById(targetId);
-        if (!newOwner || newOwner.id === target.id || newOwner.disabled || !isTraveller(newOwner.role)) {
+        if (
+          !newOwner ||
+          newOwner.id === target.id ||
+          newOwner.disabled ||
+          !isTraveller(newOwner.role)
+        ) {
           throw new HttpError(
             400,
             'INVALID_TRANSFER',

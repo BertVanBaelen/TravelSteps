@@ -1,5 +1,11 @@
 import crypto from 'node:crypto';
-import { isLanguage, type Language, type PublicUser, type Role, type UserRef } from '@travelsteps/shared';
+import {
+  isLanguage,
+  type Language,
+  type PublicUser,
+  type Role,
+  type UserRef,
+} from '@travelsteps/shared';
 import type { DB } from '../db.js';
 
 interface UserRow {
@@ -193,13 +199,18 @@ export class UserRepository {
       avatar: string | null;
     }[];
     return new Map(
-      rows.map((r) => [r.id, { id: r.id, displayName: r.display_name, avatarUrl: avatarUrl(r.id, r.avatar) }]),
+      rows.map((r) => [
+        r.id,
+        { id: r.id, displayName: r.display_name, avatarUrl: avatarUrl(r.id, r.avatar) },
+      ]),
     );
   }
 
   ref(id: string | null | undefined): UserRef | null {
     if (!id) return null;
     const user = this.findById(id);
-    return user ? { id: user.id, displayName: user.displayName, avatarUrl: avatarUrl(user.id, user.avatar) } : null;
+    return user
+      ? { id: user.id, displayName: user.displayName, avatarUrl: avatarUrl(user.id, user.avatar) }
+      : null;
   }
 }

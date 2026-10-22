@@ -75,7 +75,10 @@ export function OutboxList() {
                       type="button"
                       className="btn btn-small"
                       onClick={() => {
-                        void confirm({ title: msg.sync.takeServerTitle, message: msg.sync.confirmTakeServer }).then((ok) => {
+                        void confirm({
+                          title: msg.sync.takeServerTitle,
+                          message: msg.sync.confirmTakeServer,
+                        }).then((ok) => {
                           if (ok) void discardItem(item.id);
                         });
                       }}
@@ -105,7 +108,7 @@ export function OutboxList() {
                       onClick={() => {
                         void confirm({
                           title: msg.sync.discardTitle,
-                    message: msg.sync.confirmDiscard,
+                          message: msg.sync.confirmDiscard,
                           confirmLabel: msg.sync.discard,
                           danger: true,
                         }).then((ok) => {

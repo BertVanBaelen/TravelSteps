@@ -189,6 +189,16 @@ const migrations: string[] = [
   `ALTER TABLE notifications ADD COLUMN comment_id TEXT REFERENCES comments(id) ON DELETE CASCADE`,
   // V2-3: chosen UI/notification language ('nl' | 'en'); NULL = not chosen yet.
   `ALTER TABLE users ADD COLUMN language TEXT`,
+  // V2-4: owner_id trusts trusted_id (original photo download, share links in V2-5).
+  `
+  CREATE TABLE trusted_users (
+    owner_id   TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    trusted_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (owner_id, trusted_id)
+  );
+  CREATE INDEX idx_trusted_users_trusted ON trusted_users(trusted_id);
+  `,
 ];
 
 export function openDatabase(file: string): DB {

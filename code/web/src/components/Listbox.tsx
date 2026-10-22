@@ -64,7 +64,8 @@ export function Listbox({
   }, [open]);
 
   useEffect(() => {
-    if (open) document.getElementById(`${baseId}-opt-${active}`)?.scrollIntoView({ block: 'nearest' });
+    if (open)
+      document.getElementById(`${baseId}-opt-${active}`)?.scrollIntoView({ block: 'nearest' });
   }, [open, active, baseId]);
 
   function openList() {

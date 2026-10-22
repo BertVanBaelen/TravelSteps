@@ -1,7 +1,15 @@
 import { useT } from '../i18n';
 
 /** A grey shimmering placeholder block. */
-export function Skeleton({ width, height = '1em', round = false }: { width?: string; height?: string; round?: boolean }) {
+export function Skeleton({
+  width,
+  height = '1em',
+  round = false,
+}: {
+  width?: string;
+  height?: string;
+  round?: boolean;
+}) {
   return <span className={`skeleton${round ? ' skeleton-round' : ''}`} style={{ width, height }} />;
 }
 

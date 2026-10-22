@@ -6,7 +6,8 @@ import { Avatar } from '../components/Avatar';
 import { useConfirm } from '../components/ConfirmDialog';
 import { Alert, Field, SelectField } from '../components/Field';
 import { usePageTitle } from '../components/PageTitle';
-import { messages, useT } from '../i18n';
+import { messages, useT } from '../i18n';
+
 import { Listbox, type ListboxOption } from '../components/Listbox';
 import { CopyButton } from '../components/CopyButton';
 import {
@@ -31,14 +32,17 @@ function generatePassword(length = 14): string {
 
 type AssignableRole = Exclude<Role, 'admin'>;
 const ASSIGNABLE: AssignableRole[] = ['traveller', 'viewer'];
-const ROLE_ICONS: Record<AssignableRole, ReactElement> = { traveller: <TravelIcon />, viewer: <ProfileIcon /> };
+const ROLE_ICONS: Record<AssignableRole, ReactElement> = {
+  traveller: <TravelIcon />,
+  viewer: <ProfileIcon />,
+};
 const roleOptions = (): ListboxOption[] =>
   ASSIGNABLE.map((r) => ({
-  id: r,
-  label: messages().profile.roles[r],
-  meta: messages().users.roleHint[r],
-  icon: <span className="picker-icon">{ROLE_ICONS[r]}</span>,
-}));
+    id: r,
+    label: messages().profile.roles[r],
+    meta: messages().users.roleHint[r],
+    icon: <span className="picker-icon">{ROLE_ICONS[r]}</span>,
+  }));
 
 /** Duration of the closing animation (matches `.confirm-dialog.closing`). */
 const CLOSE_MS = 180;
@@ -124,7 +128,12 @@ function ImmichKeyDialog({
           </button>
         </div>
         {user.hasImmichKey && (
-          <button type="button" className="btn-text btn-danger key-remove" disabled={busy} onClick={() => void save(null)}>
+          <button
+            type="button"
+            className="btn-text btn-danger key-remove"
+            disabled={busy}
+            onClick={() => void save(null)}
+          >
             <TrashIcon />
             {msg.profile.immichRemove}
           </button>
@@ -165,7 +174,8 @@ function DeleteUserDialog({
         return;
       }
       const transfers = Object.fromEntries(Object.entries(choice).filter(([, v]) => v !== DELETE));
-      const body = Object.keys(transfers).length > 0 ? { mode: 'transfer', transfers } : { mode: 'delete' };
+      const body =
+        Object.keys(transfers).length > 0 ? { mode: 'transfer', transfers } : { mode: 'delete' };
       await api(`/users/${user.id}`, { method: 'DELETE', body });
       onDone(null);
     } catch (err) {
@@ -187,7 +197,12 @@ function DeleteUserDialog({
         <h2 id="delete-user-title">{msg.users.deleteTitle(user.displayName)}</h2>
         <p>{msg.users.deleteIntro(user.displayName, user.ownedTravels.length)}</p>
         <label className="check">
-          <input type="radio" name="mode" checked={mode === 'travels'} onChange={() => setMode('travels')} />
+          <input
+            type="radio"
+            name="mode"
+            checked={mode === 'travels'}
+            onChange={() => setMode('travels')}
+          />
           <span>{msg.users.modeTravels}</span>
         </label>
         {mode === 'travels' && (
@@ -222,7 +237,12 @@ function DeleteUserDialog({
           </ul>
         )}
         <label className="check">
-          <input type="radio" name="mode" checked={mode === 'disable'} onChange={() => setMode('disable')} />
+          <input
+            type="radio"
+            name="mode"
+            checked={mode === 'disable'}
+            onChange={() => setMode('disable')}
+          />
           <span>{msg.users.modeDisable}</span>
         </label>
         {mode === 'travels' && <p className="muted small">{msg.users.deleteHint}</p>}
@@ -313,7 +333,14 @@ export function AdminUsersPage() {
     });
 
   const resetPassword = async (u: AdminUser) => {
-    if (!(await confirm({ title: msg.users.resetTitle, message: msg.users.confirmReset(u.displayName), icon: <KeyIcon /> }))) return;
+    if (
+      !(await confirm({
+        title: msg.users.resetTitle,
+        message: msg.users.confirmReset(u.displayName),
+        icon: <KeyIcon />,
+      }))
+    )
+      return;
     const pw = generatePassword();
     void run(async () => {
       await api(`/users/${u.id}/reset-password`, {
@@ -338,7 +365,14 @@ export function AdminUsersPage() {
       setDeleting(u);
       return;
     }
-    if (!(await confirm({ title: msg.users.removeTitle, message: msg.users.confirmRemove(u.displayName), confirmLabel: msg.common.delete, danger: true }))) {
+    if (
+      !(await confirm({
+        title: msg.users.removeTitle,
+        message: msg.users.confirmRemove(u.displayName),
+        confirmLabel: msg.common.delete,
+        danger: true,
+      }))
+    ) {
       return;
     }
     void run(async () => {
@@ -352,7 +386,13 @@ export function AdminUsersPage() {
       {notice && (
         <div className="notice-copy">
           <Alert kind="success">{notice}</Alert>
-          {noticeCopy && <CopyButton value={noticeCopy} label={msg.users.copyPassword} className="btn btn-small btn-secondary" />}
+          {noticeCopy && (
+            <CopyButton
+              value={noticeCopy}
+              label={msg.users.copyPassword}
+              className="btn btn-small btn-secondary"
+            />
+          )}
         </div>
       )}
 
@@ -371,7 +411,9 @@ export function AdminUsersPage() {
               <span className="badges">
                 {u.disabled && <span className="badge badge-off">{msg.users.disabled}</span>}
                 {u.mustChangePassword && <span className="badge">{msg.users.mustChange}</span>}
-                {isTraveller(u.role) && u.hasImmichKey && <span className="badge">{msg.users.hasKey}</span>}
+                {isTraveller(u.role) && u.hasImmichKey && (
+                  <span className="badge">{msg.users.hasKey}</span>
+                )}
               </span>
             </div>
             <div className="user-actions">
@@ -465,7 +507,11 @@ export function AdminUsersPage() {
       </form>
 
       {keyUser && (
-        <ImmichKeyDialog user={keyUser} onClose={() => setKeyUser(null)} onSave={(k) => saveImmichKey(keyUser, k)} />
+        <ImmichKeyDialog
+          user={keyUser}
+          onClose={() => setKeyUser(null)}
+          onSave={(k) => saveImmichKey(keyUser, k)}
+        />
       )}
       {deleting && (
         <DeleteUserDialog

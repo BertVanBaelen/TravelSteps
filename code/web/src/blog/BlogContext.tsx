@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { isTraveller, type Traveller } from '@travelsteps/shared';
 import { api } from '../api';
 import { useUser } from '../auth/AuthContext';
@@ -79,7 +87,10 @@ export function BlogProvider({ children }: { children: ReactNode }) {
 
   // Travellers start on their own blog, viewers on everyone's; a stored choice wins while visible.
   const selected = useMemo(() => {
-    if (stored !== null && (stored === EVERYONE || travellers === null || travellers.some((t) => t.id === stored))) {
+    if (
+      stored !== null &&
+      (stored === EVERYONE || travellers === null || travellers.some((t) => t.id === stored))
+    ) {
       return stored;
     }
     return isTraveller(user.role) && travellers?.some((t) => t.id === user.id) ? user.id : EVERYONE;
@@ -104,7 +115,16 @@ export function BlogProvider({ children }: { children: ReactNode }) {
 
   return (
     <Ctx.Provider
-      value={{ travellers, selected, select, setSubscribed, reloadTravellers, unread, refreshUnread, setUnread }}
+      value={{
+        travellers,
+        selected,
+        select,
+        setSubscribed,
+        reloadTravellers,
+        unread,
+        refreshUnread,
+        setUnread,
+      }}
     >
       {children}
     </Ctx.Provider>

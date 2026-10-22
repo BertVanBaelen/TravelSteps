@@ -11,8 +11,14 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 /** Class names of a button, also usable on links that look like a button. */
-export function buttonClass(variant: ButtonVariant = 'secondary', size: 'm' | 's' = 'm', block = false): string {
-  return ['btn', `btn-${variant}`, size === 's' && 'btn-small', block && 'btn-block'].filter(Boolean).join(' ');
+export function buttonClass(
+  variant: ButtonVariant = 'secondary',
+  size: 'm' | 's' = 'm',
+  block = false,
+): string {
+  return ['btn', `btn-${variant}`, size === 's' && 'btn-small', block && 'btn-block']
+    .filter(Boolean)
+    .join(' ');
 }
 
 export function Button({

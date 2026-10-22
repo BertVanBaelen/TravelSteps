@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useT } from '../i18n';
 import { mediaUrl } from '../lib/format';
-import { ChevronLeft, ChevronRight, CloseIcon } from './icons';
+import { useOnline } from '../offline/db';
+import { ChevronLeft, ChevronRight, CloseIcon, DownloadIcon } from './icons';
 
 /**
  * Horizontal photo carousel (CSS scroll-snap: swipe on touch, arrows on desktop).
@@ -87,12 +88,11 @@ export function Carousel({
 export function Gallery({
   photos,
   alt,
-  allowOriginal = false,
+  canDownload = false,
 }: {
   photos: string[];
   alt: string;
-  /** Originals contain full EXIF/GPS data, so only admins get the link. */
-  allowOriginal?: boolean;
+  canDownload?: boolean;
 }) {
   const [lightbox, setLightbox] = useState<number | null>(null);
   if (photos.length === 0) return null;
@@ -104,7 +104,7 @@ export function Gallery({
           photos={photos}
           start={lightbox}
           alt={alt}
-          allowOriginal={allowOriginal}
+          canDownload={canDownload}
           onClose={() => setLightbox(null)}
         />
       )}
@@ -116,20 +116,20 @@ export function Lightbox({
   photos,
   start,
   alt,
-  allowOriginal = false,
+  canDownload = false,
   extra,
   onClose,
 }: {
   photos: string[];
   start: number;
   alt: string;
-  /** Show a link to the original file (decided per photo when a function). */
-  allowOriginal?: boolean | ((index: number) => boolean);
+  canDownload?: boolean | ((index: number) => boolean);
   /** Extra content per photo in the top bar (e.g. a link to the post). */
   extra?: (index: number) => ReactNode;
   onClose: () => void;
 }) {
   const msg = useT();
+  const online = useOnline();
   const [i, setI] = useState(start);
 
   useEffect(() => {
@@ -172,8 +172,9 @@ export function Lightbox({
         </span>
         <span className="lightbox-extra">
           {extra?.(i)}
-          {(typeof allowOriginal === 'function' ? allowOriginal(i) : allowOriginal) && (
-            <a href={mediaUrl(id, 'original')} target="_blank" rel="noopener noreferrer">
+          {online && (typeof canDownload === 'function' ? canDownload(i) : canDownload) && (
+            <a href={mediaUrl(id, 'original')} download className="lightbox-download">
+              <DownloadIcon />
               {msg.post.original}
             </a>
           )}

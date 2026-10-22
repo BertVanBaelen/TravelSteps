@@ -14,7 +14,16 @@ export type MapPostLike = Pick<
   'id' | 'travelId' | 'title' | 'date' | 'coverAssetId' | 'locations' | 'segments' | 'arrival'
 >;
 
-export const TRAVEL_COLORS = ['#16a34a', '#2563eb', '#dc2626', '#9333ea', '#ea580c', '#0891b2', '#ca8a04', '#db2777'];
+export const TRAVEL_COLORS = [
+  '#16a34a',
+  '#2563eb',
+  '#dc2626',
+  '#9333ea',
+  '#ea580c',
+  '#0891b2',
+  '#ca8a04',
+  '#db2777',
+];
 export const DEFAULT_COLOR = TRAVEL_COLORS[0]!;
 
 export function createMap(el: HTMLElement, interactive: boolean): L.Map {
@@ -33,7 +42,8 @@ export function createMap(el: HTMLElement, interactive: boolean): L.Map {
     maxZoom: 19,
     // CORS responses can be cached by the service worker without the opaque-response overhead.
     crossOrigin: '',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
   }).addTo(map);
   return map;
 }

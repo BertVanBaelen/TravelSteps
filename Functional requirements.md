@@ -96,6 +96,11 @@ Locations are ordered. Per segment (between two consecutive points) a **transpor
 - Photos from Immich can only be picked when online, and only with an Immich key set. A draft without photos can be published; or photos are added once online.
 - Drafts are synced/uploaded automatically when the connection returns. Sync status is visible ("Concept", "Wacht op verbinding", "Gepubliceerd").
 
+## Original photos
+
+- In the photo lightbox a **Download origineel / Download original** button is shown when allowed: for the author of the photo, the admin, and users the author trusts (in travels they can see). Single photo only; the file keeps its original name. Hidden while offline.
+- Others (incl. viewers and co-writers who are not trusted) get 403; if the author's Immich key is missing the original is "not available".
+
 ## Notifications
 
 - Delivered as **push notifications** (installed PWA) and in an in-app list on the **Meldingen** page.
@@ -135,6 +140,7 @@ Locations are ordered. Per segment (between two consecutive points) a **transpor
 ### Profiel
 - Change profile picture (upload or – travellers with an Immich key – choose from Immich), display name, password.
 - Travellers: set/replace/remove own **Immich API key** (shown as "ingesteld" + connection test, never displayed).
+- Travellers/admin: **Vertrouwde personen / Trusted people** – mark users who can see at least one of your travels as trusted, or revoke it. Trusted users may download the **original** of every photo you published (steps and covers you own), but only in travels they can see. Revoking takes effect immediately.
 - Manage subscriptions; enable push notifications on this device.
 - Logout.
 

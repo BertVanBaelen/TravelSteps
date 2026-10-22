@@ -44,7 +44,15 @@ interface SelectProps {
 }
 
 /** Labelled dropdown in the app style (replaces the native select). */
-export function SelectField({ label, name, value, onChange, options, hint, disabled }: SelectProps) {
+export function SelectField({
+  label,
+  name,
+  value,
+  onChange,
+  options,
+  hint,
+  disabled,
+}: SelectProps) {
   return (
     <div className="field">
       <label className="field-label" htmlFor={name}>
@@ -63,7 +71,13 @@ export function SelectField({ label, name, value, onChange, options, hint, disab
     </div>
   );
 }
-export function Alert({ kind, children }: { kind: 'error' | 'success' | 'info'; children: ReactNode }) {
+export function Alert({
+  kind,
+  children,
+}: {
+  kind: 'error' | 'success' | 'info';
+  children: ReactNode;
+}) {
   return (
     <p className={`alert alert-${kind}`} role={kind === 'error' ? 'alert' : 'status'}>
       {children}

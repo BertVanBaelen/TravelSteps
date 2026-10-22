@@ -66,7 +66,10 @@ export function AdminSettingsPage() {
               {
                 icon: <PlugIcon />,
                 title: s.services,
-                summary: failing > 0 ? s.servicesFailing(failing) : s.servicesSummary(working, list.length),
+                summary:
+                  failing > 0
+                    ? s.servicesFailing(failing)
+                    : s.servicesSummary(working, list.length),
                 to: '/beheer/instellingen/koppelingen',
               },
               {

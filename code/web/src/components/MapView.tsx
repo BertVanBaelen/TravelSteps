@@ -40,7 +40,14 @@ function popupContent(post: MapPostLike, onOpen: (id: string) => void): HTMLElem
 }
 
 /** Leaflet map with the posts' points and routes. Created only once it scrolls into view. */
-export function MapView({ posts, colorFor, interactive = true, arrivals = false, onOpen, className }: Props) {
+export function MapView({
+  posts,
+  colorFor,
+  interactive = true,
+  arrivals = false,
+  onOpen,
+  className,
+}: Props) {
   const elRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.LayerGroup | null>(null);

@@ -136,6 +136,20 @@ export const en: Messages = {
     confirmImmichRemove: 'Remove Immich key? You will no longer be able to choose photos.',
     immichRemoveTitle: 'Remove Immich key?',
     avatarTitle: 'Profile picture',
+    trustedTitle: 'Trusted people',
+    trustedHint:
+      'Trusted people may download the original photos of your posts, but only for travels they can see. You can revoke this at any time.',
+    trustedNone: 'You do not trust anyone yet.',
+    trustedAdd: 'Add person',
+    trustedChoose: 'Choose a person',
+    trustedNoCandidates:
+      'There is nobody left to add. Only people who can see at least one of your travels are eligible.',
+    trustedRemove: 'Revoke trust',
+    trustedRemoveTitle: 'Revoke trust?',
+    trustedConfirmRemove: (name: string) =>
+      `${name} will no longer be able to download your original photos.`,
+    trustedAdded: (name: string) => `${name} has been added.`,
+    trustedRemoved: (name: string) => `${name} has been removed.`,
     menu: {
       account: 'Account',
       app: 'App',
@@ -150,6 +164,7 @@ export const en: Messages = {
             : `You follow ${n} travellers`,
       usersSummary: 'Invitations, roles and passwords',
       settingsSummary: 'Version, integrations and configuration',
+      trustedSummary: 'Who may download your original photos',
     },
   },
   users: {
@@ -220,6 +235,8 @@ export const en: Messages = {
       BAD_REQUEST: 'Invalid request.',
       BAD_CURSOR: 'Invalid cursor.',
       CSRF: 'Invalid request.',
+      TRUST_SELF: 'You cannot trust yourself.',
+      ORIGINAL_UNAVAILABLE: 'The original is not available.',
       VALIDATION: 'Please check the values you entered.',
       INTERNAL: 'Something went wrong on the server.',
       TOO_MANY_REQUESTS: 'Too many requests. Please try again later.',
@@ -278,7 +295,7 @@ export const en: Messages = {
     delete: 'Delete step',
     actions: 'Actions for this step',
     notFound: 'Step not found',
-    original: 'Open original',
+    original: 'Download original',
     photoOf: (i: number, n: number) => `Photo ${i} of ${n}`,
   },
   likes: {

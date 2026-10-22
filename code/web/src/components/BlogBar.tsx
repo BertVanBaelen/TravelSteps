@@ -35,7 +35,10 @@ export function BlogBar() {
     }
   }
 
-  const options: Option[] = [{ id: EVERYONE, traveller: null }, ...travellers.map((t) => ({ id: t.id, traveller: t }))];
+  const options: Option[] = [
+    { id: EVERYONE, traveller: null },
+    ...travellers.map((t) => ({ id: t.id, traveller: t })),
+  ];
 
   return (
     <div className="blog-bar">
@@ -51,8 +54,16 @@ export function BlogBar() {
           type="button"
           className={`icon-btn blog-bell${current.subscribed ? ' on' : ''}`}
           aria-pressed={current.subscribed}
-          aria-label={current.subscribed ? msg.blog.unsubscribe(current.displayName) : msg.blog.subscribe(current.displayName)}
-          title={current.subscribed ? msg.blog.unsubscribe(current.displayName) : msg.blog.subscribe(current.displayName)}
+          aria-label={
+            current.subscribed
+              ? msg.blog.unsubscribe(current.displayName)
+              : msg.blog.subscribe(current.displayName)
+          }
+          title={
+            current.subscribed
+              ? msg.blog.unsubscribe(current.displayName)
+              : msg.blog.subscribe(current.displayName)
+          }
           disabled={busy}
           onClick={() => void toggle()}
         >
@@ -76,7 +87,11 @@ function toListbox(o: Option, meId: string): ListboxOption {
     ) : (
       messages().blog.everyone
     ),
-    meta: t ? (typeof t.travelCount === 'number' ? messages().blog.travelCount(t.travelCount) : undefined) : messages().blog.everyoneHint,
+    meta: t
+      ? typeof t.travelCount === 'number'
+        ? messages().blog.travelCount(t.travelCount)
+        : undefined
+      : messages().blog.everyoneHint,
     icon: <OptionAvatar option={o} size="s" />,
     triggerIcon: <OptionAvatar option={o} size="xs" />,
   };
@@ -84,7 +99,9 @@ function toListbox(o: Option, meId: string): ListboxOption {
 
 function label(o: Option, meId: string): string {
   if (!o.traveller) return messages().blog.everyone;
-  return o.traveller.id === meId ? messages().blog.me(o.traveller.displayName) : o.traveller.displayName;
+  return o.traveller.id === meId
+    ? messages().blog.me(o.traveller.displayName)
+    : o.traveller.displayName;
 }
 
 function OptionAvatar({ option, size }: { option: Option; size: 'xs' | 's' }) {

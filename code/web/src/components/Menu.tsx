@@ -45,7 +45,13 @@ export function Menu({ trigger, label, triggerClassName, children }: Props) {
         {trigger}
       </button>
       {open && (
-        <div className="menu-panel" role="menu" ref={panel} onKeyDown={onKeyDown} onClick={() => setOpen(false)}>
+        <div
+          className="menu-panel"
+          role="menu"
+          ref={panel}
+          onKeyDown={onKeyDown}
+          onClick={() => setOpen(false)}
+        >
           {children}
         </div>
       )}

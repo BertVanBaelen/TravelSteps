@@ -28,7 +28,7 @@
   .vapid.json                  # generated VAPID key pair for Web Push
   uploads/avatars/             # uploaded profile pictures (only non-Immich files)
 ```
-Main tables: `users` (+ `role` admin/traveller/viewer, encrypted Immich key, `language` nl/en/NULL), `travels` (+ `owner_id`), `travel_members` (status invited/accepted), `travel_viewers`, `posts` (+ `author_id`; locations, segments incl. cached route geometry, arrival, stats and photo asset IDs as JSON columns; photo owner = post author), `likes`, `comments`, `subscriptions`, `notifications`, `push_subscriptions`.
+Main tables: `users` (+ `role` admin/traveller/viewer, encrypted Immich key, `language` nl/en/NULL), `travels` (+ `owner_id`), `travel_members` (status invited/accepted), `travel_viewers`, `trusted_users`, `posts` (+ `author_id`; locations, segments incl. cached route geometry, arrival, stats and photo asset IDs as JSON columns; photo owner = post author), `likes`, `comments`, `subscriptions`, `notifications`, `push_subscriptions`.
 - Schema changes via the existing append-only migration list (`PRAGMA user_version`).
 - **One-time migration** of the former Markdown store (`travels/<slug>/travel.md`, `posts/*.md`): at startup, if the `travels/` folder exists and the database has no travels, all travels/posts are imported (owner/author = the admin), the global `IMMICH_API_KEY` is copied to the admin's account, and the folder is renamed to `travels.migrated/`. No Markdown export afterwards.
 - Route geometry is cached in the post row so routing is only called on change.
@@ -53,6 +53,7 @@ Main tables: `users` (+ `role` admin/traveller/viewer, encrypted Immich key, `la
 - Keys are stored **encrypted** in SQLite (AES-256-GCM, key derived from the session secret) and never returned to the client (only "set" + connection test).
 - Images are **never stored twice**: only asset IDs are saved, together with the user whose key was used (post author; travel cover → owner).
 - The backend proxies thumbnails and previews (`/api/media/:assetId/thumb|preview`) using that owner's key, only for **assets referenced in a post/travel the requester may see**, or any asset in the requester's own library (for picking). Responses are cached with HTTP cache headers. Missing/removed key → placeholder.
+- Originals (/api/media/:assetId/original) via canUseAuthorRights(requester, authorId, travelId) (server/src/trust/permissions.ts): admin, the author, or a user in 	rusted_users (owner_id, trusted_id) of the author who may see the travel. Fetched with the owner's key, Content-Disposition: attachment with the original file name, Cache-Control: private, no-store, audit log line per download; 403 when visible but not allowed, 404 ORIGINAL_UNAVAILABLE without owner key. DTOs carry canDownloadOriginal (post, travel cover, library photo). Endpoints GET/PUT/DELETE /api/profile/trusted[/:userId] (travellers/admin). The service worker uses NetworkOnly for originals.
 - Photo picker: browse/search the traveller's own Immich timeline and albums; read EXIF GPS for location suggestion.
 
 ## Notifications

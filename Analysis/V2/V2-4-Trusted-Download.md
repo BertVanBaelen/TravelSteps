@@ -1,6 +1,6 @@
 # Phase V2-4 – Trusted users & original photo download
 
-Status: ⏳ planned
+Status: ✅ done (1.4.0)
 
 ## Goal
 Not everyone may download full-resolution photos. A traveller decides per other user who is
@@ -61,3 +61,14 @@ The same grant is reused for share links in V2-5.
 - Revoking trust takes effect on the next request.
 - Originals never appear in the service worker cache.
 - Unit tests for the permission helper; integration test for the media route matrix.
+
+## Solution
+- Table `trusted_users` (migration 8, cascade on both users), `server/src/trust/repository.ts` and `trust/permissions.ts` (`canUseAuthorRights` with injectable deps, wired as `ctx.canUseAuthorRights`).
+- Endpoints `GET/PUT/DELETE /api/profile/trusted[/:userId]` (travellers/admin, uuid check, `TRUST_SELF` 400, unknown/disabled 404) return `{ trusted, candidates }`; candidates = audience of travels I author (admins excluded, they already have all rights).
+- `canDownloadOriginal` on post (permissions), travel (cover) and library photo DTOs.
+- Media route: original → 403 when the asset is in a visible travel but not allowed, 404 when not visible (no existence leak), 404 `ORIGINAL_UNAVAILABLE` without owner key; own unpublished library assets keep working with own key.
+- Web: Profiel → Vertrouwde personen, lightbox button `<a download>` (hidden offline), Workbox `NetworkOnly` for originals.
+- Deviation: trusted user without visibility gets 404 (not 403), consistent with the existing visibility rule.
+
+## Bugs (user testing)
+- _none reported yet_

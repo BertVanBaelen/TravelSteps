@@ -102,6 +102,12 @@ export class BackupService {
       const stat = fs.statSync(path.join(this.dir, newest));
       last = { file: newest, at: stat.mtime.toISOString(), size: stat.size };
     }
-    return { enabled: this.enabled, keep: this.keep, dir: this.dir, last, lastError: this.lastError };
+    return {
+      enabled: this.enabled,
+      keep: this.keep,
+      dir: this.dir,
+      last,
+      lastError: this.lastError,
+    };
   }
 }

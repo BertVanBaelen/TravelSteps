@@ -10,16 +10,16 @@ export class KeyBox {
   private readonly key: Buffer;
 
   constructor(secret: string) {
-    this.key = Buffer.from(
-      crypto.hkdfSync('sha256', secret, 'travelsteps', 'immich-api-key', 32),
-    );
+    this.key = Buffer.from(crypto.hkdfSync('sha256', secret, 'travelsteps', 'immich-api-key', 32));
   }
 
   encrypt(plain: string): string {
     const iv = crypto.randomBytes(12);
     const cipher = crypto.createCipheriv('aes-256-gcm', this.key, iv);
     const data = Buffer.concat([cipher.update(plain, 'utf8'), cipher.final()]);
-    return [VERSION, iv, cipher.getAuthTag(), data].map((p) => (typeof p === 'string' ? p : p.toString('base64url'))).join('.');
+    return [VERSION, iv, cipher.getAuthTag(), data]
+      .map((p) => (typeof p === 'string' ? p : p.toString('base64url')))
+      .join('.');
   }
 
   /** null when the value can't be decrypted (e.g. the session secret changed). */
@@ -27,9 +27,16 @@ export class KeyBox {
     const [version, iv, tag, data] = value.split('.');
     if (version !== VERSION || !iv || !tag || !data) return null;
     try {
-      const decipher = crypto.createDecipheriv('aes-256-gcm', this.key, Buffer.from(iv, 'base64url'));
+      const decipher = crypto.createDecipheriv(
+        'aes-256-gcm',
+        this.key,
+        Buffer.from(iv, 'base64url'),
+      );
       decipher.setAuthTag(Buffer.from(tag, 'base64url'));
-      return Buffer.concat([decipher.update(Buffer.from(data, 'base64url')), decipher.final()]).toString('utf8');
+      return Buffer.concat([
+        decipher.update(Buffer.from(data, 'base64url')),
+        decipher.final(),
+      ]).toString('utf8');
     } catch {
       return null;
     }

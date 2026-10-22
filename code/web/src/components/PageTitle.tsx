@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useT } from '../i18n';
@@ -31,7 +25,9 @@ export function PageTitleProvider({ children }: { children: ReactNode }) {
   const [actionsSlot, setActionsSlot] = useState<HTMLElement | null>(null);
   const [startSlot, setStartSlot] = useState<HTMLElement | null>(null);
   return (
-    <Ctx.Provider value={{ header, setHeader, actionsSlot, setActionsSlot, startSlot, setStartSlot }}>
+    <Ctx.Provider
+      value={{ header, setHeader, actionsSlot, setActionsSlot, startSlot, setStartSlot }}
+    >
       {children}
     </Ctx.Provider>
   );

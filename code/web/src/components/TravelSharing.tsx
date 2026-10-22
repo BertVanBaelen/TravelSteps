@@ -4,11 +4,18 @@ import { api, errorMessage } from '../api';
 import { useT } from '../i18n';
 import { Avatar } from './Avatar';
 import { useConfirm } from './ConfirmDialog';
-import { Alert, SelectField } from './Field';
+import { Alert, SelectField } from './Field';
+
 import { UserPlusIcon } from './icons';
 
 /** Members (co-authors) and viewers of a travel; only shown to those who may manage it. */
-export function TravelSharing({ travel, onChange }: { travel: TravelSummary; onChange: (t: TravelSummary) => void }) {
+export function TravelSharing({
+  travel,
+  onChange,
+}: {
+  travel: TravelSummary;
+  onChange: (t: TravelSummary) => void;
+}) {
   const msg = useT();
   const [directory, setDirectory] = useState<DirectoryUser[] | null>(null);
   const [invitee, setInvitee] = useState('');
@@ -30,7 +37,9 @@ export function TravelSharing({ travel, onChange }: { travel: TravelSummary; onC
   );
   const candidates = (directory ?? []).filter((u) => u.role !== 'viewer' && !involved.has(u.id));
   /** Admin, owner and members always see the travel. */
-  const possibleViewers = (directory ?? []).filter((u) => u.role !== 'admin' && !involved.has(u.id));
+  const possibleViewers = (directory ?? []).filter(
+    (u) => u.role !== 'admin' && !involved.has(u.id),
+  );
 
   async function run(action: () => Promise<{ travel: TravelSummary }>, success: string | null) {
     setBusy(true);
@@ -57,7 +66,15 @@ export function TravelSharing({ travel, onChange }: { travel: TravelSummary; onC
   }
 
   async function removeMember(id: string, name: string) {
-    if (!(await confirm({ title: msg.sharing.removeTitle, message: msg.sharing.confirmRemove(name), confirmLabel: msg.common.delete, danger: true }))) return;
+    if (
+      !(await confirm({
+        title: msg.sharing.removeTitle,
+        message: msg.sharing.confirmRemove(name),
+        confirmLabel: msg.common.delete,
+        danger: true,
+      }))
+    )
+      return;
     void run(() => api(`/travels/${travel.id}/members/${id}`, { method: 'DELETE' }), null);
   }
 
@@ -72,7 +89,8 @@ export function TravelSharing({ travel, onChange }: { travel: TravelSummary; onC
 
   const visibleViewerIds = possibleViewers.filter((u) => viewers.has(u.id)).map((u) => u.id);
   const viewersChanged =
-    visibleViewerIds.length !== travel.viewerIds.filter((id) => possibleViewers.some((u) => u.id === id)).length ||
+    visibleViewerIds.length !==
+      travel.viewerIds.filter((id) => possibleViewers.some((u) => u.id === id)).length ||
     visibleViewerIds.some((id) => !travel.viewerIds.includes(id));
 
   return (
@@ -122,10 +140,19 @@ export function TravelSharing({ travel, onChange }: { travel: TravelSummary; onC
                       </span>
                     ),
                   },
-                  ...candidates.map((u) => ({ id: u.id, label: u.displayName, icon: <Avatar user={u} size="s" /> })),
+                  ...candidates.map((u) => ({
+                    id: u.id,
+                    label: u.displayName,
+                    icon: <Avatar user={u} size="s" />,
+                  })),
                 ]}
               />
-              <button type="button" className="btn btn-secondary" disabled={busy || !invitee} onClick={invite}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={busy || !invitee}
+                onClick={invite}
+              >
                 <UserPlusIcon />
                 {msg.sharing.invite}
               </button>
@@ -171,7 +198,11 @@ export function TravelSharing({ travel, onChange }: { travel: TravelSummary; onC
               disabled={busy || !viewersChanged}
               onClick={() =>
                 void run(
-                  () => api(`/travels/${travel.id}/viewers`, { method: 'PUT', body: { userIds: visibleViewerIds } }),
+                  () =>
+                    api(`/travels/${travel.id}/viewers`, {
+                      method: 'PUT',
+                      body: { userIds: visibleViewerIds },
+                    }),
                   msg.sharing.viewersSaved,
                 )
               }

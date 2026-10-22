@@ -74,12 +74,18 @@ export function PushToggle() {
       <h2>{msg.notifications.pushTitle}</h2>
       {!supported ? (
         <p className="muted">
-          {isIos() && !isStandalone() ? msg.notifications.pushIos : msg.notifications.pushUnsupported}
+          {isIos() && !isStandalone()
+            ? msg.notifications.pushIos
+            : msg.notifications.pushUnsupported}
         </p>
       ) : (
         <>
           <p className="muted">
-            {denied ? pushDeniedMessage() : on ? msg.notifications.pushOn : msg.notifications.pushHint}
+            {denied
+              ? pushDeniedMessage()
+              : on
+                ? msg.notifications.pushOn
+                : msg.notifications.pushHint}
           </p>
           {on !== null && !denied && (
             <button

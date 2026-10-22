@@ -62,9 +62,15 @@ export function NotificationsPage() {
   useEffect(load, [load]);
 
   async function markRead(id?: number) {
-    const r = await api<{ unread: number }>('/notifications/read', { method: 'POST', body: id ? { id } : {} });
+    const r = await api<{ unread: number }>('/notifications/read', {
+      method: 'POST',
+      body: id ? { id } : {},
+    });
     setUnread(r.unread);
-    setItems((list) => list?.map((n) => (id === undefined || n.id === id ? { ...n, read: true } : n)) ?? null);
+    setItems(
+      (list) =>
+        list?.map((n) => (id === undefined || n.id === id ? { ...n, read: true } : n)) ?? null,
+    );
   }
 
   function open(n: AppNotification) {
@@ -94,7 +100,11 @@ export function NotificationsPage() {
     <section className="page">
       {items?.some((n) => !n.read) && (
         <PageActions>
-          <button type="button" className="btn btn-small" onClick={() => void markRead().catch(() => undefined)}>
+          <button
+            type="button"
+            className="btn btn-small"
+            onClick={() => void markRead().catch(() => undefined)}
+          >
             <CheckIcon />
             {msg.notifications.markAll}
           </button>
@@ -103,10 +113,7 @@ export function NotificationsPage() {
       {error && <Alert kind="error">{error}</Alert>}
       {notice && <Alert kind="success">{notice}</Alert>}
       {items === null && !error && <SkeletonCards count={4} />}
-      {items?.length === 0 && (
-        <EmptyState icon={<BellIcon />} text={msg.notifications.empty} />
-
-      )}
+      {items?.length === 0 && <EmptyState icon={<BellIcon />} text={msg.notifications.empty} />}
       {items && items.length > 0 && (
         <ul className="notification-list card">
           {items.map((n) => (
@@ -116,7 +123,11 @@ export function NotificationsPage() {
                 <button type="button" className="notification-text" onClick={() => open(n)}>
                   {text(n)}
                   {n.excerpt && (
-                    <span className={n.type === 'comment' ? 'notification-excerpt quote' : 'notification-excerpt'}>
+                    <span
+                      className={
+                        n.type === 'comment' ? 'notification-excerpt quote' : 'notification-excerpt'
+                      }
+                    >
                       {n.excerpt}
                     </span>
                   )}
@@ -126,11 +137,19 @@ export function NotificationsPage() {
                 </time>
                 {n.type === 'invite' && n.travelId && !handled.has(n.id) && (
                   <div className="row-actions">
-                    <button type="button" className="btn btn-small btn-primary" onClick={() => void answer(n, true)}>
+                    <button
+                      type="button"
+                      className="btn btn-small btn-primary"
+                      onClick={() => void answer(n, true)}
+                    >
                       <CheckIcon />
                       {msg.notifications.accept}
                     </button>
-                    <button type="button" className="btn btn-small" onClick={() => void answer(n, false)}>
+                    <button
+                      type="button"
+                      className="btn btn-small"
+                      onClick={() => void answer(n, false)}
+                    >
                       <CloseIcon />
                       {msg.notifications.decline}
                     </button>

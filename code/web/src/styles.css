@@ -535,7 +535,9 @@ a {
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  transition: transform 0.12s var(--ease-out), background-color 0.15s;
+  transition:
+    transform 0.12s var(--ease-out),
+    background-color 0.15s;
 }
 
 .btn svg,
@@ -988,8 +990,12 @@ a {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  box-shadow: 0 6px 16px rgb(15 118 110 / 35%), var(--shadow-m);
-  transition: transform 0.15s var(--ease-out), box-shadow 0.15s;
+  box-shadow:
+    0 6px 16px rgb(15 118 110 / 35%),
+    var(--shadow-m);
+  transition:
+    transform 0.15s var(--ease-out),
+    box-shadow 0.15s;
   animation: fab-in 0.35s var(--ease-out) both;
 }
 
@@ -1001,7 +1007,9 @@ a {
 
 .fab:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgb(15 118 110 / 40%), var(--shadow-m);
+  box-shadow:
+    0 10px 22px rgb(15 118 110 / 40%),
+    var(--shadow-m);
 }
 
 .fab:active {
@@ -1047,7 +1055,11 @@ a {
   position: fixed;
   inset: 0;
   z-index: 14;
-  background: radial-gradient(circle at calc(100% - 3rem) calc(100% - 7rem), rgb(15 23 42 / 30%), rgb(15 23 42 / 12%));
+  background: radial-gradient(
+    circle at calc(100% - 3rem) calc(100% - 7rem),
+    rgb(15 23 42 / 30%),
+    rgb(15 23 42 / 12%)
+  );
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s;
@@ -1146,7 +1158,9 @@ a {
   inset: 0;
   display: grid;
   place-items: center;
-  transition: transform 0.25s var(--ease-out), opacity 0.2s;
+  transition:
+    transform 0.25s var(--ease-out),
+    opacity 0.2s;
 }
 
 .fab-menu-icon-close {
@@ -1357,7 +1371,10 @@ a {
 }
 
 .map-full {
-  height: calc(100dvh - var(--nav-height) - 56px - var(--blog-bar-height) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 2rem);
+  height: calc(
+    100dvh - var(--nav-height) - 56px - var(--blog-bar-height) - env(safe-area-inset-top) -
+      env(safe-area-inset-bottom) - 2rem
+  );
   min-height: 300px;
 }
 
@@ -1611,6 +1628,19 @@ a {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.lightbox-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 0.75rem;
+  color: inherit;
+}
+
+.lightbox-download svg {
+  width: 1.1em;
+  height: 1.1em;
 }
 
 .lightbox-link {
@@ -2507,7 +2537,9 @@ a {
   text-align: left;
   background: #fff;
   border-radius: var(--radius-s);
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .picker-field .picker-trigger:hover:not(:disabled) {
@@ -3283,7 +3315,12 @@ a {
 }
 
 .celebrate-flash.sky {
-  background: linear-gradient(180deg, rgb(125 211 252 / 45%), rgb(224 242 254 / 25%) 70%, rgb(255 255 255 / 0%));
+  background: linear-gradient(
+    180deg,
+    rgb(125 211 252 / 45%),
+    rgb(224 242 254 / 25%) 70%,
+    rgb(255 255 255 / 0%)
+  );
 }
 
 .celebrate-flash.party {
@@ -3405,7 +3442,9 @@ a {
   border-radius: var(--radius-full);
   background: #fff;
   opacity: 0.85;
-  box-shadow: 30px -14px 0 4px #fff, -24px -8px 0 0 #fff;
+  box-shadow:
+    30px -14px 0 4px #fff,
+    -24px -8px 0 0 #fff;
   animation: cloud-drift 1.3s linear calc(var(--i) * 120ms) both;
 }
 

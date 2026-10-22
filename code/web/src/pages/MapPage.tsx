@@ -28,7 +28,10 @@ export function MapPage() {
   useEffect(() => {
     const q = withTraveller(new URLSearchParams(), selected);
     setPosts(null);
-    Promise.all([api<{ travels: TravelSummary[] }>(`/travels?${q}`), api<{ posts: MapPost[] }>(`/posts/map?${q}`)])
+    Promise.all([
+      api<{ travels: TravelSummary[] }>(`/travels?${q}`),
+      api<{ posts: MapPost[] }>(`/posts/map?${q}`),
+    ])
       .then(([t, p]) => {
         setTravels(t.travels);
         setPosts(p.posts);
@@ -43,14 +46,19 @@ export function MapPage() {
   const colors = useMemo(() => {
     const m = new Map<string, string>();
     // Oldest travel first, so colours stay stable when a new travel is added.
-    [...(travels ?? [])].reverse().forEach((t, i) => m.set(t.id, TRAVEL_COLORS[i % TRAVEL_COLORS.length]!));
+    [...(travels ?? [])]
+      .reverse()
+      .forEach((t, i) => m.set(t.id, TRAVEL_COLORS[i % TRAVEL_COLORS.length]!));
     return m;
   }, [travels]);
   const colorFor = useCallback((id: string) => colors.get(id) ?? TRAVEL_COLORS[0]!, [colors]);
   const openPost = useCallback((id: string) => navigate(`/post/${id}`), [navigate]);
 
   const shown = useMemo(
-    () => (posts ?? []).filter((p) => p.locations.length > 0 && (filter === ALL || p.travelId === filter)),
+    () =>
+      (posts ?? []).filter(
+        (p) => p.locations.length > 0 && (filter === ALL || p.travelId === filter),
+      ),
     [posts, filter],
   );
   const shownTravels = (travels ?? []).filter((t) => filter === ALL || t.id === filter);

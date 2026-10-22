@@ -25,7 +25,15 @@ export function useDismiss(open: boolean, ref: RefObject<HTMLElement | null>, cl
  * Popup panel: a dropdown under its trigger on wide screens, a bottom sheet with a
  * backdrop on phones (see `.sheet` in styles.css).
  */
-export function Sheet({ open, className, children }: { open: boolean; className?: string; children: ReactNode }) {
+export function Sheet({
+  open,
+  className,
+  children,
+}: {
+  open: boolean;
+  className?: string;
+  children: ReactNode;
+}) {
   if (!open) return null;
   return (
     <>

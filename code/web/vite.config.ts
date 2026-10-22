@@ -42,6 +42,11 @@ export default defineConfig({
         runtimeCaching: [
           {
             urlPattern: ({ url, sameOrigin }) =>
+              sameOrigin && /^\/api\/media\/[^/]+\/original$/.test(url.pathname),
+            handler: 'NetworkOnly',
+          },
+          {
+            urlPattern: ({ url, sameOrigin }) =>
               sameOrigin && /^\/api\/media\/[^/]+\/(thumbnail|preview)$/.test(url.pathname),
             handler: 'CacheFirst',
             options: {
