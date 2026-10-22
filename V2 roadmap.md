@@ -11,12 +11,11 @@ feature or data. The detailed plan, decisions, compatibility rules and permissio
 | 3 | Multi-language | Dutch + English, chosen per user (default from browser, fallback Dutch); push notifications in the recipient's language | [V2-3](Analysis/V2/V2-3-I18n.md) |
 | 4 | Trusted users & original download | A traveller marks other users as **Vertrouwd**; they may download that traveller's photos in full resolution (single photo) | [V2-4](Analysis/V2/V2-4-Trusted-Download.md) |
 | 5 | Anonymous share link | Author, trusted users and admin can share one step via a link to a separate card (title, date, text, photos, stats, map – no author/comments/likes); expires after 24h, revocable | [V2-5](Analysis/V2/V2-5-Share-Link.md) |
-| 6 | Google login | Extra "Inloggen met Google" for existing users who linked their Google account in Profiel; password login stays | [V2-6](Analysis/V2/V2-6-Google-Login.md) |
-| 7 | Admin statistics | Beheer → Statistieken: users (per role, active 30d), travels, steps, photos, likes, comments, `/data` storage, size of referenced Immich photos | [V2-7](Analysis/V2/V2-7-Admin-Stats.md) |
+| 6 | Admin statistics | Beheer → Statistieken: users (per role, active 30d), travels, steps, photos, likes, comments, `/data` storage, size of referenced Immich photos | [V2-6](Analysis/V2/V2-6-Admin-Stats.md) |
 | X | Release v2.0.0 | Security review, upgrade test from v1, docs | [V2-X](Analysis/V2/V2-X-Release.md) |
 
 ## Original wishes (input for this roadmap)
-- i want to use google login implementation
+- ~~i want to use google login implementation~~ (removed from V2 on 2026-10-22)
 - i want to use multi language
 - i want animations for events. i am thinking about like a footprint that comes onto the screen when posting a post. a plane that comes across the screen when making a new travel, ...
 - i want more uniformity and ux prettieness. for example instead of a post, call it a step

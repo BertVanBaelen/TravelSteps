@@ -1,4 +1,4 @@
-# Phase V2-7 – Admin statistics
+# Phase V2-6 – Admin statistics
 
 Status: ⏳ planned
 
@@ -7,8 +7,7 @@ Give the admin an overview of usage and storage.
 
 ## Decisions (from Q&A)
 New page **Beheer → Statistieken** (admin only) with:
-- **Users:** total, per role (admin/traveller/viewer), disabled, **active in the last 30 days**,
-  Google-linked (after V2-6).
+- **Users:** total, per role (admin/traveller/viewer), disabled, **active in the last 30 days**.
 - **Content:** travels (ongoing / finished), steps, photos referenced, likes, comments, active share
   links (after V2-5), push subscriptions.
 - **Storage:** `/data` disk usage split into database, avatars, backups and other; free disk space
