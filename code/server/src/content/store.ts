@@ -3,11 +3,13 @@ import type { FastifyBaseLogger } from 'fastify';
 import {
   isTraveller,
   postInputSchema,
+  TRAVEL_COLOR_KEYS,
   travelInputSchema,
   type Post,
   type PostInput,
   type Role,
   type Segment,
+  type TravelColor,
   type TravelInput,
   type TravelRole,
   type TravelStat,
@@ -25,6 +27,7 @@ export interface TravelRecord {
   startDate: string;
   endDate: string | null;
   coverAssetId: string | null;
+  color: TravelColor;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,6 +66,7 @@ interface TravelRow {
   start_date: string;
   end_date: string | null;
   cover_asset_id: string | null;
+  color: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -164,6 +168,7 @@ const toTravel = (r: TravelRow): TravelRecord => ({
   startDate: r.start_date,
   endDate: r.end_date,
   coverAssetId: r.cover_asset_id,
+  color: TRAVEL_COLOR_KEYS.includes(r.color as TravelColor) ? (r.color as TravelColor) : 'forest',
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 });
@@ -367,6 +372,16 @@ export class ContentStore {
     return own.find((t) => t.startDate <= now && (!t.endDate || t.endDate >= now)) ?? own[0];
   }
 
+  /** First palette colour none of the owner's travels uses yet (cycles when all are taken). */
+  freeColorFor(ownerId: string): TravelColor {
+    const owned = this.ownedTravels(ownerId);
+    const used = new Set(owned.map((t) => t.color));
+    return (
+      TRAVEL_COLOR_KEYS.find((c) => !used.has(c)) ??
+      TRAVEL_COLOR_KEYS[owned.length % TRAVEL_COLOR_KEYS.length]!
+    );
+  }
+
   private travelSlugTaken = (slug: string, exceptId?: string) =>
     [...this.travels.values()].some((e) => e.travel.slug === slug && e.travel.id !== exceptId);
 
@@ -374,13 +389,14 @@ export class ContentStore {
     this.db
       .prepare(
         `INSERT INTO travels (id, slug, owner_id, name, description, start_date, end_date,
-           cover_asset_id, created_at, updated_at)
+           cover_asset_id, color, created_at, updated_at)
          VALUES (@id, @slug, @ownerId, @name, @description, @startDate, @endDate, @coverAssetId,
-           @createdAt, @updatedAt)
+           @color, @createdAt, @updatedAt)
          ON CONFLICT(id) DO UPDATE SET slug = excluded.slug, owner_id = excluded.owner_id,
            name = excluded.name, description = excluded.description,
            start_date = excluded.start_date, end_date = excluded.end_date,
-           cover_asset_id = excluded.cover_asset_id, updated_at = excluded.updated_at`,
+           cover_asset_id = excluded.cover_asset_id, color = excluded.color,
+           updated_at = excluded.updated_at`,
       )
       .run(t);
   }
@@ -393,6 +409,7 @@ export class ContentStore {
       slug: uniqueName(slugify(data.name, 'reis'), (s) => this.travelSlugTaken(s)),
       ownerId,
       ...data,
+      color: data.color ?? this.freeColorFor(ownerId),
       createdAt: now,
       updatedAt: now,
     };
@@ -409,7 +426,10 @@ export class ContentStore {
     if (!matchesBase(travel.slug, desired)) {
       travel.slug = uniqueName(desired, (s) => this.travelSlugTaken(s, id));
     }
-    Object.assign(travel, data, { updatedAt: new Date().toISOString() });
+    Object.assign(travel, data, {
+      color: data.color ?? travel.color,
+      updatedAt: new Date().toISOString(),
+    });
     this.writeTravel(travel);
     this.invalidate();
     return travel;

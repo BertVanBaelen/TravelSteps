@@ -3,10 +3,12 @@ import 'leaflet/dist/leaflet.css';
 import {
   ROUTED_MODES,
   segmentLine,
+  TRAVEL_COLORS,
   type LatLng,
   type Location,
   type MapPost,
   type Segment,
+  type TransportMode,
 } from '@travelsteps/shared';
 
 export type MapPostLike = Pick<
@@ -14,17 +16,38 @@ export type MapPostLike = Pick<
   'id' | 'travelId' | 'title' | 'date' | 'coverAssetId' | 'locations' | 'segments' | 'arrival'
 >;
 
-export const TRAVEL_COLORS = [
-  '#16a34a',
-  '#2563eb',
-  '#dc2626',
-  '#9333ea',
-  '#ea580c',
-  '#0891b2',
-  '#ca8a04',
-  '#db2777',
-];
-export const DEFAULT_COLOR = TRAVEL_COLORS[0]!;
+export const DEFAULT_COLOR = TRAVEL_COLORS.forest;
+/** Boat, train and plane lines: dashed in fjord blue, whatever the travel colour. */
+const TRANSIT_COLOR = TRAVEL_COLORS.fjord;
+
+/** Map line groups; the legend shows them with their own style, not by colour alone. */
+export type LineGroup = 'own' | 'car' | 'transit';
+
+export function lineGroup(mode: TransportMode): LineGroup {
+  if (mode === 'lopen' || mode === 'fietsen') return 'own';
+  return mode === 'auto' ? 'car' : 'transit';
+}
+
+/**
+ * Line style per transport mode: under your own power thick and solid, car thinner and lighter,
+ * boat/train/plane dashed in fjord blue. `faint` is used for the connection from the previous step.
+ */
+export function lineStyle(segment: Segment, color: string, faint = false): L.PolylineOptions {
+  const group = lineGroup(segment.mode);
+  const dim = faint ? 0.7 : 1;
+  if (group === 'transit') {
+    return { color: TRANSIT_COLOR, weight: 3, opacity: 0.85 * dim, dashArray: '8 8' };
+  }
+  if (group === 'car') {
+    return {
+      color,
+      weight: 3,
+      opacity: 0.5 * dim,
+      dashArray: isDashed(segment) ? '6 8' : undefined,
+    };
+  }
+  return { color, weight: 5, opacity: 0.9 * dim, dashArray: isDashed(segment) ? '6 8' : undefined };
+}
 
 export function createMap(el: HTMLElement, interactive: boolean): L.Map {
   const map = L.map(el, {
@@ -60,12 +83,7 @@ export function drawSegment(
   to: Location,
   color: string,
 ): L.Polyline {
-  return L.polyline(segmentLine(segment, from, to), {
-    color,
-    weight: 4,
-    opacity: 0.85,
-    dashArray: isDashed(segment) ? '6 8' : undefined,
-  }).addTo(layer);
+  return L.polyline(segmentLine(segment, from, to), lineStyle(segment, color)).addTo(layer);
 }
 
 /** Draws a post's points and routes; returns all coordinates for fitting the view. */
@@ -79,12 +97,7 @@ export function drawPost(
   const locs = post.locations;
   if (options.arrival && post.arrival?.geometry && post.arrival.geometry.length >= 2) {
     const line = post.arrival.geometry;
-    L.polyline(line, {
-      color,
-      weight: 3,
-      opacity: 0.6,
-      dashArray: isDashed(post.arrival) ? '6 8' : undefined,
-    }).addTo(layer);
+    L.polyline(line, lineStyle(post.arrival, color, true)).addTo(layer);
     points.push(line[0]!);
   }
   for (let i = 0; i < locs.length - 1; i++) {

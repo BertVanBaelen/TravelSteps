@@ -391,7 +391,7 @@ export function PostEditorPage() {
               value={travelId}
               onChange={setTravelId}
               options={postable.map((t) =>
-                travelOption(t, undefined, t.owner.id !== me.id ? ` (${t.owner.displayName})` : ''),
+                travelOption(t, t.owner.id !== me.id ? ` (${t.owner.displayName})` : ''),
               )}
             />
           )}

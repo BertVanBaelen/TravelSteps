@@ -6,7 +6,7 @@ Travel blog (PWA) with a timeline, map and Immich photos for several travellers.
 Docker container (or Home Assistant add-on) on the Home Assistant server and is made publicly
 reachable through a Cloudflare Tunnel. The app is available in **Dutch and English**.
 
-Version **2.0.0** – changes per version (with screenshots) in [code/CHANGELOG.md](code/CHANGELOG.md).
+Version **2.2.0** – changes per version (with screenshots) in [code/CHANGELOG.md](code/CHANGELOG.md).
 Planned extensions: see the [V2 roadmap](V2%20roadmap.md); sharing and admin statistics are
 postponed to a later version ([`Analysis/VX/`](Analysis/VX/README.md)).
 
@@ -15,8 +15,10 @@ postponed to a later version ([`Analysis/VX/`](Analysis/VX/README.md)).
 | `code/`                      | All source code, Docker and add-on files     |
 | `Analysis/`                  | Phase plan for the implementation            |
 | `Analysis/V2/`               | Phase plan for V2                            |
+| `Analysis/V3/`               | Phase plan for V3 (design overhaul)          |
 | `Analysis/VX/`               | Postponed features (later version)           |
 | `V2 roadmap.md`              | Overview of the V2 features                  |
+| `V3 roadmap.md`              | Overview of the V3 design overhaul           |
 | `Functional requirements.md` | Functional requirements                      |
 | `Technical requirements.md`  | Technical requirements                       |
 
@@ -92,7 +94,7 @@ folder `/share/travelsteps` simply stays) and start. Then remove the local add-o
    docker compose up -d --build
    docker compose logs -f
    ```
-4. Check: `curl http://localhost:8080/api/health` → `{"status":"ok","version":"2.0.0"}`.
+4. Check: `curl http://localhost:8080/api/health` → `{"status":"ok","version":"2.2.0"}`.
 
 ## Cloudflare Tunnel
 

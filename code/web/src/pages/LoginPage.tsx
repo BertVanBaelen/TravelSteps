@@ -5,6 +5,7 @@ import { Alert, Field } from '../components/Field';
 import { StaticBanner } from '../components/PageTitle';
 import { db, useLiveQuery } from '../offline/db';
 import { LanguageSwitch } from '../components/LanguageSwitch';
+import { RouteLine } from '../components/RouteLine';
 import { setLanguage, useT } from '../i18n';
 
 export function LoginPage() {
@@ -37,6 +38,7 @@ export function LoginPage() {
     <>
       <StaticBanner title={msg.login.title} />
       <div className="auth-screen">
+        <RouteLine className="auth-route" />
         <form className="card auth-card" onSubmit={submit}>
           <img src="/favicon.svg" alt="" className="auth-logo" />
           <p className="muted">{msg.login.subtitle}</p>

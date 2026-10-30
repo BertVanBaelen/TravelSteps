@@ -87,6 +87,25 @@ export type LatLng = [number, number];
 
 // ---------- Travels ----------
 
+/**
+ * Named colours a travel can have (V3): its line on the map, the ring around its cover and its
+ * chip. Always shown together with the travel's name, never as the only cue. The order matches
+ * the colours travels got automatically before V3, so existing travels keep their look.
+ */
+export const TRAVEL_COLORS = {
+  forest: '#1b6b45',
+  fjord: '#2f6fb3',
+  sunset: '#e2553a',
+  heather: '#8a4fa8',
+  ochre: '#a8620f',
+  lagoon: '#0e7c86',
+  slate: '#4f5b66',
+  berry: '#b4316f',
+} as const;
+export type TravelColor = keyof typeof TRAVEL_COLORS;
+export const TRAVEL_COLOR_KEYS = Object.keys(TRAVEL_COLORS) as TravelColor[];
+export const travelColorSchema = z.enum(TRAVEL_COLOR_KEYS as [TravelColor, ...TravelColor[]]);
+
 export const travelInputSchema = z
   .object({
     name: z.string().trim().min(1, 'Naam is verplicht').max(100, 'Naam is te lang'),
@@ -94,6 +113,8 @@ export const travelInputSchema = z
     startDate: isoDateSchema,
     endDate: isoDateSchema.nullable().default(null),
     coverAssetId: assetIdSchema.nullable().default(null),
+    /** Omitted: a free colour on create, unchanged on update. */
+    color: travelColorSchema.optional(),
   })
   .refine((t) => !t.endDate || t.endDate >= t.startDate, {
     message: 'De einddatum ligt voor de startdatum',
@@ -115,6 +136,8 @@ export interface Travel {
   startDate: string;
   endDate: string | null;
   coverAssetId: string | null;
+  /** Added in V3; always set. */
+  color: TravelColor;
   owner: UserRef;
   /** Invited and accepted members (without the owner). */
   members: TravelMember[];

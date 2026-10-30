@@ -4,6 +4,30 @@ All notable changes to TravelSteps. Versions follow `major.minor.patch`: a relea
 major number, a completed phase the minor number and a bug fix the patch number. Screenshots are
 in [`docs/changelog`](docs/changelog).
 
+## 2.2.0 – New look and navigation (V3-1, V3-2)
+
+- **New look "Reisdagboek":** warm paper background, forest green and a sunset accent, and two new
+  fonts: Bricolage Grotesque for headings and Atkinson Hyperlegible Next (made for readers with
+  low vision) for everything else. The fonts come with the app, so nothing is loaded from Google
+  and they work offline.
+- **Easier to read and tap:** text follows the text size of your device, nothing is smaller than
+  15 px, every button and row you can tap is at least 48 px high and all text has a contrast of
+  at least 4.5:1 (checked by a test).
+- **A colour per travel:** choose it in the travel editor (Forest, Fjord, Sunset, Heather, …). It
+  is used for the travel's line on the map and the ring around its cover. Existing travels keep
+  the colour they had on the map.
+- **Map:** lines show how you travelled – walking and cycling thick and solid, car thinner and
+  lighter, boat, train and plane dashed in blue – with a legend under the map. The base map is
+  warmer and calmer, so the routes stand out.
+- **Navigation:** four tabs (Timeline, Map, Photos, Travels); notifications moved to a bell with
+  a count at the top. On a tablet the navigation is a rail on the left, on a computer a sidebar
+  with "New step" and your profile. Larger text automatically switches to the narrower layout.
+- **"What do you want to see?":** one bar at the top of the timeline, map and photos shows the
+  travel and whose diary you are looking at ("Lofoten & Senja · Day 6 · Bert and Lies"). Tapping
+  it opens one sheet with both choices and a "Show 7 steps" button. The photos page now also
+  follows the chosen travel, and the choice is remembered on the device. The bell to follow a
+  traveller moved into this sheet.
+
 ## 2.0.0 – TravelSteps 2
 
 - **Version 2:** brings together everything since 1.0.0 – steps & UX polish (1.1), animations
@@ -57,6 +81,7 @@ in [`docs/changelog`](docs/changelog).
 - **Faster place lookups:** the server gives up on a slow place-name service after 6 seconds
   (was 20) and remembers recent answers, so repeated searches and taps are immediate. The route is
   calculated sooner after a change.
+
 ## 1.2.7 – Map stays inside its box
 
 - **Fix:** pressing "Kies op kaart" in the step editor no longer makes the map spill out of its
@@ -65,8 +90,8 @@ in [`docs/changelog`](docs/changelog).
 
 ## 1.2.6 – One-day travels
 
-- **One-day travel:** the travel editor has a "Duur" choice: *Eén dag* or *Meerdere dagen*. With
-  *Eén dag* you only pick one date; the travel is saved with the same start and end date.
+- **One-day travel:** the travel editor has a "Duur" choice: _Eén dag_ or _Meerdere dagen_. With
+  _Eén dag_ you only pick one date; the travel is saved with the same start and end date.
 - One-day travels show a single date (e.g. "9 oktober 2026") instead of a range in the travel
   list, the travel page and the header travel picker.
 
@@ -86,6 +111,7 @@ in [`docs/changelog`](docs/changelog).
   of a browser prompt, with save and remove buttons.
 - **Copy password:** when creating a user (and after creating or resetting) a "Kopiëren" button
   copies the temporary password.
+
 ## 1.2.4 – Pretty dropdowns and photo integration
 
 - **Fix:** the step actions button no longer shows its menu all the time; it opens on a tap.
@@ -95,6 +121,7 @@ in [`docs/changelog`](docs/changelog).
   (walk, bike, car, train, plane, boat); roles, the travel transfer when deleting a user and the
   invite list show icons or profile pictures.
 - **Photo integration:** the "Immich" menu item and labels are now called "Foto-integratie".
+
 ## 1.2.3 – Header travel picker, step actions and settings menus
 
 - **Travel filter in the header:** on the timeline and the map the travel choice ("Alle reizen",
@@ -132,8 +159,8 @@ in [`docs/changelog`](docs/changelog).
 - **Step header:** on narrow screens the author, travel and date no longer squeeze into narrow
   columns; the date moves to its own line.
 
-| Blog selector on a phone | Users page |
-| --- | --- |
+| Blog selector on a phone                                                                              | Users page                                                                                         |
+| ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | <img src="docs/changelog/1.1.0/blog-sheet-phone.png" width="260" alt="Blog selector as bottom sheet"> | <img src="docs/changelog/1.1.0/admin-users-desktop.png" width="480" alt="Users page with avatars"> |
 
 ## 1.2.0 – Animations (V2 phase 2)
@@ -148,14 +175,14 @@ and are skipped entirely when the device asks for reduced motion.
 - **Invitation accepted:** confetti when you join a travel, from the travel page or from
   Meldingen.
 
-| Like | Invitation accepted | New travel |
-| --- | --- | --- |
+| Like                                                                                             | Invitation accepted                                                                                                 | New travel                                                                                                  |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | <img src="docs/changelog/1.2.0/like-burst-phone.png" width="240" alt="Heart burst after liking"> | <img src="docs/changelog/1.2.0/invite-confetti-phone.png" width="240" alt="Confetti after accepting an invitation"> | <img src="docs/changelog/1.2.0/new-travel-plane-phone.png" width="240" alt="Plane after creating a travel"> |
 
 ## 1.1.0 – Steps & UX (V2 phase 1)
 
 - **"Posts" are now "stappen":** every text in the app, the push notifications and the error
-  messages talks about *stappen* ("Nieuwe stap", "Er zijn nog geen stappen", …). Links and saved
+  messages talks about _stappen_ ("Nieuwe stap", "Er zijn nog geen stappen", …). Links and saved
   data are unchanged.
 - **Avatars everywhere:** every person gets a round avatar with their initials and a fixed
   colour (or their photo). They appear on steps, comments, travels, the users page and as a small
@@ -168,12 +195,12 @@ and are skipped entirely when the device asks for reduced motion.
   content, and empty pages show an icon with a short explanation and, where useful, a button.
 - **More consistent look:** shared colours, spacing, rounded corners and shadows across all pages.
 
-| Timeline | Blog selector (computer) | Avatar menu |
-| --- | --- | --- |
+| Timeline                                                                                    | Blog selector (computer)                                                                            | Avatar menu                                                                          |
+| ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | <img src="docs/changelog/1.1.0/timeline-phone.png" width="240" alt="Timeline with avatars"> | <img src="docs/changelog/1.1.0/blog-dropdown-desktop.png" width="400" alt="Blog selector dropdown"> | <img src="docs/changelog/1.1.0/user-menu-desktop.png" width="400" alt="Avatar menu"> |
 
-| Step with likes and comments | Loading | Empty page |
-| --- | --- | --- |
+| Step with likes and comments                                                         | Loading                                                                                                   | Empty page                                                                                   |
+| ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | <img src="docs/changelog/1.1.0/step-detail-phone.png" width="240" alt="Step detail"> | <img src="docs/changelog/1.1.0/skeleton-phone.png" width="240" alt="Skeleton placeholders while loading"> | <img src="docs/changelog/1.1.0/empty-state-phone.png" width="240" alt="Empty photo library"> |
 
 ## 1.0.0 – First release

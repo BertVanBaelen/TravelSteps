@@ -21,6 +21,7 @@ export function toTravel(
     startDate: t.startDate,
     endDate: t.endDate,
     coverAssetId: t.coverAssetId,
+    color: t.color,
     owner: refs.get(t.ownerId) ?? DELETED_USER,
     members: [...content.members(t.id)]
       .filter(([id]) => refs.has(id))

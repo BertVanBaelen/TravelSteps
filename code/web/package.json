@@ -1,6 +1,6 @@
 {
   "name": "@travelsteps/web",
-  "version": "2.0.0",
+  "version": "2.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,6 +11,8 @@
     "test": "vitest run"
   },
   "devDependencies": {
+    "@fontsource-variable/atkinson-hyperlegible-next": "^5.3.0",
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
     "@tiptap/core": "^3.31.4",
     "@tiptap/extensions": "^3.31.4",
     "@tiptap/markdown": "^3.31.4",

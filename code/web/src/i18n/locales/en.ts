@@ -11,6 +11,27 @@ export const en: Messages = {
     travels: 'Travels',
     notifications: 'Notifications',
     profile: 'Profile',
+    main: 'Main menu',
+    profileSettings: 'Profile and settings',
+    notificationsUnread: (n: number) => (n > 0 ? `Notifications, ${n} new` : 'Notifications'),
+  },
+  context: {
+    title: 'What do you want to see?',
+    open: (current: string) => `What do you want to see? Now: ${current}`,
+    change: 'Change',
+    who: 'Whose',
+    which: 'Which travel',
+    everyoneLower: 'everyone',
+    /** "Bert", "Bert and Lies", "Bert, Lies and Jonas". */
+    names: (names: string[]) =>
+      names.length <= 1
+        ? (names[0] ?? '')
+        : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`,
+    day: (n: number) => `Day ${n}`,
+    nowDay: (n: number) => `Ongoing · day ${n}`,
+    show: (n: number) => (n === 1 ? 'Show 1 step' : `Show ${n} steps`),
+    showTravels: (n: number) => (n === 1 ? 'Show 1 travel' : `Show ${n} travels`),
+    follow: (name: string) => `Notifications about new steps by ${name}`,
   },
   confirm: {
     title: 'Are you sure?',
@@ -391,6 +412,12 @@ export const en: Messages = {
     filter: 'Choose travel',
     empty: 'There are no steps with a location yet.',
     openPost: (title: string) => `Open map of "${title}"`,
+    legend: 'Lines on the map',
+    lines: {
+      own: 'Under your own power',
+      car: 'Car',
+      transit: 'Boat, train or plane',
+    },
   },
   stats: {
     afstand: 'Distance',
@@ -507,6 +534,19 @@ export const en: Messages = {
     cover: 'Cover photo',
     chooseCover: 'Choose cover photo',
     removeCover: 'Remove cover',
+    color: 'Colour',
+    colorHint: 'Used for the line on the map and the ring around the cover photo.',
+    colorAuto: "If you don't choose, the travel gets a colour you don't use yet.",
+  },
+  travelColors: {
+    forest: 'Forest',
+    fjord: 'Fjord',
+    sunset: 'Sunset',
+    heather: 'Heather',
+    ochre: 'Ochre',
+    lagoon: 'Lagoon',
+    slate: 'Slate',
+    berry: 'Berry',
   },
   sharing: {
     membersTitle: 'Co-writers',

@@ -115,25 +115,29 @@ Locations are ordered. Per segment (between two consecutive points) a **transpor
 
 ## Screens
 
-### Header: whose blog
-- A selector under the header (dropdown on a computer, bottom sheet on a phone) for every user to choose **whose blog** to view, each entry with avatar, name, "jij" for yourself and the number of visible travels: the list of travellers (with at least one travel visible to you) plus **"Iedereen"** (all visible travels combined). It is a view filter, not account switching.
+### Header: "Wat wil je zien?" (whose blog and which travel)
+- One **context bar** at the top of Tijdlijn, Kaart and Foto's shows the chosen travel (cover with its colour ring, name, "Dag 6 · Bert en Lies" for an ongoing travel, otherwise the dates) or "Alle reizen". Tapping it opens one sheet "Wat wil je zien?" (bottom sheet on a phone, dialog on wider screens) with two choices and one button "Toon N stappen":
+  - *Van wie*: **"Iedereen"** (all visible travels combined) and every traveller with at least one travel visible to you, with avatar and "(jij)" for yourself. It is a view filter, not account switching.
+  - *Welke reis*: "Alle reizen" or one travel of that diary, with cover, colour ring and "Nu bezig · dag 5" or dates and counts.
+- On Reizen the bar only chooses whose travels are listed.
 - A traveller's blog = all steps (by anyone) in travels that traveller is a member of, limited to the travels you may see.
 - The choice applies to Tijdlijn, Kaart, Foto's and Reizen.
-- The last choice is remembered per device. First use: travellers see their own blog, viewers see "Iedereen".
-- Next to it: the subscribe bell (see Notifications).
+- The last choice (diary and travel) is remembered per device. First use: travellers see their own blog, viewers see "Iedereen". Old links with `?reis=` choose that travel.
+- In the sheet, under the chosen traveller: the subscribe toggle (see Notifications).
 
 ### Tijdlijn (timeline)
 - Feed of the selected blog's steps, newest first, Strava-style cards: author, cover photo, title, date, travel, key stats, mini map, like and comment counts.
-- Filter by travel. Infinite scroll.
+- Shows the travel chosen in the context bar. Infinite scroll.
 - Tap a card to open the step detail (gallery, full text, all stats, map with route, likes, comments).
 
 ### Kaart (map)
 - Map (OpenStreetMap) with the selected blog's step locations, connected with the route per segment.
-- Filter: the blog's **most recent travel** (default), **all travels** (each travel in its own colour), or a specific travel.
+- Shows the travel chosen in the context bar, or all travels of the diary (each travel in its own colour, with a legend).
+- Line style per transport mode, never colour alone: walking and cycling thick and solid, car thinner and lighter, boat/train/plane dashed in blue; a legend under the map. The base map is warmed with a filter so routes stand out.
 - Tapping a point shows a popup with the step preview; tapping it opens the step.
 
 ### Fotobibliotheek (picture library)
-- Shows **only photos used in steps** of the selected blog.
+- Shows **only photos used in steps** of the selected blog and travel (context bar).
 - Two views: grouped **by date** and grouped **by travel**.
 - Tap a photo for full-screen view with a link to its step.
 
@@ -144,15 +148,24 @@ Locations are ordered. Per segment (between two consecutive points) a **transpor
 - Manage subscriptions; enable push notifications on this device.
 - Logout.
 
-### Meldingen (bottom bar)
+### Meldingen (bell)
 - List of notifications, newest first; tapping one opens the step/travel/invitation.
-- **Unread count badge** on the bottom-bar icon; mark one or all as read.
+- **Unread count badge** on the bell (top bar on a phone, rail/sidebar on wider screens); mark one or all as read.
 
 ### Beheer (admin only)
 - User management (add, change role, set Immich key, disable, reset password, delete – see *Deleting a user*).
 - Settings: Immich connection status (per traveller key), routing API status.
 
+### Navigation
+- Phone (narrower than 37.5 em): four tabs at the bottom (Tijdlijn, Kaart, Foto's, Reizen); the bell and profile picture at the top.
+- Tablet (37.5–68.75 em): a rail on the left with labels, Meldingen and the profile picture; "Nieuwe stap" as a header button.
+- Computer (68.75 em and wider): a sidebar with the app name, the items with labels, Meldingen with its count, "Nieuwe stap" and the user ("Profiel en instellingen").
+- The switch points are in em, so a larger text size falls back to the narrower layout.
+
 ### Look and feel
+- "Reisdagboek" design: warm paper, forest green, a sunset accent; Bricolage Grotesque for headings, Atkinson Hyperlegible Next for text (both bundled, no external font requests).
+- Text follows the device text size; nothing smaller than 15 px, body 17 px; everything tappable at least 48 px high with a word next to the icon; text contrast at least 4.5:1.
+- Every travel has a **colour**, chosen in the travel editor from a named palette (a new travel gets one the owner does not use yet). It is always shown together with the travel's name: map line, cover ring, legend.
 - Every person is shown with an avatar (profile picture, or initials in a fixed colour per user).
 - Loading pages show grey placeholders in the shape of the content; empty pages show an icon, a short explanation and, where useful, an action.
 - Short celebration animations for your own actions on this device: footprints after publishing a new step, a plane after creating a travel, a heart burst when liking, confetti when accepting an invitation. Never blocking, and skipped when the device asks for reduced motion.

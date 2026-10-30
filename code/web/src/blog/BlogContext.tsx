@@ -7,12 +7,15 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { isTraveller, type Traveller } from '@travelsteps/shared';
+import { isTraveller, type Traveller, type TravelSummary } from '@travelsteps/shared';
 import { api } from '../api';
 import { useUser } from '../auth/AuthContext';
+import { isAuthorOf } from '../lib/travel';
 
 /** '' = everyone's blog. */
 export const EVERYONE = '';
+/** '' = all travels of the selected blog. */
+export const ALL_TRAVELS = '';
 
 interface BlogState {
   /** Blogs (travellers) the user can see; null while loading. */
@@ -20,6 +23,14 @@ interface BlogState {
   /** Selected traveller id, or EVERYONE. */
   selected: string;
   select: (id: string) => void;
+  /** Every travel the user may see; null while loading. */
+  allTravels: TravelSummary[] | null;
+  /** Travels of the selected blog (all of them for EVERYONE); null while loading. */
+  travels: TravelSummary[] | null;
+  /** Selected travel id within the selected blog, or ALL_TRAVELS. */
+  travelId: string;
+  selectTravel: (id: string) => void;
+  reloadTravels: () => void;
   /** Turns notifications about a traveller's blog on or off. */
   setSubscribed: (id: string, on: boolean) => Promise<void>;
   reloadTravellers: () => void;
@@ -31,26 +42,45 @@ interface BlogState {
 const Ctx = createContext<BlogState | null>(null);
 
 const storageKey = (userId: string) => `travelsteps.blog.${userId}`;
+const travelKey = (userId: string) => `travelsteps.travel.${userId}`;
 const UNREAD_POLL_MS = 60_000;
 
-function readStored(userId: string): string | null {
+function readStored(key: string): string | null {
   try {
-    return localStorage.getItem(storageKey(userId));
+    return localStorage.getItem(key);
   } catch {
     return null;
+  }
+}
+
+function writeStored(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Private mode: the choice lasts for this page only.
   }
 }
 
 export function BlogProvider({ children }: { children: ReactNode }) {
   const user = useUser();
   const [travellers, setTravellers] = useState<Traveller[] | null>(null);
-  const [stored, setStored] = useState<string | null>(() => readStored(user.id));
+  const [stored, setStored] = useState<string | null>(() => readStored(storageKey(user.id)));
+  const [allTravels, setAllTravels] = useState<TravelSummary[] | null>(null);
+  const [storedTravel, setStoredTravel] = useState<string>(
+    () => readStored(travelKey(user.id)) ?? ALL_TRAVELS,
+  );
   const [unread, setUnread] = useState(0);
 
   const reloadTravellers = useCallback(() => {
     api<{ travellers: Traveller[] }>('/travellers')
       .then((r) => setTravellers(r.travellers))
       .catch(() => setTravellers((t) => t ?? []));
+  }, []);
+
+  const reloadTravels = useCallback(() => {
+    api<{ travels: TravelSummary[] }>('/travels')
+      .then((r) => setAllTravels(r.travels))
+      .catch(() => setAllTravels((t) => t ?? []));
   }, []);
 
   const refreshUnread = useCallback(() => {
@@ -60,10 +90,12 @@ export function BlogProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    setStored(readStored(user.id));
+    setStored(readStored(storageKey(user.id)));
+    setStoredTravel(readStored(travelKey(user.id)) ?? ALL_TRAVELS);
     reloadTravellers();
+    reloadTravels();
     refreshUnread();
-  }, [user.id, reloadTravellers, refreshUnread]);
+  }, [user.id, reloadTravellers, reloadTravels, refreshUnread]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -99,11 +131,26 @@ export function BlogProvider({ children }: { children: ReactNode }) {
   const select = useCallback(
     (id: string) => {
       setStored(id);
-      try {
-        localStorage.setItem(storageKey(user.id), id);
-      } catch {
-        // Private mode: the choice lasts for this page only.
-      }
+      writeStored(storageKey(user.id), id);
+    },
+    [user.id],
+  );
+
+  const travels = useMemo(
+    () => allTravels?.filter((t) => selected === EVERYONE || isAuthorOf(t, selected)) ?? null,
+    [allTravels, selected],
+  );
+
+  // A travel that is not (or no longer) in the selected blog falls back to all travels.
+  const travelId =
+    storedTravel !== ALL_TRAVELS && (travels === null || travels.some((t) => t.id === storedTravel))
+      ? storedTravel
+      : ALL_TRAVELS;
+
+  const selectTravel = useCallback(
+    (id: string) => {
+      setStoredTravel(id);
+      writeStored(travelKey(user.id), id);
     },
     [user.id],
   );
@@ -119,6 +166,11 @@ export function BlogProvider({ children }: { children: ReactNode }) {
         travellers,
         selected,
         select,
+        allTravels,
+        travels,
+        travelId,
+        selectTravel,
+        reloadTravels,
         setSubscribed,
         reloadTravellers,
         unread,

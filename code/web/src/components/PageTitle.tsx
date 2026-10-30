@@ -14,8 +14,6 @@ interface PageTitleState {
   setHeader: (h: Header) => void;
   actionsSlot: HTMLElement | null;
   setActionsSlot: (el: HTMLElement | null) => void;
-  startSlot: HTMLElement | null;
-  setStartSlot: (el: HTMLElement | null) => void;
 }
 
 const Ctx = createContext<PageTitleState | null>(null);
@@ -23,11 +21,8 @@ const Ctx = createContext<PageTitleState | null>(null);
 export function PageTitleProvider({ children }: { children: ReactNode }) {
   const [header, setHeader] = useState<Header>({ title: null, back: null });
   const [actionsSlot, setActionsSlot] = useState<HTMLElement | null>(null);
-  const [startSlot, setStartSlot] = useState<HTMLElement | null>(null);
   return (
-    <Ctx.Provider
-      value={{ header, setHeader, actionsSlot, setActionsSlot, startSlot, setStartSlot }}
-    >
+    <Ctx.Provider value={{ header, setHeader, actionsSlot, setActionsSlot }}>
       {children}
     </Ctx.Provider>
   );
@@ -57,12 +52,6 @@ export function usePageTitle(title: string | null, options: { back?: string } = 
 export function PageActions({ children }: { children: ReactNode }) {
   const { actionsSlot } = useCtx();
   return actionsSlot ? createPortal(children, actionsSlot) : null;
-}
-
-/** Renders its children on the left of the app banner, in place of the (visually hidden) title. */
-export function PageStart({ children }: { children: ReactNode }) {
-  const { startSlot } = useCtx();
-  return startSlot ? createPortal(children, startSlot) : null;
 }
 
 function BackButton({ to }: { to: string }) {
@@ -98,14 +87,17 @@ function BrandIcon({ link }: { link: boolean }) {
   );
 }
 
-/** Banner used inside the layout; reads the title set by the current page. */
-export function LayoutBanner({ end }: { end?: ReactNode }) {
+/**
+ * Banner used inside the layout; reads the title set by the current page. `start` (the context
+ * bar) takes the place of the visually hidden title.
+ */
+export function LayoutBanner({ start, end }: { start?: ReactNode; end?: ReactNode }) {
   const msg = useT();
-  const { header, setActionsSlot, setStartSlot } = useCtx();
+  const { header, setActionsSlot } = useCtx();
   return (
     <header className="app-header">
       {header.back ? <BackButton to={header.back} /> : <BrandIcon link />}
-      <div className="banner-start" ref={setStartSlot} />
+      {start && <div className="banner-start">{start}</div>}
       {header.title ? (
         <h1 className="banner-title">{header.title}</h1>
       ) : (

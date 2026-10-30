@@ -9,6 +9,27 @@ export const nl = {
     travels: 'Reizen',
     notifications: 'Meldingen',
     profile: 'Profiel',
+    main: 'Hoofdmenu',
+    profileSettings: 'Profiel en instellingen',
+    notificationsUnread: (n: number) => (n > 0 ? `Meldingen, ${n} nieuw` : 'Meldingen'),
+  },
+  context: {
+    title: 'Wat wil je zien?',
+    open: (current: string) => `Wat wil je zien? Nu: ${current}`,
+    change: 'Wijzigen',
+    who: 'Van wie',
+    which: 'Welke reis',
+    everyoneLower: 'iedereen',
+    /** "Bert", "Bert en Lies", "Bert, Lies en Jonas". */
+    names: (names: string[]) =>
+      names.length <= 1
+        ? (names[0] ?? '')
+        : `${names.slice(0, -1).join(', ')} en ${names[names.length - 1]}`,
+    day: (n: number) => `Dag ${n}`,
+    nowDay: (n: number) => `Nu bezig · dag ${n}`,
+    show: (n: number) => (n === 1 ? 'Toon 1 stap' : `Toon ${n} stappen`),
+    showTravels: (n: number) => (n === 1 ? 'Toon 1 reis' : `Toon ${n} reizen`),
+    follow: (name: string) => `Meldingen over nieuwe stappen van ${name}`,
   },
   confirm: {
     title: 'Weet je het zeker?',
@@ -392,6 +413,12 @@ export const nl = {
     filter: 'Reis kiezen',
     empty: 'Er zijn nog geen stappen met een locatie.',
     openPost: (title: string) => `Kaart van "${title}" openen`,
+    legend: 'Lijnen op de kaart',
+    lines: {
+      own: 'Op eigen kracht',
+      car: 'Auto',
+      transit: 'Boot, trein of vliegtuig',
+    },
   },
   stats: {
     afstand: 'Afstand',
@@ -509,6 +536,19 @@ export const nl = {
     cover: 'Omslagfoto',
     chooseCover: 'Omslagfoto kiezen',
     removeCover: 'Omslag verwijderen',
+    color: 'Kleur',
+    colorHint: 'Voor de lijn op de kaart en de rand om de omslagfoto.',
+    colorAuto: 'Kies je niets, dan krijgt de reis een kleur die je nog niet gebruikt.',
+  },
+  travelColors: {
+    forest: 'Woud',
+    fjord: 'Fjord',
+    sunset: 'Zonsondergang',
+    heather: 'Heide',
+    ochre: 'Oker',
+    lagoon: 'Lagune',
+    slate: 'Leisteen',
+    berry: 'Bes',
   },
   sharing: {
     membersTitle: 'Meeschrijvers',

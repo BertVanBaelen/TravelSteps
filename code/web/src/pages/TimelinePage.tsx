@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import type { FeedPage, PostSummary, TravelSummary } from '@travelsteps/shared';
+import { Link } from 'react-router-dom';
+import type { FeedPage, PostSummary } from '@travelsteps/shared';
 import { api, errorMessage } from '../api';
 import { isTraveller } from '@travelsteps/shared';
 import { useUser } from '../auth/AuthContext';
@@ -13,7 +13,6 @@ import { OutboxList } from '../components/OutboxList';
 import { usePageTitle } from '../components/PageTitle';
 import { PostCard } from '../components/PostCard';
 import { SkeletonCards } from '../components/Skeleton';
-import { TravelPicker } from '../components/TravelPicker';
 import { useT } from '../i18n';
 
 export function TimelinePage() {
@@ -21,30 +20,11 @@ export function TimelinePage() {
   usePageTitle(null);
   const user = useUser();
   const canWrite = isTraveller(user.role);
-  const { selected } = useBlog();
-  const [params, setParams] = useSearchParams();
-  const [travels, setTravels] = useState<TravelSummary[] | null>(null);
-  const requested = params.get('reis') ?? '';
-  // A travel from another blog is ignored after switching blogs.
-  const travelId = travels && !travels.some((t) => t.id === requested) ? '' : requested;
-
-  useEffect(() => {
-    setTravels(null);
-    api<{ travels: TravelSummary[] }>(`/travels?${withTraveller(new URLSearchParams(), selected)}`)
-      .then((r) => setTravels(r.travels))
-      .catch(() => setTravels([]));
-  }, [selected]);
+  // The travel and diary come from the context bar in the header.
+  const { selected, travels, travelId } = useBlog();
 
   return (
     <section className="page">
-      {travels && travels.length > 1 && (
-        <TravelPicker
-          travels={travels}
-          value={travelId}
-          allValue=""
-          onChange={(v) => setParams(v ? { reis: v } : {})}
-        />
-      )}
       {canWrite && <OutboxList />}
       <Feed
         key={`${selected}|${travelId}`}
@@ -54,7 +34,7 @@ export function TimelinePage() {
         hasTravels={(travels?.length ?? 1) > 0}
       />
       {canWrite && (
-        <FabStack>
+        <FabStack className="phone-only">
           {travels?.some((t) => t.canPost) === false ? (
             <Fab to="/reizen/nieuw" icon={<PlaneIcon />} label={msg.travels.new} extended />
           ) : (

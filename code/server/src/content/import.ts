@@ -7,6 +7,7 @@ import {
   locationSchema,
   segmentSchema,
   statsSchema,
+  TRAVEL_COLOR_KEYS,
   type Post,
 } from '@travelsteps/shared';
 import { parseFrontmatter } from './files.js';
@@ -77,6 +78,7 @@ export function importMarkdown(
         startDate: t.startDate,
         endDate: t.endDate ?? null,
         coverAssetId: t.coverAssetId ?? null,
+        color: TRAVEL_COLOR_KEYS[travels.length % TRAVEL_COLOR_KEYS.length]!,
         createdAt: t.createdAt ?? mtime,
         updatedAt: t.updatedAt ?? mtime,
       };

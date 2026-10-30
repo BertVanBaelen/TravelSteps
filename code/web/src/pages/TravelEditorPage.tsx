@@ -1,6 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import type { TravelSummary } from '@travelsteps/shared';
+import {
+  TRAVEL_COLOR_KEYS,
+  TRAVEL_COLORS,
+  type TravelColor,
+  type TravelSummary,
+} from '@travelsteps/shared';
 import { api, errorMessage } from '../api';
 import { useCelebrate } from '../components/Celebration';
 import { Alert, Field } from '../components/Field';
@@ -37,6 +42,8 @@ export function TravelEditorPage() {
   const [oneDay, setOneDay] = useState(false);
   const [description, setDescription] = useState('');
   const [coverAssetId, setCoverAssetId] = useState<string | null>(null);
+  // Undefined on a new travel: the server picks a colour the owner doesn't use yet.
+  const [color, setColor] = useState<TravelColor | undefined>(undefined);
   const [picking, setPicking] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +59,7 @@ export function TravelEditorPage() {
         setOneDay(travel.endDate === travel.startDate);
         setDescription(travel.description);
         setCoverAssetId(travel.coverAssetId);
+        setColor(travel.color);
         setTravel(travel);
         setLoaded(true);
       })
@@ -73,6 +81,7 @@ export function TravelEditorPage() {
           endDate: oneDay ? startDate : endDate || null,
           description,
           coverAssetId,
+          color,
         },
       });
       navigate(id ? `/reizen/${id}` : '/reizen', { replace: true });
@@ -191,6 +200,32 @@ export function TravelEditorPage() {
             )}
           </div>
         </div>
+        <fieldset className="field color-field">
+          <legend className="field-label">{msg.travelEditor.color}</legend>
+          <span className="field-hint">
+            {msg.travelEditor.colorHint}
+            {!id && ` ${msg.travelEditor.colorAuto}`}
+          </span>
+          <div className="color-options">
+            {TRAVEL_COLOR_KEYS.map((key) => (
+              <label key={key} className="color-option">
+                <input
+                  type="radio"
+                  name="color"
+                  value={key}
+                  checked={color === key}
+                  onChange={() => setColor(key)}
+                />
+                <span
+                  className="color-swatch"
+                  style={{ ['--swatch' as string]: TRAVEL_COLORS[key] }}
+                  aria-hidden
+                />
+                {msg.travelColors[key]}
+              </label>
+            ))}
+          </div>
+        </fieldset>
         {error && <Alert kind="error">{error}</Alert>}
         <button className="btn btn-primary" type="submit" disabled={busy}>
           <SaveIcon />
