@@ -22,8 +22,9 @@ Each phase delivers a working, deployable increment.
 
 New phases are added before **X** (next number after the last one); X stays the final v1 step.
 
-**V2** (multi-language, animations, trusted download, sharing, admin stats, …) is planned in [V2/README.md](V2/README.md)
-– summary in [`../V2 roadmap.md`](../V2%20roadmap.md).
+**V2** (steps & UX, animations, multi-language, trusted download) is planned in [V2/README.md](V2/README.md)
+– summary in [`../V2 roadmap.md`](../V2%20roadmap.md). Sharing and admin statistics were postponed
+to a later version: [VX/README.md](VX/README.md).
 
 ```mermaid
 graph LR

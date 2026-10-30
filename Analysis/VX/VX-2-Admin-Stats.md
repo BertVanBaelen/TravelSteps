@@ -1,6 +1,6 @@
-# Phase V2-6 – Admin statistics
+# Phase VX-2 – Admin statistics
 
-Status: ⏳ planned
+Status: ⏸️ postponed – moved from V2-6 to VX (later version) on 2026-10-30
 
 ## Goal
 Give the admin an overview of usage and storage.
@@ -9,7 +9,7 @@ Give the admin an overview of usage and storage.
 New page **Beheer → Statistieken** (admin only) with:
 - **Users:** total, per role (admin/traveller/viewer), disabled, **active in the last 30 days**.
 - **Content:** travels (ongoing / finished), steps, photos referenced, likes, comments, active share
-  links (after V2-5), push subscriptions.
+  links (after [VX-1](VX-1-Share-Link.md)), push subscriptions.
 - **Storage:** `/data` disk usage split into database, avatars, backups and other; free disk space
   of the volume.
 - **Immich:** total size of photos referenced by TravelSteps (per traveller + total), and how many
@@ -29,7 +29,7 @@ New page **Beheer → Statistieken** (admin only) with:
 - Optional "Opnieuw berekenen" action (`POST /api/admin/stats/refresh`).
 
 ### Web
-- Statistieken page with cards per section, using the V2-1 components; byte sizes formatted per
+- Statistieken page with cards per section, using the [V2-1](../V2/V2-1-Steps-UX.md) components; byte sizes formatted per
   language (V2-3). Link from the Beheer menu.
 - Not cached for offline (shows "alleen online beschikbaar").
 

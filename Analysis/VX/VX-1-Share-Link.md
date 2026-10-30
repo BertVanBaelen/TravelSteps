@@ -1,6 +1,6 @@
-# Phase V2-5 – Anonymous share link (24h)
+# Phase VX-1 – Anonymous share link (24h)
 
-Status: ⏳ planned
+Status: ⏸️ postponed – moved from V2-5 to VX (later version) on 2026-10-30
 
 ## Goal
 Share one step with someone without an account. For privacy the link opens a separate page with a
@@ -22,7 +22,7 @@ card showing only that step, and it stops working after 24 hours.
 - Token: 32 random bytes, base64url; only the **SHA-256 hash** is stored. The full URL
   (`PUBLIC_URL/s/<token>`) is returned once on creation.
 - Authenticated endpoints:
-  - `POST /api/posts/:id/shares` – checks `canUseAuthorRights` (V2-4) → returns `{ url, expiresAt }`.
+  - `POST /api/posts/:id/shares` – checks `canUseAuthorRights` ([V2-4](../V2/V2-4-Trusted-Download.md)) → returns `{ url, expiresAt }`.
   - `GET /api/posts/:id/shares` – active links (author/admin: all; others: own).
   - `DELETE /api/shares/:id` – revoke (creator, author, admin).
 - Public endpoints (whitelisted with `config.public` in the auth guard, GET only):
@@ -40,7 +40,7 @@ card showing only that step, and it stops working after 24 hours.
 - Generic Open Graph tags for `/s/*` HTML (TravelSteps name + logo only) so chat previews never leak
   content.
 - In-app notification to the step author when someone else creates a share link (new notification
-  type `share`; respects language from V2-3).
+  type `share`; respects language from [V2-3](../V2/V2-3-I18n.md)).
 - Nightly cleanup of share links expired > 7 days.
 
 ### Web

@@ -137,7 +137,7 @@ export const nl = {
     avatarTitle: 'Profielfoto',
     trustedTitle: 'Vertrouwde personen',
     trustedHint:
-      "Vertrouwde personen mogen de originele foto's van jouw berichten downloaden, maar alleen van reizen die ze mogen zien. Je kunt dit altijd weer intrekken.",
+      "Vertrouwde personen mogen de originele foto's van jouw stappen downloaden, maar alleen van reizen die ze mogen zien. Je kunt dit altijd weer intrekken.",
     trustedNone: 'Je vertrouwt nog niemand.',
     trustedAdd: 'Persoon toevoegen',
     trustedChoose: 'Kies een persoon',

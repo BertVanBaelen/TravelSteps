@@ -5,7 +5,7 @@ Status: ✅ done (1.4.0)
 ## Goal
 Not everyone may download full-resolution photos. A traveller decides per other user who is
 **trusted** ("Vertrouwd"); trusted users can download that traveller's photos in original quality.
-The same grant is reused for share links in V2-5.
+The same grant is meant to be reused for share links ([VX-1](../VX/VX-1-Share-Link.md), postponed).
 
 ## Decisions (from Q&A)
 - Grant is **per user pair**: traveller A marks user B as trusted.
@@ -28,7 +28,7 @@ The same grant is reused for share links in V2-5.
   - Expose per photo/step whether the current user `canDownloadOriginal` (computed server-side).
 - Helper `canUseAuthorRights(requester, authorId, travelId)`:
   `requester.isAdmin || requester.id === authorId || (trusted(authorId, requester.id) && maySeeTravel(requester, travelId))`.
-  Reused by V2-5.
+  To be reused by [VX-1](../VX/VX-1-Share-Link.md).
 - Media proxy (`routes/immich.ts`): `original` size today only serves the requester's own library.
   Extend: allowed when the asset is referenced in a step/travel the requester may see **and**
   `canUseAuthorRights` holds for the asset owner. Fetch with the **owner's** Immich key (same as

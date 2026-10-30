@@ -53,7 +53,7 @@ Main tables: `users` (+ `role` admin/traveller/viewer, encrypted Immich key, `la
 - Keys are stored **encrypted** in SQLite (AES-256-GCM, key derived from the session secret) and never returned to the client (only "set" + connection test).
 - Images are **never stored twice**: only asset IDs are saved, together with the user whose key was used (post author; travel cover → owner).
 - The backend proxies thumbnails and previews (`/api/media/:assetId/thumb|preview`) using that owner's key, only for **assets referenced in a post/travel the requester may see**, or any asset in the requester's own library (for picking). Responses are cached with HTTP cache headers. Missing/removed key → placeholder.
-- Originals (/api/media/:assetId/original) via canUseAuthorRights(requester, authorId, travelId) (server/src/trust/permissions.ts): admin, the author, or a user in 	rusted_users (owner_id, trusted_id) of the author who may see the travel. Fetched with the owner's key, Content-Disposition: attachment with the original file name, Cache-Control: private, no-store, audit log line per download; 403 when visible but not allowed, 404 ORIGINAL_UNAVAILABLE without owner key. DTOs carry canDownloadOriginal (post, travel cover, library photo). Endpoints GET/PUT/DELETE /api/profile/trusted[/:userId] (travellers/admin). The service worker uses NetworkOnly for originals.
+- Originals (`/api/media/:assetId/original`) via `canUseAuthorRights(requester, authorId, travelId)` (`server/src/trust/permissions.ts`): admin, the author, or a user in `trusted_users` (owner_id, trusted_id) of the author who may see the travel. Fetched with the owner's key, Content-Disposition: attachment with the original file name, Cache-Control: private, no-store, audit log line per download; 403 when visible but not allowed, 404 ORIGINAL_UNAVAILABLE without owner key. DTOs carry canDownloadOriginal (post, travel cover, library photo). Endpoints GET/PUT/DELETE /api/profile/trusted[/:userId] (travellers/admin). The service worker uses NetworkOnly for originals.
 - Photo picker: browse/search the traveller's own Immich timeline and albums; read EXIF GPS for location suggestion.
 
 ## Notifications
@@ -70,7 +70,7 @@ Main tables: `users` (+ `role` admin/traveller/viewer, encrypted Immich key, `la
 - **Rate limiting** and incremental lockout on login.
 - First admin from configuration (`ADMIN_USERNAME`/`ADMIN_PASSWORD`) with a forced password change; all API calls except the change are blocked until done.
 - New users get `mustChangePassword`.
-- Authorization per endpoint as described above. All content endpoints require login.
+- Authorization per endpoint as described above. All content endpoints require login: only `GET /api/health`, `POST /api/auth/login` and `POST /api/auth/logout` are public (`config.public`). A test enumerates every registered `/api` route and asserts that this whitelist is complete and that all other routes return 401 without a session.
 - Security headers (CSP, HSTS via Cloudflare, X-Content-Type-Options, Referrer-Policy). Markdown rendered sanitized (no raw HTML), also for editor output.
 - Secrets (ORS key, session secret) only via environment variables; per-user Immich keys encrypted in the database; never in the repo.
 - Trust proxy headers from Cloudflare (`CF-Connecting-IP`) for rate limiting.

@@ -72,9 +72,17 @@ export function createContext(config: AppConfig, db: DB, log?: FastifyBaseLogger
   };
 }
 
+/** An /api route as registered, so tests can check that only whitelisted routes are public. */
+export interface ApiRoute {
+  method: string;
+  url: string;
+  public: boolean;
+}
+
 declare module 'fastify' {
   interface FastifyInstance {
     ctx: AppContext;
+    apiRoutes: ApiRoute[];
   }
   interface FastifyRequest {
     user: UserRecord | null;

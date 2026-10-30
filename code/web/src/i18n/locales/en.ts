@@ -138,7 +138,7 @@ export const en: Messages = {
     avatarTitle: 'Profile picture',
     trustedTitle: 'Trusted people',
     trustedHint:
-      'Trusted people may download the original photos of your posts, but only for travels they can see. You can revoke this at any time.',
+      'Trusted people may download the original photos of your steps, but only for travels they can see. You can revoke this at any time.',
     trustedNone: 'You do not trust anyone yet.',
     trustedAdd: 'Add person',
     trustedChoose: 'Choose a person',

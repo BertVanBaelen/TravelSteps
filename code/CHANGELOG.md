@@ -4,6 +4,16 @@ All notable changes to TravelSteps. Versions follow `major.minor.patch`: a relea
 major number, a completed phase the minor number and a bug fix the patch number. Screenshots are
 in [`docs/changelog`](docs/changelog).
 
+## 2.0.0 – TravelSteps 2
+
+- **Version 2:** brings together everything since 1.0.0 – steps & UX polish (1.1), animations
+  (1.2), Dutch and English (1.3) and trusted people with original downloads (1.4). Existing data,
+  sessions, push subscriptions and offline drafts are kept. Sharing a step via a link and admin
+  statistics are postponed to a later version.
+- **Security:** updated `fastify` and `fast-uri` (security advisories); a test now checks that
+  only the health check, login and logout can be reached without logging in.
+- **Wording:** the trusted-people explanation in Profile says "steps" instead of "posts".
+
 ## 1.4.0 – Trusted people and original downloads
 
 - **Download original:** the photo viewer has a **Download original** button that saves the photo

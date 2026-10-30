@@ -10,7 +10,7 @@ import { ZodError } from 'zod';
 import { usernameSchema, type ApiErrorBody } from '@travelsteps/shared';
 import type { AppConfig } from './config.js';
 import type { DB } from './db.js';
-import { createContext } from './context.js';
+import { createContext, type ApiRoute } from './context.js';
 import { HttpError } from './errors.js';
 import { registerAuthGuard } from './auth/guard.js';
 import { hashPassword } from './auth/password.js';
@@ -101,6 +101,15 @@ export async function buildApp(config: AppConfig, db: DB): Promise<FastifyInstan
   });
   app.decorate('ctx', createContext(config, db, app.log));
   app.ctx.content.load();
+
+  const apiRoutes: ApiRoute[] = [];
+  app.decorate('apiRoutes', apiRoutes);
+  app.addHook('onRoute', (route) => {
+    if (!route.url?.startsWith('/api/')) return;
+    for (const method of [route.method].flat()) {
+      apiRoutes.push({ method, url: route.url, public: Boolean(route.config?.public) });
+    }
+  });
 
   app.setErrorHandler((err: FastifyError | Error, req, reply) => {
     let status = 500;

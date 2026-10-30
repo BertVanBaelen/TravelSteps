@@ -14,9 +14,9 @@ Based on [`../../V2 roadmap.md`](../../V2%20roadmap.md). Same way of working as 
 | V2-2 | [Event animations](V2-2-Animations.md) | Footprints, plane, heart burst, confetti | 1.2.0 ✅ (fixes 1.2.1) |
 | V2-3 | [Multi-language](V2-3-I18n.md) | Dutch + English, per user, also push texts | 1.3.0 ✅ |
 | V2-4 | [Trusted users & original download](V2-4-Trusted-Download.md) | Traveller marks users as *Vertrouwd*; they can download originals | 1.4.0 ✅ |
-| V2-5 | [Anonymous share link](V2-5-Share-Link.md) | 24h public card with one step, revocable | 1.5.0 |
-| V2-6 | [Admin statistics](V2-6-Admin-Stats.md) | Beheer → Statistieken: users, content, storage | 1.6.0 |
-| V2-X | [Hardening & release v2.0.0](V2-X-Release.md) | Security review of all V2 features, docs, **v2.0.0** – always last | 2.0.0 |
+| ~~V2-5~~ | Anonymous share link | Moved to [VX-1](../VX/VX-1-Share-Link.md) (later version) on 2026-10-30 | – |
+| ~~V2-6~~ | Admin statistics | Moved to [VX-2](../VX/VX-2-Admin-Stats.md) (later version) on 2026-10-30 | – |
+| V2-X | [Hardening & release v2.0.0](V2-X-Release.md) | Security review of all V2 features, docs, **v2.0.0** – always last | 2.0.0 ✅ (manual HA checks open) |
 
 New V2 phases are added before **V2-X**. Version numbers are indicative; bump `code/config.yaml`
 and `APP_VERSION` together as in v1.
@@ -29,15 +29,15 @@ graph LR
   end
   S2 --> S3[V2-3 Multi-language]
   S3 --> S4[V2-4 Trusted & download]
-  S4 --> S5[V2-5 Share link]
-  S3 --> S6[V2-6 Admin stats]
-  S5 --> SX[V2-X Release v2.0.0]
-  S6 --> SX
+  S4 --> SX[V2-X Release v2.0.0]
+  SX -.-> VX[VX: share link, admin stats – later]
 ```
 V2-1 and V2-2 are grouped as the front-end block: both are pure UI work (no API/DB changes), and
 the animations reuse the design tokens and components from V2-1. Animations add no visible text,
 so they can safely come before V2-3. V2-3 then comes before the remaining features, because those
-add UI texts that are written in both languages from the start. V2-6 is independent of V2-4/5.
+add UI texts that are written in both languages from the start. The share link and admin
+statistics (formerly V2-5 / V2-6) were moved to [VX](../VX/README.md) on 2026-10-30, so v2.0.0
+ships V2-1 … V2-4.
 
 ## Decisions taken (from Q&A, 2026-10-08)
 - **Wording:** "post" → **"stap" / "step"** in the UI only. API routes, database tables, code
@@ -50,18 +50,18 @@ add UI texts that are written in both languages from the start. V2-6 is independ
   photo only – and (b) create **share links** for that traveller's steps. The grant covers all
   photos/steps that traveller added, but only in travels the trusted user may see. Authors can always
   do both for their own photos/steps; the admin can do everything.
-- **Share link:** anonymous page with one step: title, date, text, photos (preview size), stats and
+- **Share link** *(moved to [VX-1](../VX/VX-1-Share-Link.md))*: anonymous page with one step: title, date, text, photos (preview size), stats and
   route map. **No** author name, comments, likes, travel or other steps. Valid **24h, fixed**;
   revocable early by the creator, the step author and the admin; shows "verlopen" afterwards.
 - **Animations:** footprints on a new step, plane on a new travel, heart burst on a like, confetti
   on accepting an invitation. Short, non-blocking, disabled with OS "reduce motion".
 - **Google login:** removed from V2 (2026-10-22). Username/password stays the only login.
-- **Admin stats:** users per role and active in the last 30 days, travels, steps, photos, likes,
+- **Admin stats** *(moved to [VX-2](../VX/VX-2-Admin-Stats.md))*: users per role and active in the last 30 days, travels, steps, photos, likes,
   comments, `/data` disk usage (database, avatars, backups) and total size of the Immich photos
   referenced by TravelSteps.
 - **Order:** front-end block first (V2-1 → V2-2), then V2-3 → V2-4 → V2-5 → V2-6 → V2-X
   (updated 2026-10-09: animations moved next to UX polish; 2026-10-22: Google login removed,
-  admin statistics renumbered to V2-6).
+  admin statistics renumbered to V2-6; 2026-10-30: V2-5 and V2-6 moved to VX, V2-X follows V2-4).
 
 ## Compatibility rules (apply to every V2 phase)
 Everything from v1 must keep working. Each phase file has its own "Compatibility" section; these
@@ -85,22 +85,24 @@ rules apply globally:
 6. **Configuration:** new env vars / Home Assistant options are optional; the app starts and behaves
    as before when they are empty.
 7. **Security baseline:** CSRF header, session cookie flags, rate limiting, CSP, sanitized Markdown
-   and encrypted Immich keys stay in place. Public endpoints (share link) are the only exception to
-   "login required" and are explicitly whitelisted.
+   and encrypted Immich keys stay in place. Public endpoints (share link, VX-1) will be the only
+   exception to "login required" and must be explicitly whitelisted.
 8. **User deletion:** the existing delete / transfer / disable flow also cleans up the new data
    (trusted grants, share links, language, stats caches).
 9. **Docs:** when a phase is done, update `Functional requirements.md`, `Technical requirements.md`
    and the root `README.md` + `README.nl.md` (env/options) and mark the phase ✅ here.
 
 ## Permission overview after V2
+Rows marked † belong to the postponed [VX](../VX/README.md) features and are not part of v2.0.0.
+
 | Action | Admin | Step author | Trusted by author | Travel owner | Other user who may see the travel | Anonymous |
 |--------|:-----:|:-----------:|:-----------------:|:------------:|:---------------------------------:|:---------:|
 | View step (in app) | ✅ | ✅ | ✅* | ✅ | ✅ | – |
 | Download original photo | ✅ | ✅ | ✅* | – | – | – |
-| Create share link | ✅ | ✅ | ✅* | – | – | – |
-| Revoke share link | ✅ | ✅ | own links | – | – | – |
-| View share card | – | – | – | – | – | ✅ (valid token, 24h) |
-| Admin statistics | ✅ | – | – | – | – | – |
+| Create share link † | ✅ | ✅ | ✅* | – | – | – |
+| Revoke share link † | ✅ | ✅ | own links | – | – | – |
+| View share card † | – | – | – | – | – | ✅ (valid token, 24h) |
+| Admin statistics † | ✅ | – | – | – | – | – |
 
 \* only when the trusted user may also see the travel.
 

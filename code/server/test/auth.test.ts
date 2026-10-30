@@ -117,6 +117,35 @@ describe('basis', () => {
     expect((await get('/api/onbekend')).statusCode).toBe(401);
   });
 
+  it('maakt alleen de toegestane routes publiek en weigert de rest zonder login', async () => {
+    const PUBLIC = [
+      'GET /api/health',
+      'HEAD /api/health',
+      'POST /api/auth/login',
+      'POST /api/auth/logout',
+    ];
+    const key = (r: { method: string; url: string }) => `${r.method} ${r.url}`;
+    expect(
+      app.apiRoutes
+        .filter((r) => r.public)
+        .map(key)
+        .sort(),
+    ).toEqual(PUBLIC.sort());
+
+    const id = '33333333-3333-4333-8333-333333333333';
+    const closed = app.apiRoutes.filter((r) => !r.public);
+    expect(closed.length).toBeGreaterThan(50);
+    for (const route of closed) {
+      const res = await app.inject({
+        method: route.method as 'GET',
+        url: route.url.replace(/:[A-Za-z]+/g, id).replace(/\*$/, id),
+        headers: CSRF,
+        payload: ['GET', 'HEAD', 'DELETE'].includes(route.method) ? undefined : {},
+      });
+      expect(res.statusCode, key(route)).toBe(401);
+    }
+  });
+
   it('weigert POST zonder CSRF-header', async () => {
     const res = await app.inject({
       method: 'POST',
