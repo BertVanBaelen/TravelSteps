@@ -211,6 +211,16 @@ const migrations: string[] = [
     WHERE r.id = travels.id
   );
   `,
+  // V3-5: days a travel deliberately has no step ("rustdag"). A step on that day wins in the UI.
+  `
+  CREATE TABLE travel_rest_days (
+    travel_id  TEXT NOT NULL REFERENCES travels(id) ON DELETE CASCADE,
+    day        TEXT NOT NULL,
+    marked_by  TEXT REFERENCES users(id) ON DELETE SET NULL,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (travel_id, day)
+  );
+  `,
 ];
 
 export function openDatabase(file: string): DB {

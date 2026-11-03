@@ -10,9 +10,9 @@ v1 and V2: every phase delivers a working, deployable increment, and
 |-------|------|---------------|--------|---------|
 | V3-1 | [Design foundation "Reisdagboek"](V3-1-Design-Foundation.md) | Design language, Improvements overview | New tokens, fonts, type scale and components applied to every screen; travel colour; map line styles | 2.2.0 ✅ (with V3-2) |
 | V3-2 | [App shell & "Wat wil je zien?"](V3-2-App-Shell.md) | Breakpoints, Wat wil je zien?, nav of every board | Four tabs + bell, rail, sidebar; one context bar + sheet | 2.2.0 ✅ |
-| V3-3 | [Timeline](V3-3-Timeline.md) | Timeline, Timeline · 160 % text, Tablet portrait · timeline, Desktop · feed + map | New step cards, route line between cards, wide layouts | 2.3.0 |
-| V3-4 | [Step page](V3-4-Step-Page.md) | Step page, Tablet landscape · step | Diary page with previous/next | 2.4.0 |
-| V3-5 | [Travel as a journey](V3-5-Journey.md) | Travel as a journey, Desktop · travel as a journey | Route list, rest days, new totals | 2.5.0 |
+| V3-3 | [Timeline](V3-3-Timeline.md) | Timeline, Timeline · 160 % text, Tablet portrait · timeline, Desktop · feed + map | New step cards, route line between cards, wide layouts | 2.3.0 ✅ |
+| V3-4 | [Step page](V3-4-Step-Page.md) | Step page, Tablet landscape · step | Diary page with previous/next | 2.4.0 ✅ |
+| V3-5 | [Travel as a journey](V3-5-Journey.md) | Travel as a journey, Desktop · travel as a journey | Route list, rest days, new totals | 2.5.0 ✅ |
 | V3-6 | [Notifications & day reminder](V3-6-Notifications-Reminder.md) | Notifications | Grouped list, reminder for empty travel days | 2.6.0 |
 | V3-7 | [New step from photos](V3-7-New-Step.md) | New step from photos | Three-part step editor with suggestions from photos | 2.7.0 |
 | V3-8 | [Photos](V3-8-Photos.md) | Desktop · photos | Photos per step, slideshow | 2.8.0 |

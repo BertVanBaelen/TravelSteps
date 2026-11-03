@@ -4,6 +4,71 @@ All notable changes to TravelSteps. Versions follow `major.minor.patch`: a relea
 major number, a completed phase the minor number and a bug fix the patch number. Screenshots are
 in [`docs/changelog`](docs/changelog).
 
+## 2.5.0 – A travel as a journey (V3-5)
+
+- **The travel page tells the trip day by day:** under the header (name, "4 – 16 July 2026 · 13
+  days", the travellers) a list called **The journey** shows every day from the start date to the
+  end date (or to today for an ongoing travel) on one route line: steps with their photo, day and
+  "Walking · 3.2 km · 448 m", how you got to the next step ("By car · 23 km"), and the days without
+  a step. The newest step has a sunset-coloured dot. A summary says "7 days with a step · 2 rest
+  days · 4 still empty".
+- **Rest days:** an empty day shows **Add step** (opens a new step on that day) and **Rest day**.
+  A rest day reads "Rest day, left empty on purpose" and can be undone. Consecutive empty or rest
+  days are grouped ("Day 7 and 8"). Everyone who may write in the travel (and the admin) can mark
+  them; everyone who can see the travel sees them. A step on a rest day always wins. Marking needs
+  a connection.
+- **Totals that say what they count:** "Under your own power" (walking and cycling), "Total
+  travelled" (also car, boat, train and plane), "Climbed" with the highest point, and the number of
+  steps and photos plus your own figures ("and 3 waffles"). This replaces the confusing
+  "Travelled" next to "Distance".
+- **Edit** is a visible button at the top; on phones **New step** stays as the round button.
+- **Computer:** the route list on the left and a large map on the right. Clicking a step chooses
+  it – highlighted in the list and on the map, with a preview card and **Open step**; clicking it
+  again opens it. Clicking a step on the map chooses it in the list.
+- The full feed of a travel is still on the timeline (choose the travel at the top).
+- **Large text (checked at 160 % on a phone):** spacing, icons, page margins and the minimum
+  48 px button height stay fixed, so a larger text size gives the words the room instead of the
+  padding. The phone header no longer squeezes "All travels" to one letter per line; on the step
+  and travel pages the bar shows only the back link and **Edit** (like the design), with text that
+  grows up to 125 %. Route-list rows and step cards put the photo above the text when needed.
+
+## 2.4.0 – The step page (V3-4)
+
+- **A step reads like a diary page:** the photo with small photos under it to switch, the day
+  ("Day 4 · Tue 7 July · 16:20"), "by Lies", the title and the places. The story is in a calm,
+  slightly larger reading column.
+- **Figures as tiles with a word that fits:** "48 km cycled", "620 m climbed", "4:05 h on the way",
+  "17 °C temperature"; the word follows how you mostly travelled that day (walked, cycled, driven,
+  by boat, …). Your own figures are marked "own figure".
+- **Map** with "3 places · cycling route" and a **Large map** link that opens the map zoomed in on
+  this step.
+- **Comments as a conversation:** others on the left, yours on the right in green, with a clearly
+  labelled field ("Your comment to Lies") and a big **Send** button.
+- **Previous step / Next step** at the bottom, in the order of the travel.
+- **Edit** is now a button at the top (only if you may edit); **Delete step** moved to the bottom
+  of the step editor, with the same confirmation.
+- **Tablet and computer:** story on the left, figures, map, likes and the next step on the right.
+- The back link at the top names where it goes ("‹ Lofoten & Senja").
+
+## 2.3.0 – Timeline (V3-3)
+
+- **Photo first:** a step card starts with the photo (dots show how many there are – no text on
+  the photo), then a day badge "Day 6 · Thu 9 July", who wrote it and when, the title, the places
+  ("Ramberg → Leknes → Haukland beach"), a short piece of the story and the figures as small chips
+  with an icon (48 km, 620 m, 4:05 h, 17 °C, "Waffles 3").
+- **A small map only when the step has a route** (two places or more), with "3 places · cycling
+  route" under it.
+- **Like · 3** and **Comment · 1** are big buttons with a word, and the likes say who:
+  "Marleen, Jonas and Lies like this". **Comment** opens the step at the comment field. The comment
+  box and the latest comments are no longer on the card.
+- **Route line between steps:** a dashed line with how you travelled to the next step and when,
+  e.g. "By car · 35 km · 2 days earlier" (not between steps of different travels).
+- **Tablet:** cards in two columns (one column again with large text).
+- **Computer:** the timeline with a map next to it that follows the step you are reading: it zooms
+  to that step, draws it in sunset orange and labels it "The step you are reading". Clicking a step
+  on the map scrolls the timeline to it. With "reduce motion" on, the map jumps instead of gliding.
+- Zoom buttons on all maps are now 48 px and at the top right.
+
 ## 2.2.0 – New look and navigation (V3-1, V3-2)
 
 - **New look "Reisdagboek":** warm paper background, forest green and a sunset accent, and two new

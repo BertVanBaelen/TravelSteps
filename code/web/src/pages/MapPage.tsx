@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { MapPost } from '@travelsteps/shared';
 import { api, errorMessage } from '../api';
 import { ALL_TRAVELS, useBlog, withTraveller } from '../blog/BlogContext';
@@ -17,6 +17,9 @@ export function MapPage() {
   const msg = useT();
   usePageTitle(msg.map.title);
   const navigate = useNavigate();
+  // "Grote kaart" on the step page opens the map on that step.
+  const [params] = useSearchParams();
+  const focus = params.get('post');
   const [posts, setPosts] = useState<MapPost[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   // The travel and diary come from the context bar in the header.
@@ -42,10 +45,13 @@ export function MapPage() {
   const shown = useMemo(
     () =>
       (posts ?? []).filter(
-        (p) => p.locations.length > 0 && (travelId === ALL_TRAVELS || p.travelId === travelId),
+        (p) =>
+          p.locations.length > 0 &&
+          (travelId === ALL_TRAVELS || p.travelId === travelId || p.id === focus),
       ),
-    [posts, travelId],
+    [posts, travelId, focus],
   );
+  const focusId = shown.some((p) => p.id === focus) ? focus : null;
   const shownTravels = (travels ?? []).filter(
     (t) =>
       shown.some((p) => p.travelId === t.id) && (travelId === ALL_TRAVELS || t.id === travelId),
@@ -62,6 +68,7 @@ export function MapPage() {
             colorFor={colorFor}
             arrivals
             onOpen={openPost}
+            focusId={focusId}
             className="map-full"
           />
           {shown.length === 0 && <EmptyState icon={<MapIcon />} text={msg.map.empty} />}

@@ -1,23 +1,35 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { useT } from '../i18n';
 import { mediaUrl } from '../lib/format';
 import { useOnline } from '../offline/db';
 import { ChevronLeft, ChevronRight, CloseIcon, DownloadIcon } from './icons';
 
+export interface CarouselHandle {
+  goTo: (index: number) => void;
+}
+
 /**
  * Horizontal photo carousel (CSS scroll-snap: swipe on touch, arrows on desktop).
  * Swiping only scrolls; a tap/click on a photo calls `onSelect`.
+ * `indicator`: "1 / 3" on the photo, dots under it (no text on the photo), or nothing.
  */
 export function Carousel({
   photos,
   alt,
   onSelect,
   fit = 'contain',
+  indicator = 'count',
+  handle,
+  onIndexChange,
 }: {
   photos: string[];
   alt: string;
   onSelect: (index: number) => void;
   fit?: 'contain' | 'cover';
+  indicator?: 'count' | 'dots' | 'none';
+  /** Lets the parent scroll to a photo (thumbnails on the step page). */
+  handle?: RefObject<CarouselHandle | null>;
+  onIndexChange?: (index: number) => void;
 }) {
   const msg = useT();
   const trackRef = useRef<HTMLDivElement>(null);
@@ -25,13 +37,26 @@ export function Carousel({
 
   const onScroll = () => {
     const el = trackRef.current;
-    if (el) setIndex(Math.round(el.scrollLeft / el.clientWidth));
+    if (!el) return;
+    const i = Math.round(el.scrollLeft / el.clientWidth);
+    if (i !== index) {
+      setIndex(i);
+      onIndexChange?.(i);
+    }
   };
 
   const scrollTo = (i: number) => {
     const el = trackRef.current;
     if (el) el.scrollTo({ left: i * el.clientWidth, behavior: 'smooth' });
   };
+
+  useEffect(() => {
+    if (!handle) return;
+    handle.current = { goTo: scrollTo };
+    return () => {
+      handle.current = null;
+    };
+  });
 
   if (photos.length === 0) return null;
 
@@ -75,30 +100,74 @@ export function Carousel({
           >
             <ChevronRight />
           </button>
-          <div className="gallery-count">
-            {index + 1} / {photos.length}
-          </div>
+          {indicator === 'count' && (
+            <div className="gallery-count">
+              {index + 1} / {photos.length}
+            </div>
+          )}
+          {indicator === 'dots' && (
+            <p className="gallery-dots">
+              {photos.map((id, i) => (
+                <span key={id} className={i === index ? 'active' : undefined} aria-hidden />
+              ))}
+              <span className="sr-only">{msg.post.photoOf(index + 1, photos.length)}</span>
+            </p>
+          )}
         </>
       )}
     </div>
   );
 }
 
-/** Carousel with a fullscreen lightbox. */
+/** Carousel with a fullscreen lightbox; `thumbnails` adds a row of small photos under it. */
 export function Gallery({
   photos,
   alt,
   canDownload = false,
+  thumbnails = false,
 }: {
   photos: string[];
   alt: string;
   canDownload?: boolean;
+  thumbnails?: boolean;
 }) {
+  const msg = useT();
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const [current, setCurrent] = useState(0);
+  const carousel = useRef<CarouselHandle | null>(null);
   if (photos.length === 0) return null;
+  const withThumbs = thumbnails && photos.length > 1;
   return (
     <>
-      <Carousel photos={photos} alt={alt} onSelect={setLightbox} />
+      <Carousel
+        photos={photos}
+        alt={alt}
+        onSelect={setLightbox}
+        fit={thumbnails ? 'cover' : 'contain'}
+        indicator={withThumbs ? 'none' : 'count'}
+        handle={carousel}
+        onIndexChange={setCurrent}
+      />
+      {withThumbs && (
+        <ul className="thumb-row" aria-label={msg.post.photos}>
+          {photos.map((id, i) => (
+            <li key={id}>
+              <button
+                type="button"
+                className="thumb"
+                aria-label={msg.post.photoOf(i + 1, photos.length)}
+                aria-current={i === current ? 'true' : undefined}
+                onClick={() => {
+                  setCurrent(i);
+                  carousel.current?.goTo(i);
+                }}
+              >
+                <img src={mediaUrl(id, 'thumbnail')} alt="" loading="lazy" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
       {lightbox !== null && (
         <Lightbox
           photos={photos}

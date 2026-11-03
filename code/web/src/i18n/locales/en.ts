@@ -307,6 +307,11 @@ export const en: Messages = {
     newPost: 'New step',
     end: 'You have reached the start of the journey 🎉',
     photos: (n: number) => (n === 1 ? '1 photo' : `${n} photos`),
+    /** Time between two steps on the route line between the cards. */
+    daysEarlier: (n: number) =>
+      n <= 0 ? 'same day' : n === 1 ? '1 day earlier' : `${n} days earlier`,
+    nowReading: 'The step you are reading',
+    feedMap: 'Map of the steps in the timeline',
   },
   post: {
     edited: 'edited',
@@ -314,15 +319,44 @@ export const en: Messages = {
       'Are you sure you want to delete this step? Likes and comments will be lost too.',
     deleteTitle: 'Delete step?',
     delete: 'Delete step',
+    deleteHint: 'The step disappears for everyone, together with its likes and comments.',
     actions: 'Actions for this step',
     notFound: 'Step not found',
     original: 'Download original',
     photoOf: (i: number, n: number) => `Photo ${i} of ${n}`,
+    /** Day badge: "Day 6 · Thu 9 July". */
+    day: (n: number | null, date: string) => (n === null ? date : `Day ${n} · ${date}`),
+    by: (name: string) => `by ${name}`,
+    /** Under the map: "3 places · cycling route". */
+    route: (places: number, kind: string | null) =>
+      [places === 1 ? '1 place' : `${places} places`, kind].filter(Boolean).join(' · '),
+    bigMap: 'Large map',
+    figures: 'Figures',
+    ownFigure: 'own figure',
+    story: 'Story',
+    neighbours: 'Other steps of this travel',
+    previous: 'Previous step',
+    next: 'Next step',
+    photos: 'Photos of this step',
   },
   likes: {
     like: 'Like',
     unlike: 'Unlike',
     you: 'you',
+    /** Button text: "Like · 3". */
+    button: (n: number) => (n > 0 ? `Like · ${n}` : 'Like'),
+    youSubject: 'you',
+    /** "Marleen, Jonas and Lies like this" (names may contain `youSubject`). */
+    likeThis: (names: string[], others: number) => {
+      const parts = others > 0 ? [...names, others === 1 ? '1 other' : `${others} others`] : names;
+      const list =
+        parts.length <= 1
+          ? (parts[0] ?? '')
+          : `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+      const single = names.length + others === 1 && names[0] !== 'you';
+      const text = `${list} ${single ? 'likes' : 'like'} this`;
+      return text.charAt(0).toUpperCase() + text.slice(1);
+    },
     /** "Liked by Oma, Bert and 2 others". */
     likedBy: (names: string[], others: number) => {
       const parts = others > 0 ? [...names, others === 1 ? '1 other' : `${others} others`] : names;
@@ -337,11 +371,17 @@ export const en: Messages = {
     title: 'Comments',
     empty: 'No comments yet. Be the first!',
     placeholder: 'Write a comment…',
-    send: 'Post',
+    messagePlaceholder: 'Write a message…',
+    send: 'Send',
     confirmDelete: 'Are you sure you want to delete this comment?',
     deleteTitle: 'Delete comment?',
     count: (n: number) => (n === 1 ? '1 comment' : `${n} comments`),
     viewAll: (n: number) => (n === 1 ? 'View the comment' : `View all ${n} comments`),
+    /** Button text: "Comment · 1". */
+    reply: (n: number) => (n > 0 ? `Comment · ${n}` : 'Comment'),
+    /** Label of the comment field. */
+    yourReply: (author: string | null) => (author ? `Your comment to ${author}` : 'Your comment'),
+    you: 'You',
   },
   editor: {
     newTitle: 'New step',
@@ -435,6 +475,85 @@ export const en: Messages = {
     trein: 'Train',
     vliegtuig: 'Plane',
     boot: 'Boat',
+  },
+  /** "By car · 35 km" on the route line between steps. */
+  travelBy: {
+    lopen: 'On foot',
+    fietsen: 'By bike',
+    auto: 'By car',
+    trein: 'By train',
+    vliegtuig: 'By plane',
+    boot: 'By boat',
+  },
+  /** "3 places · cycling route". */
+  routeKinds: {
+    lopen: 'walking route',
+    fietsen: 'cycling route',
+    auto: 'drive',
+    trein: 'train journey',
+    vliegtuig: 'flight',
+    boot: 'boat trip',
+  },
+  /** Labels under the figures of a step: "48 km cycled", "620 m climbed". */
+  figureLabels: {
+    lopen: 'walked',
+    fietsen: 'cycled',
+    auto: 'driven',
+    trein: 'by train',
+    vliegtuig: 'flown',
+    boot: 'by boat',
+    afstand: 'distance',
+    hoogtemeters: 'climbed',
+    maxHoogte: 'highest point',
+    temperatuur: 'temperature',
+    duur: 'on the way',
+  },
+  journey: {
+    days: (n: number) => (n === 1 ? '1 day' : `${n} days`),
+    totals: 'Totals of the travel',
+    ownPower: 'Under your own power',
+    ownPowerSub: 'walking and cycling',
+    total: 'Total travelled',
+    /** "also car and boat" (lower-case mode names). */
+    totalAlso: (modes: string[]) =>
+      modes.length === 0
+        ? 'everything together'
+        : `also ${modes.length === 1 ? modes[0] : `${modes.slice(0, -1).join(', ')} and ${modes[modes.length - 1]}`}`,
+    distance: 'Distance',
+    duration: 'On the way',
+    fromSteps: 'added up from the steps',
+    climbed: 'Climbed',
+    highest: (value: string) => `highest point ${value}`,
+    highestOnly: 'Highest point',
+    steps: (n: number) => (n === 1 ? '1 step' : `${n} steps`),
+    /** "and 3 waffles". */
+    and: (items: string[]) =>
+      `and ${items.length <= 1 ? (items[0] ?? '') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`}`,
+    route: 'The journey',
+    /** "7 days with a step · 2 rest days · 4 still empty". */
+    summary: (steps: number, rest: number, empty: number) =>
+      [
+        steps > 0 && (steps === 1 ? '1 day with a step' : `${steps} days with a step`),
+        rest > 0 && (rest === 1 ? '1 rest day' : `${rest} rest days`),
+        empty > 0 && `${empty} still empty`,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    /** "Day 3", "Day 7 and 8", "Day 3 to 5". */
+    dayRange: (first: number, last: number) =>
+      first === last ? `Day ${first}` : `Day ${first} ${last === first + 1 ? 'and' : 'to'} ${last}`,
+    noStep: 'No step yet',
+    noSteps: 'No steps yet',
+    addStep: 'Add step',
+    markRest: (n: number) => (n === 1 ? 'Rest day' : 'Rest days'),
+    restDays: (n: number) =>
+      n === 1 ? 'Rest day, left empty on purpose' : 'Rest days, left empty on purpose',
+    undoRest: 'Undo',
+    restOffline: 'Rest days can only be changed online.',
+    outside: 'outside the travel dates',
+    stepNumber: (n: number) => `Step ${n}`,
+    openStep: 'Open step',
+    newest: 'newest step',
   },
   locations: {
     title: 'Locations and route',

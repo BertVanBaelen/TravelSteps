@@ -2,7 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import type { LatLng } from '@travelsteps/shared';
 import { formatDate, mediaUrl } from '../lib/format';
-import { DEFAULT_COLOR, createMap, drawPost, fitTo, type MapPostLike } from '../lib/map';
+import {
+  DEFAULT_COLOR,
+  HIGHLIGHT_COLOR,
+  createMap,
+  drawPost,
+  fitTo,
+  prefersReducedMotion,
+  type MapPostLike,
+} from '../lib/map';
 
 interface Props {
   posts: MapPostLike[];
@@ -12,6 +20,10 @@ interface Props {
   arrivals?: boolean;
   /** Show a popup with a post preview on marker tap; `onOpen` is called when it is tapped. */
   onOpen?: (postId: string) => void;
+  /** The step to show: drawn in Sunset and zoomed to (null = fit all steps). */
+  focusId?: string | null;
+  /** Marker tap chooses that step (instead of a popup). */
+  onSelect?: (postId: string) => void;
   className?: string;
 }
 
@@ -46,6 +58,8 @@ export function MapView({
   interactive = true,
   arrivals = false,
   onOpen,
+  focusId = null,
+  onSelect,
   className,
 }: Props) {
   const elRef = useRef<HTMLDivElement>(null);
@@ -87,22 +101,33 @@ export function MapView({
     if (!map || !layer) return;
     layer.clearLayers();
     const points: LatLng[] = [];
-    for (const post of posts) {
-      const color = colorFor?.(post.travelId) ?? DEFAULT_COLOR;
-      points.push(
-        ...drawPost(layer, post, color, {
-          arrival: arrivals,
-          onClick: onOpen
-            ? (marker) => {
-                marker.unbindTooltip();
-                marker.bindPopup(popupContent(post, onOpen), { closeButton: false }).openPopup();
-              }
-            : undefined,
-        }),
-      );
+    let focusPoints: LatLng[] = [];
+    // The focused step is drawn last, so it lies on top.
+    const ordered = focusId
+      ? [...posts.filter((p) => p.id !== focusId), ...posts.filter((p) => p.id === focusId)]
+      : posts;
+    for (const post of ordered) {
+      const focused = post.id === focusId;
+      const color = focused ? HIGHLIGHT_COLOR : (colorFor?.(post.travelId) ?? DEFAULT_COLOR);
+      const onClick = onSelect
+        ? () => onSelect(post.id)
+        : onOpen
+          ? (marker: L.CircleMarker) => {
+              marker.unbindTooltip();
+              marker.bindPopup(popupContent(post, onOpen), { closeButton: false }).openPopup();
+            }
+          : undefined;
+      const drawn = drawPost(layer, post, color, {
+        arrival: arrivals,
+        onClick,
+        highlight: focused,
+      });
+      points.push(...drawn);
+      if (focused) focusPoints = post.locations.map((l) => [l.lat, l.lng] as LatLng);
     }
-    fitTo(map, points);
-  }, [visible, posts, colorFor, arrivals, onOpen]);
+    if (focusPoints.length > 0) fitTo(map, focusPoints, 12, !prefersReducedMotion());
+    else fitTo(map, points);
+  }, [visible, posts, colorFor, arrivals, onOpen, focusId, onSelect]);
 
   return <div ref={elRef} className={`map ${className ?? ''}`} />;
 }

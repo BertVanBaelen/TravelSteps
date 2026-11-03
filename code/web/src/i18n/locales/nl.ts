@@ -308,6 +308,11 @@ export const nl = {
     newPost: 'Nieuwe stap',
     end: 'Je bent bij het begin van de reis 🎉',
     photos: (n: number) => (n === 1 ? '1 foto' : `${n} foto's`),
+    /** Time between two steps on the route line between the cards. */
+    daysEarlier: (n: number) =>
+      n <= 0 ? 'zelfde dag' : n === 1 ? '1 dag eerder' : `${n} dagen eerder`,
+    nowReading: 'De stap die je nu leest',
+    feedMap: 'Kaart van de stappen in de tijdlijn',
   },
   post: {
     edited: 'bewerkt',
@@ -315,15 +320,43 @@ export const nl = {
       'Weet je zeker dat je deze stap wilt verwijderen? Likes en reacties gaan ook verloren.',
     deleteTitle: 'Stap verwijderen?',
     delete: 'Stap verwijderen',
+    deleteHint: 'De stap verdwijnt voor iedereen, samen met de likes en reacties.',
     actions: 'Acties voor deze stap',
     notFound: 'Stap niet gevonden',
     original: 'Download origineel',
     photoOf: (i: number, n: number) => `Foto ${i} van ${n}`,
+    /** Day badge: "Dag 6 · do 9 juli". */
+    day: (n: number | null, date: string) => (n === null ? date : `Dag ${n} · ${date}`),
+    by: (name: string) => `door ${name}`,
+    /** Under the map: "3 plaatsen · fietsroute". */
+    route: (places: number, kind: string | null) =>
+      [places === 1 ? '1 plaats' : `${places} plaatsen`, kind].filter(Boolean).join(' · '),
+    bigMap: 'Grote kaart',
+    figures: 'Cijfers',
+    ownFigure: 'eigen cijfer',
+    story: 'Verhaal',
+    neighbours: 'Andere stappen van deze reis',
+    previous: 'Vorige stap',
+    next: 'Volgende stap',
+    photos: "Foto's van deze stap",
   },
   likes: {
     like: 'Vind ik leuk',
     unlike: 'Vind ik niet meer leuk',
     you: 'jou',
+    /** Button text: "Leuk · 3". */
+    button: (n: number) => (n > 0 ? `Leuk · ${n}` : 'Leuk'),
+    youSubject: 'jij',
+    /** "Marleen, Jonas en Lies vinden dit leuk" (names may contain `youSubject`). */
+    likeThis: (names: string[], others: number) => {
+      const parts = others > 0 ? [...names, others === 1 ? '1 ander' : `${others} anderen`] : names;
+      const list =
+        parts.length <= 1
+          ? (parts[0] ?? '')
+          : `${parts.slice(0, -1).join(', ')} en ${parts[parts.length - 1]}`;
+      const text = `${list} ${names.length + others === 1 ? 'vindt' : 'vinden'} dit leuk`;
+      return text.charAt(0).toUpperCase() + text.slice(1);
+    },
     /** "Vind ik leuk door Oma, Bert en 2 anderen". */
     likedBy: (names: string[], others: number) => {
       const parts = others > 0 ? [...names, others === 1 ? '1 ander' : `${others} anderen`] : names;
@@ -338,11 +371,17 @@ export const nl = {
     title: 'Reacties',
     empty: 'Nog geen reacties. Wees de eerste!',
     placeholder: 'Schrijf een reactie…',
-    send: 'Plaatsen',
+    messagePlaceholder: 'Schrijf een berichtje…',
+    send: 'Versturen',
     confirmDelete: 'Weet je zeker dat je deze reactie wilt verwijderen?',
     deleteTitle: 'Reactie verwijderen?',
     count: (n: number) => (n === 1 ? '1 reactie' : `${n} reacties`),
     viewAll: (n: number) => (n === 1 ? 'Bekijk de reactie' : `Bekijk alle ${n} reacties`),
+    /** Button text: "Reageer · 1". */
+    reply: (n: number) => (n > 0 ? `Reageer · ${n}` : 'Reageer'),
+    /** Label of the comment field. */
+    yourReply: (author: string | null) => (author ? `Jouw reactie aan ${author}` : 'Jouw reactie'),
+    you: 'Jij',
   },
   editor: {
     newTitle: 'Nieuwe stap',
@@ -436,6 +475,85 @@ export const nl = {
     trein: 'Trein',
     vliegtuig: 'Vliegtuig',
     boot: 'Boot',
+  },
+  /** "Met de auto · 35 km" on the route line between steps. */
+  travelBy: {
+    lopen: 'Te voet',
+    fietsen: 'Met de fiets',
+    auto: 'Met de auto',
+    trein: 'Met de trein',
+    vliegtuig: 'Met het vliegtuig',
+    boot: 'Met de boot',
+  },
+  /** "3 plaatsen · fietsroute". */
+  routeKinds: {
+    lopen: 'wandelroute',
+    fietsen: 'fietsroute',
+    auto: 'autorit',
+    trein: 'treinreis',
+    vliegtuig: 'vlucht',
+    boot: 'boottocht',
+  },
+  /** Labels under the figures of a step: "48 km gefietst", "620 m geklommen". */
+  figureLabels: {
+    lopen: 'gewandeld',
+    fietsen: 'gefietst',
+    auto: 'gereden',
+    trein: 'met de trein',
+    vliegtuig: 'gevlogen',
+    boot: 'gevaren',
+    afstand: 'afstand',
+    hoogtemeters: 'geklommen',
+    maxHoogte: 'hoogste punt',
+    temperatuur: 'temperatuur',
+    duur: 'onderweg',
+  },
+  journey: {
+    days: (n: number) => (n === 1 ? '1 dag' : `${n} dagen`),
+    totals: 'Totalen van de reis',
+    ownPower: 'Op eigen kracht',
+    ownPowerSub: 'wandelen en fietsen',
+    total: 'Totaal onderweg',
+    /** "ook auto en boot" (lower-case mode names). */
+    totalAlso: (modes: string[]) =>
+      modes.length === 0
+        ? 'alles samen'
+        : `ook ${modes.length === 1 ? modes[0] : `${modes.slice(0, -1).join(', ')} en ${modes[modes.length - 1]}`}`,
+    distance: 'Afstand',
+    duration: 'Onderweg',
+    fromSteps: 'opgeteld uit de stappen',
+    climbed: 'Geklommen',
+    highest: (value: string) => `hoogste punt ${value}`,
+    highestOnly: 'Hoogste punt',
+    steps: (n: number) => (n === 1 ? '1 stap' : `${n} stappen`),
+    /** "en 3 wafels". */
+    and: (items: string[]) =>
+      `en ${items.length <= 1 ? (items[0] ?? '') : `${items.slice(0, -1).join(', ')} en ${items[items.length - 1]}`}`,
+    route: 'De tocht',
+    /** "7 dagen met een stap · 2 rustdagen · 4 nog leeg". */
+    summary: (steps: number, rest: number, empty: number) =>
+      [
+        steps > 0 && (steps === 1 ? '1 dag met een stap' : `${steps} dagen met een stap`),
+        rest > 0 && (rest === 1 ? '1 rustdag' : `${rest} rustdagen`),
+        empty > 0 && `${empty} nog leeg`,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+    /** "Dag 3", "Dag 7 en 8", "Dag 3 t/m 5". */
+    dayRange: (first: number, last: number) =>
+      first === last ? `Dag ${first}` : `Dag ${first} ${last === first + 1 ? 'en' : 't/m'} ${last}`,
+    noStep: 'Nog geen stap',
+    noSteps: 'Nog geen stappen',
+    addStep: 'Stap toevoegen',
+    markRest: (n: number): string => (n === 1 ? 'Rustdag' : 'Rustdagen'),
+    restDays: (n: number): string =>
+      n === 1 ? 'Rustdag, bewust leeg gelaten' : 'Rustdagen, bewust leeg gelaten',
+    undoRest: 'Ongedaan maken',
+    restOffline: 'Rustdagen aanpassen kan alleen online.',
+    outside: 'buiten de reisdatums',
+    stepNumber: (n: number) => `Stap ${n}`,
+    openStep: 'Open stap',
+    newest: 'nieuwste stap',
   },
   locations: {
     title: 'Locaties en route',

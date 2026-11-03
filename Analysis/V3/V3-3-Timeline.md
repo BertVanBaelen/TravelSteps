@@ -1,6 +1,6 @@
 # Phase V3-3 – Timeline
 
-Status: ⏳ planned (target 2.3.0)
+Status: ✅ implemented (2.3.0)
 
 Mockup boards: *Timeline*, *Timeline · 160 % text*, *Tablet portrait · timeline*,
 *Desktop · feed + map*.
@@ -65,3 +65,32 @@ travellers moved between steps, and layouts that use tablet and desktop width.
 - Route connector shows correct mode/distance; hidden across different travels.
 - Desktop map follows scrolling smoothly with 50+ steps (observer, no scroll handlers).
 - Typecheck, lint, tests (incl. `travelDay` unit tests around time zones) and build pass.
+
+## Status – ✅ implemented (2.3.0)
+- `PostCard.tsx` rewritten photo-first: `Carousel` with `indicator="dots"` (dots under the photo,
+  "Foto 1 van 2" for screen readers; no text on the photo), `DayBadge`, author · time (+ travel
+  name when the feed shows all travels), `PlaceLine`, 3-line excerpt, `StatChips`, mini map only
+  with ≥ 2 places (caption "3 plaatsen · fietsroute"), `LikersLine` ("… vinden dit leuk"),
+  labelled `LikeButton` ("Leuk · 3", `aria-pressed`) and **Reageer · 1** → `/post/:id#reageren`.
+  `QuickComment` and the latest comments are gone from the card (`latestComments` stays in the API).
+- New shared pieces in `components/Step.tsx` (`DayBadge`, `PlaceLine`, `StatChips`, `FigureTiles`,
+  `LikersLine`, `useTravelOf`) and helpers in `lib/travel.ts` (`dayOf(iso, timeZone?)`,
+  `stepDay`, `daysBetween`, `addDays`, `dominantMode`, `stepDistance`, `placeLine`) with unit
+  tests (time zones, DST). `StatsView` was replaced and removed.
+- **Server: no change needed** – `PostSummary.arrival` already carries mode and distance.
+- `TimelinePage.tsx`: route connector (`RouteLeg`) between cards of the same travel ("Met de auto ·
+  35 km · 2 dagen eerder"); tablet grid `minmax(min(17em,100%),1fr)` (falls back to one column
+  around 130 % text on a portrait tablet), without connectors, excerpt, mini map and likers line;
+  desktop `FeedMap` – sticky map, one `IntersectionObserver` (band at 30–40 % of the viewport)
+  picks the card being read, `MapView focusId` zooms to it and draws it in Sunset, label "De stap
+  die je nu leest", marker click scrolls the feed (`scrollIntoView`, instant with reduced motion).
+- Leaflet zoom buttons moved to the top right and enlarged to 48 px on all maps.
+- Checked in a browser at 390 px and ~1150 px (phone and desktop layouts), and on a 390 px phone
+  at **160 % text** (the *Timeline · 160 %* board): cards, chips and buttons wrap without cutting
+  text off. Fixes from that check: spacing, icon sizes, page margin (`--page-pad`) and `--tap`
+  (48 px) are now in px like the mockup, so only the text grows; the phone header (context bar)
+  no longer collapses to one letter per line.
+
+### Not done / to check
+- Check at 130 % and 200 % system text size on a real phone and tablet.
+- Changelog screenshots for 2.3.0 (`code/docs/changelog/2.3.0/`).

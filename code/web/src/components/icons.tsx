@@ -332,3 +332,42 @@ export const CopyIcon = () => (
     <path d="M16 8V5.5A2.5 2.5 0 0 0 13.5 3h-8A2.5 2.5 0 0 0 3 5.5v8A2.5 2.5 0 0 0 5.5 16H8" />
   </svg>
 );
+
+export const MountainIcon = () => (
+  <svg {...base}>
+    <path d="M3 19 9.5 8l4 6.5L16 11l5 8z" />
+  </svg>
+);
+
+export const ThermometerIcon = () => (
+  <svg {...base}>
+    <path d="M10 14V5a2 2 0 1 1 4 0v9a4 4 0 1 1-4 0z" />
+  </svg>
+);
+
+export const RouteIcon = () => (
+  <svg {...base}>
+    <circle cx="6" cy="19" r="2" />
+    <circle cx="18" cy="5" r="2" />
+    <path d="M8 19h8.5a3.5 3.5 0 0 0 0-7h-9a3.5 3.5 0 0 1 0-7H16" />
+  </svg>
+);
+
+/** A rest day: the moon of a quiet day. */
+export const MoonIcon = () => (
+  <svg {...base}>
+    <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />
+  </svg>
+);
+
+export const UndoIcon = () => (
+  <svg {...base}>
+    <path d="M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
+  </svg>
+);
+
+export const ExpandIcon = () => (
+  <svg {...base}>
+    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+  </svg>
+);

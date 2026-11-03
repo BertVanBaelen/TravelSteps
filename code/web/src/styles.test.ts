@@ -81,8 +81,8 @@ describe('design tokens', () => {
     const small = [...css.matchAll(/font-size:\s*([\d.]+)rem/g)]
       .map((m) => Number(m[1]))
       .filter((v) => v < 0.9375);
-    // Only avatar initials, numbers in fixed-size map markers and the unread count on the bell
-    // stay smaller (the count is repeated in the label for screen readers).
-    expect(small.sort()).toEqual([0.55, 0.6, 0.8, 0.8125]);
+    // Only avatar initials and numbers in fixed-size map markers stay smaller (the unread count on
+    // the bell is in px like its icon, and repeated in the label for screen readers).
+    expect(small.sort()).toEqual([0.55, 0.6, 0.8]);
   });
 });

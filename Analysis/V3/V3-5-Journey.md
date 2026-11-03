@@ -1,6 +1,6 @@
 # Phase V3-5 – Travel as a journey
 
-Status: ⏳ planned (target 2.5.0)
+Status: ✅ implemented (2.5.0)
 
 Mockup boards: *Travel as a journey*, *Desktop · travel as a journey*.
 
@@ -68,3 +68,33 @@ count, and **rest days** so empty days are either filled or explained.
   dates (shown at their date, outside the day list) and time zones.
 - Only users who may post can mark/unmark rest days (integration tests incl. viewer and admin).
 - Typecheck, lint, tests and build pass.
+
+## Status – ✅ implemented (2.5.0)
+- Migration 10 `travel_rest_days` exactly as planned; `ContentStore` keeps rest days in memory per
+  travel (`restDays`, `setRestDay` – 400 `DAY_OUTSIDE_TRAVEL` outside the dates –, `clearRestDay`).
+  Routes `PUT`/`DELETE /api/travels/:id/rest-days/:day` (`daySchema` rejects non-existing dates such
+  as 2025-02-30; viewer 403, outsider 404, admin allowed), `restDays` in every travel DTO.
+- `summarizeStats` returns `distanceByGroup { ownPower, total }` (`ownPower` = `lopen`/`fietsen`
+  segments and arrivals, never above `total`; `distanceKm` unchanged). Unit + integration tests.
+- **Offline decision:** rest-day buttons are disabled offline with "Rustdagen aanpassen kan alleen
+  online." (simpler than queueing).
+- `lib/journey.ts` `buildJourney()` (unit tests: grouping, step wins over rest day, ongoing travel
+  up to today, one-day travel, steps outside the dates, not-yet-started travel, time zone).
+- `TravelDetailPage.tsx` rewritten: "‹ Reizen" + **Bewerken** (and "Nieuwe stap" on desktop) in
+  the header, phone/tablet FAB "Nieuwe stap"; `JourneyHead`, `JourneyTotals` (Op eigen kracht,
+  Totaal onderweg with the other modes used, Geklommen + hoogste punt, steps + photos + up to two
+  custom totals; fallbacks for travels without routes), map with legend, `JourneyList`. Groups of
+  empty days get "Rustdagen" (marks all days of the group) and rest groups "Ongedaan maken"
+  (a direct button instead of a row menu). "Stap toevoegen" → `/posts/nieuw?reis=…&datum=…`
+  (the editor pre-fills that day at 12:00).
+- Desktop: list + sticky map in a grid; first click chooses a step (sunset border,
+  `aria-current`, Sunset on the map, preview card "Stap 3 · Dag 4 · …" with **Open stap**),
+  second click opens it; marker click chooses the row. Numbered dots.
+- The travel page loads all its steps via the feed endpoint (pages of 50) and uses them for the map
+  too; the old feed on this page is gone (the timeline still has it).
+- 160 % text on a 390 px phone checked: totals in one column, route rows wrap, "Stap toevoegen" /
+  "Rustdag" stay readable buttons.
+
+### Not done / to check
+- Check at 130 % and 200 % on a real phone/tablet; changelog screenshots for 2.5.0.
+- Very long travels (hundreds of steps) load all steps at once; fine for the expected sizes.

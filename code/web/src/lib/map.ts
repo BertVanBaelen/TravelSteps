@@ -17,6 +17,8 @@ export type MapPostLike = Pick<
 >;
 
 export const DEFAULT_COLOR = TRAVEL_COLORS.forest;
+/** The step you are reading or chose: Sunset, drawn on top of the others. */
+export const HIGHLIGHT_COLOR = '#ef6b3a';
 /** Boat, train and plane lines: dashed in fjord blue, whatever the travel colour. */
 const TRANSIT_COLOR = TRAVEL_COLORS.fjord;
 
@@ -51,7 +53,8 @@ export function lineStyle(segment: Segment, color: string, faint = false): L.Pol
 
 export function createMap(el: HTMLElement, interactive: boolean): L.Map {
   const map = L.map(el, {
-    zoomControl: interactive,
+    // Zoom buttons top right (48 px, see styles.css): labels and previews sit top left.
+    zoomControl: false,
     dragging: interactive,
     scrollWheelZoom: false,
     touchZoom: interactive,
@@ -60,6 +63,7 @@ export function createMap(el: HTMLElement, interactive: boolean): L.Map {
     keyboard: interactive,
     attributionControl: true,
   });
+  if (interactive) L.control.zoom({ position: 'topright' }).addTo(map);
   map.attributionControl.setPrefix(false);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
@@ -91,7 +95,12 @@ export function drawPost(
   layer: L.LayerGroup,
   post: MapPostLike,
   color: string,
-  options: { arrival?: boolean; onClick?: (marker: L.CircleMarker) => void } = {},
+  options: {
+    arrival?: boolean;
+    onClick?: (marker: L.CircleMarker) => void;
+    /** Bigger markers on top of the other steps. */
+    highlight?: boolean;
+  } = {},
 ): LatLng[] {
   const points: LatLng[] = [];
   const locs = post.locations;
@@ -106,13 +115,15 @@ export function drawPost(
     for (const p of line.getLatLngs() as L.LatLng[]) points.push([p.lat, p.lng]);
   }
   locs.forEach((loc, i) => {
+    const big = options.highlight ? 2 : 0;
     const marker = L.circleMarker([loc.lat, loc.lng], {
-      radius: i === 0 ? 8 : 6,
+      radius: (i === 0 ? 8 : 6) + big,
       color,
-      weight: 3,
+      weight: 3 + (options.highlight ? 1 : 0),
       fillColor: '#fff',
       fillOpacity: 1,
     }).addTo(layer);
+    if (options.highlight) marker.bringToFront();
     if (loc.name) marker.bindTooltip(loc.name);
     if (options.onClick) marker.on('click', () => options.onClick!(marker));
     points.push([loc.lat, loc.lng]);
@@ -120,12 +131,15 @@ export function drawPost(
   return points;
 }
 
-export function fitTo(map: L.Map, points: LatLng[], maxZoom = 14): void {
+export function fitTo(map: L.Map, points: LatLng[], maxZoom = 14, animate = false): void {
   if (points.length === 0) {
     map.setView([52.1, 5.3], 6);
   } else if (points.length === 1) {
-    map.setView(points[0]!, Math.min(maxZoom, 13));
+    map.setView(points[0]!, Math.min(maxZoom, 13), { animate });
   } else {
-    map.fitBounds(L.latLngBounds(points), { padding: [24, 24], maxZoom });
+    map.fitBounds(L.latLngBounds(points), { padding: [24, 24], maxZoom, animate });
   }
 }
+
+export const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;

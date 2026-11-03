@@ -150,9 +150,17 @@ export interface Travel {
   /** Owner or accepted member: may add posts. */
   canPost: boolean;
   canDownloadOriginal: boolean;
+  /** V3-5: days ("YYYY-MM-DD") deliberately left empty, sorted. A step on that day wins. */
+  restDays: string[];
   createdAt: string;
   updatedAt: string;
 }
+
+/** A calendar day ("YYYY-MM-DD"), e.g. a rest day in a URL. */
+export const daySchema = isoDateSchema.refine((s) => {
+  const d = new Date(`${s}T12:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().startsWith(s);
+}, 'Ongeldige datum');
 
 export const travelMemberInputSchema = z.object({ userId: uuidSchema });
 export const travelViewersInputSchema = z.object({
@@ -175,6 +183,11 @@ export interface TravelSummary extends Travel {
   photoCount: number;
   /** Total length of all routes (segments + connections between posts). */
   distanceKm: number;
+  /**
+   * V3-5: route length under your own power (walking + cycling) and in total (all modes, equal to
+   * `distanceKm`).
+   */
+  distanceByGroup: { ownPower: number; total: number };
   stats: TravelStat[];
 }
 
@@ -259,9 +272,22 @@ export interface PostSummary extends SocialCounts, PostPermissions {
   updatedAt: string;
 }
 
+/** A step before or after another one in the same travel (V3-4). */
+export interface PostNeighbour {
+  id: string;
+  title: string;
+  date: string;
+  coverAssetId: string | null;
+}
+
 export interface PostDetail extends Post, SocialCounts, PostPermissions {
   travelName: string;
   author: UserRef | null;
+  /**
+   * V3-4: the previous (older) and next (newer) step in the same travel. Missing in pages cached
+   * by older versions.
+   */
+  neighbours?: { previous: PostNeighbour | null; next: PostNeighbour | null };
 }
 
 // ---------- Blogs, subscriptions & notifications ----------

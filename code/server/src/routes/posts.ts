@@ -9,6 +9,7 @@ import {
   type Post,
   type PostDetail,
   type PostInput,
+  type PostNeighbour,
   type PostPermissions,
   type PostSummary,
   type UserRef,
@@ -96,13 +97,20 @@ export async function postRoutes(app: FastifyInstance): Promise<void> {
   const travelName = (id: string) => content.getTravel(id)?.name ?? '';
   const author = (refs: Map<string, UserRef>, id: string | null) => (id && refs.get(id)) || null;
 
-  const toDetail = (post: Post, me: Actor): PostDetail => ({
-    ...post,
-    ...social.countsFor(post.id, me.id),
-    ...postPermissions(ctx, post, me),
-    travelName: travelName(post.travelId),
-    author: users.ref(post.authorId),
-  });
+  const toNeighbour = (p: Post | null): PostNeighbour | null =>
+    p && { id: p.id, title: p.title, date: p.date, coverAssetId: p.photos[0] ?? null };
+
+  const toDetail = (post: Post, me: Actor): PostDetail => {
+    const { previous, next } = content.neighbours(post.id);
+    return {
+      ...post,
+      ...social.countsFor(post.id, me.id),
+      ...postPermissions(ctx, post, me),
+      travelName: travelName(post.travelId),
+      author: users.ref(post.authorId),
+      neighbours: { previous: toNeighbour(previous), next: toNeighbour(next) },
+    };
+  };
 
   /** Travels the request asks for, limited to what the user may see. */
   const requestedTravels = (me: Actor, q: { travelId?: string; traveller?: string }) => {

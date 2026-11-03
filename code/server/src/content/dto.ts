@@ -31,6 +31,7 @@ export function toTravel(
     canManage,
     canPost: content.canPost(actor, t.id),
     canDownloadOriginal: Boolean(t.coverAssetId) && ctx.canUseAuthorRights(actor, t.ownerId, t.id),
+    restDays: content.restDays(t.id),
     createdAt: t.createdAt,
     updatedAt: t.updatedAt,
   };
