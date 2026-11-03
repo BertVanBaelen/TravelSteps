@@ -5,17 +5,35 @@ import { Avatar } from './Avatar';
 import { LeaveIcon, ProfileIcon, SettingsIcon, UsersIcon } from './icons';
 import { Menu } from './Menu';
 
-/** Profile picture in the banner; opens a menu with profile, admin pages and log out. */
-export function UserMenu() {
+/**
+ * Profile picture that opens a menu with profile, admin pages and log out. In the banner on
+ * phones; at the bottom of the rail/sidebar (`placement="nav"`, opening upwards) on wider screens,
+ * where the sidebar also shows the name.
+ */
+export function UserMenu({ placement = 'banner' }: { placement?: 'banner' | 'nav' }) {
   const msg = useT();
   const user = useUser();
   const { logout } = useAuth();
+  const nav = placement === 'nav';
 
   return (
     <Menu
-      trigger={<Avatar user={user} size="s" />}
+      trigger={
+        nav ? (
+          <>
+            <Avatar user={user} size="m" />
+            <span className="nav-user-text">
+              <strong>{user.displayName}</strong>
+              <span>{msg.nav.profileSettings}</span>
+            </span>
+          </>
+        ) : (
+          <Avatar user={user} size="m" />
+        )
+      }
       label={msg.userMenu.open}
-      triggerClassName="banner-avatar"
+      triggerClassName={nav ? 'nav-user-button' : 'banner-avatar'}
+      panelClassName={nav ? 'menu-panel-up' : undefined}
     >
       <div className="menu-head">
         <Avatar user={user} size="m" />

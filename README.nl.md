@@ -6,7 +6,7 @@ Reisblog (PWA) met tijdlijn, kaart en Immich-foto's voor meerdere reizigers. Dra
 Docker-container (of Home Assistant-add-on) op de Home Assistant-server en wordt via een
 Cloudflare Tunnel publiek bereikbaar gemaakt. De app is beschikbaar in het **Nederlands en Engels**.
 
-Versie **2.0.0** – wijzigingen per versie (met schermafbeeldingen) in
+Versie **2.5.0** – wijzigingen per versie (met schermafbeeldingen) in
 [code/CHANGELOG.md](code/CHANGELOG.md). Geplande uitbreidingen: zie de [V2-roadmap](V2%20roadmap.md);
 delen en beheerstatistieken zijn uitgesteld naar een latere versie ([`Analysis/VX/`](Analysis/VX/README.md)).
 
@@ -15,8 +15,10 @@ delen en beheerstatistieken zijn uitgesteld naar een latere versie ([`Analysis/V
 | `code/`                      | Alle broncode, Docker- en add-onbestanden    |
 | `Analysis/`                  | Fasenplan voor de implementatie              |
 | `Analysis/V2/`               | Fasenplan voor V2                            |
+| `Analysis/V3/`               | Fasenplan voor V3 (nieuw ontwerp)            |
 | `Analysis/VX/`               | Uitgestelde functies (latere versie)         |
 | `V2 roadmap.md`              | Overzicht van de V2-functies                 |
+| `V3 roadmap.md`              | Overzicht van het V3-ontwerp                 |
 | `Functional requirements.md` | Functionele requirements                     |
 | `Technical requirements.md`  | Technische requirements                      |
 
@@ -92,7 +94,7 @@ lokale add-on, installeer TravelSteps uit de repository, vul dezelfde configurat
    docker compose up -d --build
    docker compose logs -f
    ```
-4. Controle: `curl http://localhost:8080/api/health` → `{"status":"ok","version":"2.0.0"}`.
+4. Controle: `curl http://localhost:8080/api/health` → `{"status":"ok","version":"2.5.0"}`.
 
 ## Cloudflare Tunnel
 

@@ -21,6 +21,7 @@ export function toTravel(
     startDate: t.startDate,
     endDate: t.endDate,
     coverAssetId: t.coverAssetId,
+    color: t.color,
     owner: refs.get(t.ownerId) ?? DELETED_USER,
     members: [...content.members(t.id)]
       .filter(([id]) => refs.has(id))
@@ -30,6 +31,7 @@ export function toTravel(
     canManage,
     canPost: content.canPost(actor, t.id),
     canDownloadOriginal: Boolean(t.coverAssetId) && ctx.canUseAuthorRights(actor, t.ownerId, t.id),
+    restDays: content.restDays(t.id),
     createdAt: t.createdAt,
     updatedAt: t.updatedAt,
   };

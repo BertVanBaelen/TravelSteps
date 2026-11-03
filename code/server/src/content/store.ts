@@ -3,11 +3,13 @@ import type { FastifyBaseLogger } from 'fastify';
 import {
   isTraveller,
   postInputSchema,
+  TRAVEL_COLOR_KEYS,
   travelInputSchema,
   type Post,
   type PostInput,
   type Role,
   type Segment,
+  type TravelColor,
   type TravelInput,
   type TravelRole,
   type TravelStat,
@@ -25,6 +27,7 @@ export interface TravelRecord {
   startDate: string;
   endDate: string | null;
   coverAssetId: string | null;
+  color: TravelColor;
   createdAt: string;
   updatedAt: string;
 }
@@ -39,6 +42,7 @@ interface TravelEntry {
   travel: TravelRecord;
   members: Map<string, MemberRecord>;
   viewers: Set<string>;
+  restDays: Set<string>;
 }
 
 /** The user a question about visibility or permissions is asked for. */
@@ -63,6 +67,7 @@ interface TravelRow {
   start_date: string;
   end_date: string | null;
   cover_asset_id: string | null;
+  color: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -92,12 +97,20 @@ function parseNumber(value: string): number | null {
   return /^-?\d+(\.\d+)?$/.test(s) ? Number(s) : null;
 }
 
+/** Summed stats of posts plus their route length, in total and under your own power. */
+export interface StatsSummary {
+  distanceKm: number;
+  distanceByGroup: { ownPower: number; total: number };
+  stats: TravelStat[];
+}
+
 /**
  * Sums the numeric stats of posts: fixed stats per key (max. height as maximum; temperature is
  * not summable), custom stats with the same label (case-insensitive) and unit.
  */
-export function summarizeStats(posts: Post[]): { distanceKm: number; stats: TravelStat[] } {
+export function summarizeStats(posts: Post[]): StatsSummary {
   let distanceKm = 0;
+  let ownPowerKm = 0;
   const fixed = { afstand: 0, hoogtemeters: 0, duur: 0, maxHoogte: -Infinity };
   const seen = { afstand: false, hoogtemeters: false, duur: false, maxHoogte: false };
   const custom = new Map<string, TravelStat>();
@@ -106,6 +119,7 @@ export function summarizeStats(posts: Post[]): { distanceKm: number; stats: Trav
   for (const p of [...posts].reverse()) {
     for (const s of [...p.segments, ...(p.arrival ? [p.arrival] : [])]) {
       distanceKm += s.distanceKm ?? 0;
+      if (s.mode === 'lopen' || s.mode === 'fietsen') ownPowerKm += s.distanceKm ?? 0;
     }
     for (const key of ['afstand', 'hoogtemeters', 'duur'] as const) {
       const v = p.stats[key];
@@ -145,7 +159,12 @@ export function summarizeStats(posts: Post[]): { distanceKm: number; stats: Trav
   }
   if (seen.duur) stats.push({ key: 'duur', label: 'Duur', unit: 'u:mm', value: fixed.duur });
   for (const s of custom.values()) stats.push({ ...s, value: round2(s.value) });
-  return { distanceKm: round2(distanceKm), stats };
+  const total = round2(distanceKm);
+  return {
+    distanceKm: total,
+    distanceByGroup: { ownPower: Math.min(round2(ownPowerKm), total), total },
+    stats,
+  };
 }
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -164,6 +183,7 @@ const toTravel = (r: TravelRow): TravelRecord => ({
   startDate: r.start_date,
   endDate: r.end_date,
   coverAssetId: r.cover_asset_id,
+  color: TRAVEL_COLOR_KEYS.includes(r.color as TravelColor) ? (r.color as TravelColor) : 'forest',
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 });
@@ -210,7 +230,12 @@ export class ContentStore {
     this.posts.clear();
     this.invalidate();
     for (const row of this.db.prepare('SELECT * FROM travels').all() as TravelRow[]) {
-      this.travels.set(row.id, { travel: toTravel(row), members: new Map(), viewers: new Set() });
+      this.travels.set(row.id, {
+        travel: toTravel(row),
+        members: new Map(),
+        viewers: new Set(),
+        restDays: new Set(),
+      });
     }
     const members = this.db.prepare('SELECT * FROM travel_members').all() as {
       travel_id: string;
@@ -231,6 +256,11 @@ export class ContentStore {
       user_id: string;
     }[];
     for (const v of viewers) this.travels.get(v.travel_id)?.viewers.add(v.user_id);
+    const restDays = this.db.prepare('SELECT travel_id, day FROM travel_rest_days').all() as {
+      travel_id: string;
+      day: string;
+    }[];
+    for (const r of restDays) this.travels.get(r.travel_id)?.restDays.add(r.day);
     for (const row of this.db.prepare('SELECT * FROM posts').all() as PostRow[]) {
       this.posts.set(row.id, toPost(row));
     }
@@ -367,6 +397,16 @@ export class ContentStore {
     return own.find((t) => t.startDate <= now && (!t.endDate || t.endDate >= now)) ?? own[0];
   }
 
+  /** First palette colour none of the owner's travels uses yet (cycles when all are taken). */
+  freeColorFor(ownerId: string): TravelColor {
+    const owned = this.ownedTravels(ownerId);
+    const used = new Set(owned.map((t) => t.color));
+    return (
+      TRAVEL_COLOR_KEYS.find((c) => !used.has(c)) ??
+      TRAVEL_COLOR_KEYS[owned.length % TRAVEL_COLOR_KEYS.length]!
+    );
+  }
+
   private travelSlugTaken = (slug: string, exceptId?: string) =>
     [...this.travels.values()].some((e) => e.travel.slug === slug && e.travel.id !== exceptId);
 
@@ -374,13 +414,14 @@ export class ContentStore {
     this.db
       .prepare(
         `INSERT INTO travels (id, slug, owner_id, name, description, start_date, end_date,
-           cover_asset_id, created_at, updated_at)
+           cover_asset_id, color, created_at, updated_at)
          VALUES (@id, @slug, @ownerId, @name, @description, @startDate, @endDate, @coverAssetId,
-           @createdAt, @updatedAt)
+           @color, @createdAt, @updatedAt)
          ON CONFLICT(id) DO UPDATE SET slug = excluded.slug, owner_id = excluded.owner_id,
            name = excluded.name, description = excluded.description,
            start_date = excluded.start_date, end_date = excluded.end_date,
-           cover_asset_id = excluded.cover_asset_id, updated_at = excluded.updated_at`,
+           cover_asset_id = excluded.cover_asset_id, color = excluded.color,
+           updated_at = excluded.updated_at`,
       )
       .run(t);
   }
@@ -393,11 +434,17 @@ export class ContentStore {
       slug: uniqueName(slugify(data.name, 'reis'), (s) => this.travelSlugTaken(s)),
       ownerId,
       ...data,
+      color: data.color ?? this.freeColorFor(ownerId),
       createdAt: now,
       updatedAt: now,
     };
     this.writeTravel(travel);
-    this.travels.set(travel.id, { travel, members: new Map(), viewers: new Set() });
+    this.travels.set(travel.id, {
+      travel,
+      members: new Map(),
+      viewers: new Set(),
+      restDays: new Set(),
+    });
     this.invalidate();
     return travel;
   }
@@ -409,7 +456,10 @@ export class ContentStore {
     if (!matchesBase(travel.slug, desired)) {
       travel.slug = uniqueName(desired, (s) => this.travelSlugTaken(s, id));
     }
-    Object.assign(travel, data, { updatedAt: new Date().toISOString() });
+    Object.assign(travel, data, {
+      color: data.color ?? travel.color,
+      updatedAt: new Date().toISOString(),
+    });
     this.writeTravel(travel);
     this.invalidate();
     return travel;
@@ -519,6 +569,38 @@ export class ContentStore {
       for (const id of ids) insert.run(travelId, id);
     })();
     entry.viewers = new Set(ids);
+  }
+
+  // ---------- Rest days (V3-5) ----------
+
+  /** Days deliberately left empty, sorted. */
+  restDays(travelId: string): string[] {
+    return [...this.entry(travelId).restDays].sort();
+  }
+
+  /** Marks a day of the travel as rest day; the day must lie within the travel dates. */
+  setRestDay(travelId: string, day: string, userId: string): void {
+    const entry = this.entry(travelId);
+    const { startDate, endDate } = entry.travel;
+    if (day < startDate || (endDate !== null && day > endDate)) {
+      throw new HttpError(400, 'DAY_OUTSIDE_TRAVEL', 'Deze dag valt buiten de reis.');
+    }
+    if (entry.restDays.has(day)) return;
+    this.db
+      .prepare(
+        `INSERT OR IGNORE INTO travel_rest_days (travel_id, day, marked_by, created_at)
+         VALUES (?, ?, ?, ?)`,
+      )
+      .run(travelId, day, userId, new Date().toISOString());
+    entry.restDays.add(day);
+  }
+
+  clearRestDay(travelId: string, day: string): void {
+    const entry = this.entry(travelId);
+    this.db
+      .prepare('DELETE FROM travel_rest_days WHERE travel_id = ? AND day = ?')
+      .run(travelId, day);
+    entry.restDays.delete(day);
   }
 
   // ---------- Posts ----------
@@ -690,6 +772,17 @@ export class ContentStore {
     );
   }
 
+  /**
+   * The steps just before (older) and after (newer) a post in its travel, in feed order. Whoever
+   * may see the post may see its whole travel, so no extra visibility check is needed.
+   */
+  neighbours(id: string): { previous: Post | null; next: Post | null } {
+    const post = this.postEntry(id);
+    const list = this.listPosts(post.travelId);
+    const i = list.indexOf(post);
+    return { previous: list[i + 1] ?? null, next: i > 0 ? list[i - 1]! : null };
+  }
+
   // ---------- Import (Markdown migration) ----------
 
   /** Inserts an existing travel/post as-is (IDs, slugs and timestamps kept). */
@@ -712,7 +805,7 @@ export class ContentStore {
   }
 
   /** Summed stats of all posts in a travel, plus the total route distance. */
-  travelStats(travelId: string): { distanceKm: number; stats: TravelStat[] } {
+  travelStats(travelId: string): StatsSummary {
     return summarizeStats(this.listPosts(travelId));
   }
 

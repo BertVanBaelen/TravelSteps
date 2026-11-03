@@ -1,6 +1,7 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import {
+  daySchema,
   isTraveller,
   travelMemberInputSchema,
   travelViewersInputSchema,
@@ -13,6 +14,7 @@ import type { Actor } from '../content/store.js';
 
 type IdParams = { Params: { id: string } };
 type MemberParams = { Params: { id: string; userId: string } };
+type DayParams = { Params: { id: string; day: string } };
 
 const listQuerySchema = z.object({ traveller: z.string().uuid().optional() });
 
@@ -106,6 +108,30 @@ export async function travelRoutes(app: FastifyInstance): Promise<void> {
     const travel = visibleTravel(req.params.id, me);
     if (!isTraveller(me.role)) throw forbidden();
     content.acceptInvitation(travel.id, me.id);
+    return { travel: toTravelSummary(ctx, travel, me) };
+  });
+
+  // ---------- Rest days (V3-5) ----------
+
+  /** Whoever may post in the travel (and the admin) marks days that deliberately stay empty. */
+  const restDayTravel = (req: FastifyRequest<DayParams>) => {
+    const me = currentUser(req);
+    const travel = visibleTravel(req.params.id, me);
+    if (!content.canPost(me, travel.id) && me.role !== 'admin') throw forbidden();
+    const parsed = daySchema.safeParse(req.params.day);
+    if (!parsed.success) throw new HttpError(400, 'BAD_DAY', 'Ongeldige datum.');
+    return { me, travel, day: parsed.data };
+  };
+
+  app.put<DayParams>('/:id/rest-days/:day', async (req) => {
+    const { me, travel, day } = restDayTravel(req);
+    content.setRestDay(travel.id, day, me.id);
+    return { travel: toTravelSummary(ctx, travel, me) };
+  });
+
+  app.delete<DayParams>('/:id/rest-days/:day', async (req) => {
+    const { me, travel, day } = restDayTravel(req);
+    content.clearRestDay(travel.id, day);
     return { travel: toTravelSummary(ctx, travel, me) };
   });
 

@@ -13,7 +13,7 @@ import {
 import { api, errorMessage } from '../api';
 import { useT } from '../i18n';
 import { formatNumber } from '../lib/format';
-import { DEFAULT_COLOR, createMap, drawSegment, fitTo, isDashed } from '../lib/map';
+import { DEFAULT_COLOR, createMap, drawSegment, fitTo, lineStyle } from '../lib/map';
 import { useOnline } from '../offline/db';
 import { Alert } from './Field';
 
@@ -197,11 +197,7 @@ export function LocationEditor({
     layer.clearLayers();
     const { locations, segments, arrival } = value;
     if (arrival?.geometry && arrival.geometry.length >= 2) {
-      L.polyline(arrival.geometry, {
-        color: '#6b7280',
-        weight: 3,
-        dashArray: isDashed(arrival) ? '6 8' : undefined,
-      }).addTo(layer);
+      L.polyline(arrival.geometry, lineStyle(arrival, '#4b5651', true)).addTo(layer);
     }
     for (let i = 0; i < locations.length - 1; i++) {
       drawSegment(

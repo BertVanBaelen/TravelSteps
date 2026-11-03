@@ -22,7 +22,7 @@ import { queuePost, savePost } from '../offline/sync';
 import { useCelebrate } from '../components/Celebration';
 import { useConfirm } from '../components/ConfirmDialog';
 
-import { PlusIcon, SendIcon } from '../components/icons';
+import { PlusIcon, SendIcon, TrashIcon } from '../components/icons';
 
 const EMPTY_ROUTE: RouteValue = { locations: [], segments: [], arrival: { mode: 'lopen' } };
 /** Max wait for local (IndexedDB) reads before the editor continues without them. */
@@ -58,6 +58,10 @@ export function PostEditorPage() {
   const celebrate = useCelebrate();
   const conceptId = search.get('concept');
   const requestedTravel = useRef(search.get('reis'));
+  // "Stap toevoegen" on an empty day of the route list (V3-5): that day, at noon.
+  const requestedDay = /^\d{4}-\d{2}-\d{2}$/.test(search.get('datum') ?? '')
+    ? search.get('datum')
+    : null;
   // Existing post being edited, or a (restored) draft of a new post.
   const [postId] = useState(() => params.id ?? conceptId ?? newPostId());
   const isNew = !params.id;
@@ -69,10 +73,13 @@ export function PostEditorPage() {
   const [loaded, setLoaded] = useState(false);
   const [baseUpdatedAt, setBaseUpdatedAt] = useState<string | undefined>();
   const [localNotice, setLocalNotice] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
 
   const [travelId, setTravelId] = useState('');
   const [title, setTitle] = useState('');
-  const [date, setDate] = useState(() => toLocalInput(new Date().toISOString()));
+  const [date, setDate] = useState(() =>
+    isNew && requestedDay ? `${requestedDay}T12:00` : toLocalInput(new Date().toISOString()),
+  );
   const [body, setBody] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
   const [route, setRoute] = useState<RouteValue>(EMPTY_ROUTE);
@@ -112,6 +119,7 @@ export function PostEditorPage() {
 
   async function loadServer(): Promise<void> {
     const { post } = await api<{ post: PostDetail }>(`/posts/${postId}`);
+    setCanDelete(post.canDelete);
     applyInput({ ...post, baseUpdatedAt: post.updatedAt });
   }
 
@@ -139,7 +147,13 @@ export function PostEditorPage() {
       if (cancelled) return;
       if (local) {
         applyInput(local.input, 'statsForm' in local ? local.statsForm : undefined);
-        if (!isNew) setLocalNotice(true);
+        if (!isNew) {
+          setLocalNotice(true);
+          // Only the permission is needed from the server; the local version stays.
+          api<{ post: PostDetail }>(`/posts/${postId}`)
+            .then((r) => !cancelled && setCanDelete(r.post.canDelete))
+            .catch(() => undefined);
+        }
       } else if (!isNew) {
         await loadServer();
       }
@@ -355,6 +369,30 @@ export function PostEditorPage() {
     await loadServer().catch((err) => setError(errorMessage(err)));
   }
 
+  /** Deletes the step (V3-4: moved here from the step page) and goes to its travel. */
+  async function remove() {
+    if (
+      !(await confirm({
+        title: msg.post.deleteTitle,
+        message: msg.post.confirmDelete,
+        confirmLabel: msg.common.delete,
+        danger: true,
+      }))
+    )
+      return;
+    setBusy(true);
+    setError(null);
+    try {
+      await api(`/posts/${postId}`, { method: 'DELETE' });
+      done.current = true;
+      forgetLocal();
+      navigate(travelId ? `/reizen/${travelId}` : '/', { replace: true });
+    } catch (err) {
+      setError(errorMessage(err));
+      setBusy(false);
+    }
+  }
+
   if (!loaded && !error) return <SkeletonCards count={1} />;
   const postable = travels?.filter((t) => t.canPost || t.id === travelId) ?? null;
   if (postable && postable.length === 0) {
@@ -391,7 +429,7 @@ export function PostEditorPage() {
               value={travelId}
               onChange={setTravelId}
               options={postable.map((t) =>
-                travelOption(t, undefined, t.owner.id !== me.id ? ` (${t.owner.displayName})` : ''),
+                travelOption(t, t.owner.id !== me.id ? ` (${t.owner.displayName})` : ''),
               )}
             />
           )}
@@ -526,6 +564,22 @@ export function PostEditorPage() {
                 : msg.common.save}
         </button>
       </form>
+
+      {!isNew && canDelete && (
+        <section className="card danger-zone" aria-labelledby="stap-verwijderen">
+          <h2 id="stap-verwijderen">{msg.post.delete}</h2>
+          <p className="muted">{msg.post.deleteHint}</p>
+          <button
+            type="button"
+            className="btn btn-secondary btn-danger"
+            onClick={() => void remove()}
+            disabled={busy || !online}
+          >
+            <TrashIcon />
+            {msg.post.delete}
+          </button>
+        </section>
+      )}
 
       {picking && (
         <PhotoPicker

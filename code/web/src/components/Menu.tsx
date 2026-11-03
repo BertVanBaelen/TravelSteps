@@ -6,12 +6,13 @@ interface Props {
   trigger: ReactNode;
   label: string;
   triggerClassName?: string;
+  panelClassName?: string;
   /** Menu items (links/buttons with role="menuitem"); clicking one closes the menu. */
   children: ReactNode;
 }
 
 /** Button that opens a menu panel; arrow keys move between the items. */
-export function Menu({ trigger, label, triggerClassName, children }: Props) {
+export function Menu({ trigger, label, triggerClassName, panelClassName, children }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -46,7 +47,7 @@ export function Menu({ trigger, label, triggerClassName, children }: Props) {
       </button>
       {open && (
         <div
-          className="menu-panel"
+          className={`menu-panel${panelClassName ? ` ${panelClassName}` : ''}`}
           role="menu"
           ref={panel}
           onKeyDown={onKeyDown}

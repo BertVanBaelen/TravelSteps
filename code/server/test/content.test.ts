@@ -10,13 +10,16 @@ import type {
   AdminUser,
   AppNotification,
   FeedPage,
+  Post,
   PostDetail,
+  Segment,
   Traveller,
   TravelSummary,
 } from '@travelsteps/shared';
 import { buildApp } from '../src/app.js';
 import { DB_FILE, openDatabase, renameLegacyDatabase, type DB } from '../src/db.js';
 import type { AppConfig } from '../src/config.js';
+import { summarizeStats } from '../src/content/store.js';
 import { excerpt } from '../src/routes/posts.js';
 
 const CSRF = { 'x-requested-with': 'TravelSteps' };
@@ -1936,6 +1939,133 @@ describe('vertrouwde personen', () => {
     const missing = await original(oma.cookie);
     expect(missing.statusCode).toBe(404);
     expect(missing.json().error).toBe('ORIGINAL_UNAVAILABLE');
+  });
+});
+
+describe('stappagina en reis als tocht (V3-4, V3-5)', () => {
+  it('geeft vorige en volgende stap uit dezelfde reis, nooit uit een andere', async () => {
+    await startApp();
+    const { piet, kees, oma, jan, travel } = await setupWorld();
+    const a = await createPost(piet.cookie, 'A', '2025-06-02T10:00:00Z', { photos: [ASSET_A] });
+    const b = await createPost(kees.cookie, 'B', '2025-06-03T10:00:00Z');
+    const c = await createPost(piet.cookie, 'C', '2025-06-04T10:00:00Z');
+    // A newer step in a travel Oma may not see sits between B and C by date.
+    const hidden = await createTravel(piet.cookie, 'Geheim');
+    await createPost(piet.cookie, 'Geheim', '2025-06-03T12:00:00Z', { travelId: hidden.id });
+
+    const neighbours = async (cookie: string, id: string) => {
+      const res = await call('GET', `/api/posts/${id}`, cookie);
+      expect(res.statusCode).toBe(200);
+      return (res.json().post as PostDetail).neighbours;
+    };
+    expect(await neighbours(oma.cookie, b.id)).toEqual({
+      previous: { id: a.id, title: 'A', date: a.date, coverAssetId: ASSET_A },
+      next: { id: c.id, title: 'C', date: c.date, coverAssetId: null },
+    });
+    expect((await neighbours(oma.cookie, a.id))?.previous).toBeNull();
+    expect((await neighbours(piet.cookie, c.id))?.next).toBeNull();
+    expect((await call('GET', `/api/posts/${b.id}`, jan.cookie)).statusCode).toBe(404);
+    expect(travel.id).toBe(a.travelId);
+  });
+
+  it('laat wie mag posten en de beheerder rustdagen markeren binnen de reisdatums', async () => {
+    await startApp({}, dbPath());
+    const { admin, piet, kees, oma, jan, travel } = await setupWorld();
+    const restDay = (method: 'PUT' | 'DELETE', cookie: string, day: string, id = travel.id) =>
+      call(method, `/api/travels/${id}/rest-days/${day}`, cookie);
+
+    expect(travel.restDays).toEqual([]);
+    const marked = await restDay('PUT', piet.cookie, '2025-06-03');
+    expect(marked.statusCode).toBe(200);
+    expect(marked.json().travel.restDays).toEqual(['2025-06-03']);
+    expect((await restDay('PUT', kees.cookie, '2025-06-02')).statusCode).toBe(200);
+    // Marking twice is harmless.
+    expect((await restDay('PUT', kees.cookie, '2025-06-02')).statusCode).toBe(200);
+    expect((await restDay('PUT', admin, '2025-06-05')).statusCode).toBe(200);
+    expect((await restDay('PUT', oma.cookie, '2025-06-04')).statusCode).toBe(403);
+    expect((await restDay('DELETE', oma.cookie, '2025-06-03')).statusCode).toBe(403);
+    expect((await restDay('PUT', jan.cookie, '2025-06-04')).statusCode).toBe(404);
+    // Outside the travel dates or not a real day.
+    expect((await restDay('PUT', piet.cookie, '2025-05-31')).statusCode).toBe(400);
+    expect((await restDay('PUT', piet.cookie, '2025-02-30')).statusCode).toBe(400);
+    expect((await restDay('PUT', piet.cookie, 'gisteren')).statusCode).toBe(400);
+
+    const removed = await restDay('DELETE', kees.cookie, '2025-06-05');
+    expect(removed.statusCode).toBe(200);
+    expect(removed.json().travel.restDays).toEqual(['2025-06-02', '2025-06-03']);
+    expect((await getTravel(oma.cookie, travel.id)).restDays).toEqual(['2025-06-02', '2025-06-03']);
+
+    // Kept after a restart; gone with the travel.
+    await restart();
+    expect((await getTravel(piet.cookie, travel.id)).restDays).toEqual([
+      '2025-06-02',
+      '2025-06-03',
+    ]);
+    const short = await createTravel(piet.cookie, 'Weekend', {
+      startDate: '2025-07-05',
+      endDate: '2025-07-06',
+    });
+    expect((await restDay('PUT', piet.cookie, '2025-07-07', short.id)).statusCode).toBe(400);
+    expect((await restDay('PUT', piet.cookie, '2025-07-06', short.id)).statusCode).toBe(200);
+    expect(count('travel_rest_days')).toBe(3);
+    expect((await call('DELETE', `/api/travels/${short.id}`, piet.cookie)).statusCode).toBe(204);
+    expect(count('travel_rest_days')).toBe(2);
+  });
+
+  it('telt afstand op eigen kracht en in totaal apart', async () => {
+    await startApp();
+    const [admin] = await setupUsers();
+    const travel = await createTravel(admin);
+    const BERGEN = { lat: 60.39, lng: 5.32, name: 'Bergen' };
+    const FLOYEN = { lat: 60.395, lng: 5.345, name: 'Fløyen' };
+    const VOSS = { lat: 60.63, lng: 6.42, name: 'Voss' };
+    const walk = await createPost(admin, 'Lopen', '2025-06-02T10:00:00Z', {
+      locations: [BERGEN, FLOYEN],
+      segments: [{ mode: 'lopen' }],
+    });
+    const drive = await createPost(admin, 'Rijden', '2025-06-03T10:00:00Z', {
+      locations: [VOSS],
+      arrival: { mode: 'auto' },
+    });
+    const walkKm = walk.segments[0]!.distanceKm!;
+    const driveKm = drive.arrival!.distanceKm!;
+    expect(walkKm).toBeGreaterThan(0);
+    expect(driveKm).toBeGreaterThan(walkKm);
+
+    const summary = await getTravel(admin, travel.id);
+    expect(summary.distanceByGroup.ownPower).toBeCloseTo(walkKm, 2);
+    expect(summary.distanceByGroup.total).toBeCloseTo(walkKm + driveKm, 2);
+    expect(summary.distanceByGroup.total).toBe(summary.distanceKm);
+  });
+
+  it('summarizeStats: op eigen kracht is de som van wandel- en fietssegmenten', () => {
+    const post = (segments: Segment[], arrival: Segment | null = null): Post => ({
+      id: crypto.randomUUID(),
+      slug: '',
+      travelId: 't',
+      authorId: null,
+      title: 'x',
+      date: '2025-06-02T10:00:00Z',
+      body: '',
+      photos: [],
+      locations: [],
+      segments,
+      arrival,
+      stats: { custom: [] },
+      createdAt: '',
+      updatedAt: '',
+    });
+    const summary = summarizeStats([
+      post([
+        { mode: 'lopen', distanceKm: 3.2 },
+        { mode: 'boot', distanceKm: 89 },
+      ]),
+      post([{ mode: 'fietsen', distanceKm: 48 }], { mode: 'auto', distanceKm: 23 }),
+      post([{ mode: 'vliegtuig' }]),
+    ]);
+    expect(summary.distanceByGroup).toEqual({ ownPower: 51.2, total: 163.2 });
+    expect(summary.distanceKm).toBe(163.2);
+    expect(summarizeStats([]).distanceByGroup).toEqual({ ownPower: 0, total: 0 });
   });
 });
 

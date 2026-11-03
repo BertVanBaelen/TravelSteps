@@ -9,10 +9,12 @@ interface Props {
   likeCount: number;
   likedByMe: boolean;
   onChange?: (state: { likeCount: number; likedByMe: boolean }) => void;
+  /** Big button with a word: "Leuk · 3" (V3) instead of heart + number. */
+  labelled?: boolean;
 }
 
 /** Optimistic like toggle. */
-export function LikeButton({ postId, likeCount, likedByMe, onChange }: Props) {
+export function LikeButton({ postId, likeCount, likedByMe, onChange, labelled = false }: Props) {
   const msg = useT();
   const [state, setState] = useState({ likeCount, likedByMe });
   const [busy, setBusy] = useState(false);
@@ -41,6 +43,22 @@ export function LikeButton({ postId, likeCount, likedByMe, onChange }: Props) {
     } finally {
       setBusy(false);
     }
+  }
+
+  if (labelled) {
+    // The visible word is the accessible name; aria-pressed tells whether you like it.
+    return (
+      <button
+        ref={button}
+        type="button"
+        className={`pill-btn like-btn${state.likedByMe ? ' liked' : ''}`}
+        onClick={() => void toggle()}
+        aria-pressed={state.likedByMe}
+      >
+        <HeartIcon filled={state.likedByMe} />
+        <span>{msg.likes.button(state.likeCount)}</span>
+      </button>
+    );
   }
 
   return (

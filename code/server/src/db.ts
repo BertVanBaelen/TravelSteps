@@ -199,6 +199,28 @@ const migrations: string[] = [
   );
   CREATE INDEX idx_trusted_users_trusted ON trusted_users(trusted_id);
   `,
+  // V3-1: a named colour per travel. Existing travels get the colour the map gave them before
+  // (palette by start date, oldest first), so nothing changes visually at the upgrade.
+  `
+  ALTER TABLE travels ADD COLUMN color TEXT;
+  UPDATE travels SET color = (
+    SELECT CASE (r.n - 1) % 8
+      WHEN 0 THEN 'forest' WHEN 1 THEN 'fjord' WHEN 2 THEN 'sunset' WHEN 3 THEN 'heather'
+      WHEN 4 THEN 'ochre' WHEN 5 THEN 'lagoon' WHEN 6 THEN 'slate' ELSE 'berry' END
+    FROM (SELECT id, ROW_NUMBER() OVER (ORDER BY start_date, created_at) AS n FROM travels) r
+    WHERE r.id = travels.id
+  );
+  `,
+  // V3-5: days a travel deliberately has no step ("rustdag"). A step on that day wins in the UI.
+  `
+  CREATE TABLE travel_rest_days (
+    travel_id  TEXT NOT NULL REFERENCES travels(id) ON DELETE CASCADE,
+    day        TEXT NOT NULL,
+    marked_by  TEXT REFERENCES users(id) ON DELETE SET NULL,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (travel_id, day)
+  );
+  `,
 ];
 
 export function openDatabase(file: string): DB {

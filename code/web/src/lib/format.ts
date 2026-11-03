@@ -52,6 +52,32 @@ export const formatNumber = (n: number) => fmt().number.format(n);
 /** "2025-06-01" → "1 juni 2025" / "1 June 2025" (date-only strings are not shifted by the time zone). */
 export const formatDay = (day: string) => fmt().date.format(new Date(`${day}T12:00:00`));
 
+/** "2026-07-09" → "do 9 juli" / "Thu 9 July". */
+export const formatWeekday = (day: string) =>
+  dateFormat({ weekday: 'short', day: 'numeric', month: 'long' }).format(
+    new Date(`${day}T12:00:00`),
+  );
+
+/** "19:00". */
+export const formatTime = (iso: string) =>
+  dateFormat({ hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+
+/** "7 juli, 18:05"-style date and time without the year. */
+export const formatShortDateTime = (iso: string) =>
+  dateFormat({ day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(
+    new Date(iso),
+  );
+
+/** Compact range of two days: "4 – 16 juli 2026" / "4–16 July 2026". */
+export function formatDayRange(start: string, end: string): string {
+  const f = dateFormat({ day: 'numeric', month: 'long', year: 'numeric' });
+  const a = new Date(`${start}T12:00:00`);
+  if (start === end) return f.format(a);
+  const b = new Date(`${end}T12:00:00`);
+  const ranged = f as Intl.DateTimeFormat & { formatRange?: (x: Date, y: Date) => string };
+  return ranged.formatRange ? ranged.formatRange(a, b) : `${f.format(a)} – ${f.format(b)}`;
+}
+
 export function formatRange(start: string, end: string | null, ongoing: string): string {
   if (end === start) return formatDay(start);
   return `${formatDay(start)} – ${end ? formatDay(end) : ongoing}`;

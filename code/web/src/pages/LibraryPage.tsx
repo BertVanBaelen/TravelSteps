@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { LibraryPhoto } from '@travelsteps/shared';
 import { api, errorMessage } from '../api';
-import { useBlog, withTraveller } from '../blog/BlogContext';
+import { ALL_TRAVELS, useBlog, withTraveller } from '../blog/BlogContext';
 import { EmptyState } from '../components/EmptyState';
 import { Alert } from '../components/Field';
 import { PhotoIcon } from '../components/icons';
@@ -11,6 +11,7 @@ import { Lightbox } from '../components/Gallery';
 import { usePageTitle } from '../components/PageTitle';
 import { useT } from '../i18n';
 import { formatDay, mediaUrl } from '../lib/format';
+import { localDay } from '../lib/travel';
 
 type GroupBy = 'datum' | 'reis';
 
@@ -21,33 +22,36 @@ interface Group {
   items: number[];
 }
 
-const localDay = (iso: string) => {
-  const d = new Date(iso);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
+const dayOf = (iso: string) => localDay(new Date(iso));
 
 export function LibraryPage() {
   const msg = useT();
   usePageTitle(msg.library.title);
-  const { selected } = useBlog();
+  // The travel and diary come from the context bar in the header.
+  const { selected, travelId } = useBlog();
   const [params, setParams] = useSearchParams();
   const groupBy: GroupBy = params.get('per') === 'reis' ? 'reis' : 'datum';
-  const [photos, setPhotos] = useState<LibraryPhoto[] | null>(null);
+  const [all, setAll] = useState<LibraryPhoto[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<number | null>(null);
 
   useEffect(() => {
-    setPhotos(null);
+    setAll(null);
     setOpen(null);
     api<{ photos: LibraryPhoto[] }>(`/library?${withTraveller(new URLSearchParams(), selected)}`)
-      .then((r) => setPhotos(r.photos))
+      .then((r) => setAll(r.photos))
       .catch((err) => setError(errorMessage(err)));
   }, [selected]);
+
+  const photos = useMemo(
+    () => all?.filter((p) => travelId === ALL_TRAVELS || p.travelId === travelId) ?? null,
+    [all, travelId],
+  );
 
   const groups = useMemo(() => {
     const map = new Map<string, Group>();
     (photos ?? []).forEach((p, i) => {
-      const key = groupBy === 'reis' ? p.travelId : localDay(p.date);
+      const key = groupBy === 'reis' ? p.travelId : dayOf(p.date);
       let g = map.get(key);
       if (!g) {
         g = { key, label: groupBy === 'reis' ? p.travelName : formatDay(key), items: [] };

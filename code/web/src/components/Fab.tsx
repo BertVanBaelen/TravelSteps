@@ -42,8 +42,8 @@ export function Fab({ icon, label, to, onClick, secondary = false, extended = fa
 }
 
 /** Bottom-right stack of floating action buttons, above the bottom navigation. Main action last. */
-export function FabStack({ children }: { children: ReactNode }) {
-  return <div className="fab-stack">{children}</div>;
+export function FabStack({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={`fab-stack${className ? ` ${className}` : ''}`}>{children}</div>;
 }
 
 export interface FabAction {
